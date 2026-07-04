@@ -66,6 +66,7 @@ class TransactionController extends Controller
             'folderTree' => Folder::scopedTree($departmentIds, activeOnly: true),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
             'initialStatus' => $initialStatus,
+            'workflow' => TransactionStatus::workflowSequence(),
             'defaultDepartmentId' => $user->department_id,
             'referenceSettings' => ReferenceNumberSetting::instance(),
             'referenceFormConfig' => $referenceNumbers->formConfig($user),
