@@ -70,6 +70,28 @@ class DocumentController extends Controller
         return view('documents.show', compact('attachment'));
     }
 
+    public function preview(TransactionAttachment $attachment)
+    {
+        $this->authorizeAttachmentAccess($attachment);
+
+        $path = $attachment->effectiveFilePath();
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            abort(404);
+        }
+
+        $kind = $attachment->fileKind();
+
+        if ($kind !== 'image' && $kind !== 'pdf') {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('local')->path($path), [
+            'Content-Type' => $attachment->effectiveMimeType() ?? 'application/octet-stream',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
     public function download(TransactionAttachment $attachment): StreamedResponse|RedirectResponse
     {
         $this->authorizeAttachmentAccess($attachment);

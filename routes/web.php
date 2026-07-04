@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:documents.view')->group(function () {
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+        Route::get('documents/{attachment}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
         Route::get('documents/{attachment}', [DocumentController::class, 'show'])->name('documents.show');
     });
 
@@ -110,8 +111,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions/{transaction}/attachments/{attachment}/download', [TransactionAttachmentController::class, 'download'])
+            ->middleware('permission:documents.download')
             ->name('transactions.attachments.download');
         Route::get('transactions/{transaction}/attachments/{attachment}/preview', [TransactionAttachmentController::class, 'preview'])
+            ->middleware('permission:documents.view')
             ->name('transactions.attachments.preview');
     });
 

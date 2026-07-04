@@ -10,7 +10,7 @@
     </div>
 @endif
 
-@if ($errors->any())
+@if ($errors->any() && ! request()->routeIs('transactions.create'))
     <div class="alert alert-error">
         <ul style="margin:0; padding-right:1.25rem;">
             @foreach ($errors->all() as $error)

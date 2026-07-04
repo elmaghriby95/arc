@@ -2,7 +2,11 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <a href="{{ route('documents.index') }}" class="settings-back-link">← العودة للوثائق</a>
+                @if (request('from') === 'transaction' && auth()->user()?->hasPermission('transactions.view'))
+                    <a href="{{ route('transactions.show', $attachment->transaction) }}" class="settings-back-link">← العودة للمعاملة</a>
+                @else
+                    <a href="{{ route('documents.index') }}" class="settings-back-link">← العودة للوثائق</a>
+                @endif
                 <h2 class="page-title">{{ $attachment->displayName() }}</h2>
             </div>
             <div class="form-actions">
@@ -18,6 +22,29 @@
 
     <div class="container">
         <x-flash-messages />
+
+        @if ($attachment->fileExists())
+            <div class="card doc-preview-card">
+                <div class="card-header">
+                    <h3 class="card-title">معاينة المستند</h3>
+                </div>
+                <div class="card-body doc-preview-body">
+                    @if ($attachment->isImage())
+                        <img src="{{ route('documents.preview', $attachment) }}" alt="{{ $attachment->displayName() }}" class="doc-preview-image">
+                    @elseif ($attachment->fileKind() === 'pdf')
+                        <iframe src="{{ route('documents.preview', $attachment) }}" title="{{ $attachment->displayName() }}" class="doc-preview-frame"></iframe>
+                    @else
+                        <div class="doc-preview-fallback">
+                            <x-transaction-file-icon :kind="$attachment->fileKind()" />
+                            <p>المعاينة غير متاحة لهذا النوع من الملفات.</p>
+                            @permission('documents.download')
+                                <a href="{{ route('documents.download', $attachment) }}" class="btn btn-secondary btn-sm">تحميل الملف</a>
+                            @endpermission
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         <div class="card">
             <div class="card-header">

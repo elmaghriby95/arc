@@ -202,6 +202,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const folderSelected = document.querySelector('[data-folder-selected]');
+    const folderSelectedName = document.querySelector('[data-folder-selected-name]');
+
+    const updateFolderSelected = (name) => {
+        if (! folderSelected || ! folderSelectedName) {
+            return;
+        }
+
+        if (name) {
+            folderSelected.classList.remove('is-empty');
+            folderSelectedName.textContent = name;
+        } else {
+            folderSelected.classList.add('is-empty');
+            folderSelectedName.textContent = '—';
+        }
+    };
+
     const filterFoldersByDepartment = () => {
         const departmentId = departmentSelect?.value;
 
@@ -218,9 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.remove('is-selected');
                 btn.setAttribute('aria-selected', 'false');
             });
-            if (folderHint) {
-                folderHint.textContent = 'اختر مجلداً لحفظ المعاملة ومستنداتها.';
-            }
+            updateFolderSelected(null);
         }
     };
 
@@ -241,10 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             button.classList.add('is-selected');
             button.setAttribute('aria-selected', 'true');
-
-            if (folderHint) {
-                folderHint.innerHTML = `المحدد: <strong>${node.dataset.folderName}</strong>`;
-            }
+            updateFolderSelected(node.dataset.folderName);
         });
     });
 
@@ -263,6 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     departmentSelect?.addEventListener('change', filterFoldersByDepartment);
     filterFoldersByDepartment();
+
+    const initialSelected = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
+
+    if (initialSelected) {
+        updateFolderSelected(initialSelected.dataset.folderName);
+    }
 
     transactionTypeSelect?.addEventListener('change', () => {
         selectedTypeCode();

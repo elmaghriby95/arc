@@ -39,15 +39,21 @@
             @forelse ($transaction->attachments as $attachment)
                 <article class="txn-attachment-card txn-attachment-card--{{ $attachment->fileKind() }}">
                     <div class="txn-attachment-preview">
-                        @if ($attachment->isImage() && $attachment->fileExists())
-                            <a href="{{ route('transactions.attachments.preview', [$transaction, $attachment]) }}" target="_blank" class="txn-attachment-thumb">
-                                <img src="{{ route('transactions.attachments.preview', [$transaction, $attachment]) }}" alt="{{ $attachment->displayName() }}" loading="lazy">
-                            </a>
+                        @permission('documents.view')
+                            @if ($attachment->isImage() && $attachment->fileExists())
+                                <a href="{{ route('documents.show', ['attachment' => $attachment, 'from' => 'transaction']) }}" class="txn-attachment-thumb">
+                                    <img src="{{ route('documents.preview', $attachment) }}" alt="{{ $attachment->displayName() }}" loading="lazy">
+                                </a>
+                            @else
+                                <a href="{{ route('documents.show', ['attachment' => $attachment, 'from' => 'transaction']) }}" class="txn-attachment-icon-wrap txn-attachment-icon-wrap--link">
+                                    <x-transaction-file-icon :kind="$attachment->fileKind()" />
+                                </a>
+                            @endif
                         @else
                             <div class="txn-attachment-icon-wrap">
                                 <x-transaction-file-icon :kind="$attachment->fileKind()" />
                             </div>
-                        @endif
+                        @endpermission
                     </div>
                     <div class="txn-attachment-body">
                         <h4 class="txn-attachment-name" title="{{ $attachment->displayName() }}">{{ $attachment->displayName() }}</h4>
@@ -64,13 +70,15 @@
                         </div>
                         <div class="txn-attachment-actions">
                             @permission('documents.view')
-                                <a href="{{ route('documents.show', $attachment) }}" class="txn-attachment-action" title="عرض">
+                                <a href="{{ route('documents.show', ['attachment' => $attachment, 'from' => 'transaction']) }}" class="txn-attachment-action" title="عرض">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                                 </a>
                             @endpermission
-                            <a href="{{ route('transactions.attachments.download', [$transaction, $attachment]) }}" class="txn-attachment-action" title="تحميل">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
-                            </a>
+                            @permission('documents.download')
+                                <a href="{{ route('documents.download', $attachment) }}" class="txn-attachment-action" title="تحميل">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
+                                </a>
+                            @endpermission
                             @if ($canManageAttachments)
                                 <form method="POST" action="{{ route('transactions.attachments.destroy', [$transaction, $attachment]) }}" onsubmit="return confirm('حذف هذا المرفق؟')">
                                     @csrf

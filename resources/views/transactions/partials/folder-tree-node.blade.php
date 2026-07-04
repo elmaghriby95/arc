@@ -14,7 +14,10 @@
             data-folder-select
             role="treeitem"
             aria-selected="{{ $isSelected ? 'true' : 'false' }}">
-        <span class="txn-folder-node-icon" @if($folder->color) style="color: {{ $folder->color }};" @endif aria-hidden="true">
+        <span class="txn-folder-node-check" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+        <span class="txn-folder-node-icon" @if($folder->color) style="--folder-color: {{ $folder->color }};" @endif aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h5l2 2h9a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
         </span>
         <span class="txn-folder-node-label">{{ $folder->name }}</span>
