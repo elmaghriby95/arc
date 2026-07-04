@@ -8,6 +8,13 @@
         </div>
     </x-slot>
 
+    @once
+        @php($txCreateCss = resource_path('css/transaction-create.css'))
+        @if (is_readable($txCreateCss))
+            <style>{!! file_get_contents($txCreateCss) !!}</style>
+        @endif
+    @endonce
+
     <div class="txnw-page">
         <div class="txnw-wrap">
             @if (! $initialStatus)
@@ -209,4 +216,10 @@
         </div>
     </div>
 
+    @once
+        @php($txCreateJs = resource_path('js/transaction-create.js'))
+        @if (is_readable($txCreateJs))
+            <script>{!! file_get_contents($txCreateJs) !!}</script>
+        @endif
+    @endonce
 </x-app-layout>
