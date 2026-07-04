@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
-use App\Models\Document;
 use App\Models\Folder;
 use App\Models\Transaction;
 use App\Models\TransactionStatus;

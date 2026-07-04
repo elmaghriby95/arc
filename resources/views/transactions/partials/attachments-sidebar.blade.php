@@ -3,13 +3,8 @@
         <div class="txn-sidebar-header">
             <div>
                 <h3 class="txn-sidebar-title">مستندات المعاملة</h3>
-                <p class="txn-sidebar-subtitle">{{ $transaction->attachments->count() }} مرفق</p>
+                <p class="txn-sidebar-subtitle">{{ $transaction->attachments->count() }} مستند</p>
             </div>
-            @if ($canManageAttachments)
-                <button type="button" class="btn btn-secondary btn-sm" data-modal-open="link-document" title="ربط من الأرشيف">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                </button>
-            @endif
         </div>
 
         @if ($canManageAttachments)
@@ -58,11 +53,13 @@
                         <h4 class="txn-attachment-name" title="{{ $attachment->displayName() }}">{{ $attachment->displayName() }}</h4>
                         <div class="txn-attachment-meta">
                             <span>{{ $attachment->formattedSize() }}</span>
-                            @if ($attachment->isFromArchive())
-                                <span class="txn-attachment-badge">من الأرشيف</span>
-                            @endif
                         </div>
                         <div class="txn-attachment-actions">
+                            @permission('documents.view')
+                                <a href="{{ route('documents.show', $attachment) }}" class="txn-attachment-action" title="عرض">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </a>
+                            @endpermission
                             <a href="{{ route('transactions.attachments.download', [$transaction, $attachment]) }}" class="txn-attachment-action" title="تحميل">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
                             </a>
@@ -83,49 +80,10 @@
                     <x-transaction-file-icon kind="file" />
                     <p>لا توجد مستندات مرفقة بعد</p>
                     @if ($canManageAttachments)
-                        <small>ارفع ملفات أو اربط مستنداً من الأرشيف</small>
+                        <small>ارفع الملفات المطلوبة للمعاملة</small>
                     @endif
                 </div>
             @endforelse
         </div>
     </div>
 </aside>
-
-@if ($canManageAttachments)
-    <div class="modal" id="modal-link-document">
-        <div class="modal-backdrop" data-modal-close></div>
-        <div class="modal-dialog modal-dialog-lg">
-            <div class="modal-content txn-link-modal">
-                <div class="modal-header">
-                    <h3 class="modal-title">ربط مستند من الأرشيف</h3>
-                    <button type="button" class="modal-close" data-modal-close aria-label="إغلاق">&times;</button>
-                </div>
-                <form method="POST" action="{{ route('transactions.attachments.link', $transaction) }}">
-                    @csrf
-                    <div class="modal-body">
-                        @if ($availableDocuments->isEmpty())
-                            <p class="text-muted">لا توجد وثائق متاحة للربط في نطاقك التنظيمي.</p>
-                        @else
-                            <div class="form-group">
-                                <x-input-label for="document_id" value="اختر وثيقة من الأرشيف" />
-                                <select id="document_id" name="document_id" class="form-select" required>
-                                    <option value="">— اختر —</option>
-                                    @foreach ($availableDocuments as $document)
-                                        <option value="{{ $document->id }}">{{ $document->title }} ({{ $document->reference_number }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <p class="form-hint">تظهر الوثائق ضمن نفس الهيكل التنظيمي فقط</p>
-                        @endif
-                    </div>
-                    @if ($availableDocuments->isNotEmpty())
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
-                            <x-primary-button>ربط المستند</x-primary-button>
-                        </div>
-                    @endif
-                </form>
-            </div>
-        </div>
-    </div>
-@endif

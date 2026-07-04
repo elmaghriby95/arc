@@ -26,7 +26,6 @@
             @include('transactions.partials.attachments-sidebar', [
                 'transaction' => $transaction,
                 'canManageAttachments' => $canManageAttachments,
-                'availableDocuments' => $availableDocuments,
             ])
 
             <div class="txn-main">

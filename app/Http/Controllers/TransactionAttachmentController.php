@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Document;
 use App\Models\TransactionAttachment;
 use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
@@ -51,39 +50,6 @@ class TransactionAttachmentController extends Controller
         return redirect()
             ->route('transactions.show', $transaction)
             ->with('success', 'تم رفع المستندات بنجاح.');
-    }
-
-    public function storeLink(Request $request, Transaction $transaction): RedirectResponse
-    {
-        $this->authorizeAccess($transaction);
-        $this->authorizeMutation($transaction);
-
-        $validated = $request->validate([
-            'document_id' => ['required', 'exists:documents,id'],
-        ]);
-
-        $document = Document::findOrFail($validated['document_id']);
-
-        if (! $request->user()->canAccessDocument($document)) {
-            return back()->withErrors(['document_id' => 'لا يمكنك ربط هذا المستند.']);
-        }
-
-        if ($transaction->attachments()->where('document_id', $document->id)->exists()) {
-            return back()->with('error', 'هذا المستند مرتبط بالمعاملة مسبقاً.');
-        }
-
-        $sortOrder = (int) $transaction->attachments()->max('sort_order') + 1;
-
-        $transaction->attachments()->create([
-            'document_id' => $document->id,
-            'title' => $document->title,
-            'uploaded_by' => $request->user()->id,
-            'sort_order' => $sortOrder,
-        ]);
-
-        return redirect()
-            ->route('transactions.show', $transaction)
-            ->with('success', 'تم ربط المستند من الأرشيف بنجاح.');
     }
 
     public function destroy(Transaction $transaction, TransactionAttachment $attachment): RedirectResponse

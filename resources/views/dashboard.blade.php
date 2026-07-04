@@ -10,21 +10,23 @@
                     @endif
                 </p>
             </div>
-            <a href="{{ route('documents.create') }}" class="btn btn-primary btn-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                إضافة وثيقة
-            </a>
+            @permission('transactions.create')
+                <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                    إنشاء معاملة
+                </a>
+            @endpermission
         </div>
     </x-slot>
 
     <div class="dashboard-hero">
         <div class="dashboard-hero-content">
             <h2>منظومة الأرشفة الإلكترونية</h2>
-            <p>إدارة مركزية للوثائق مع بحث سريع، تصنيف ذكي، وتتبع كامل للإصدارات.</p>
+            <p>إدارة المعاملات ومستنداتها المرفقة مع بحث سريع وتتبع سير العمل.</p>
         </div>
         <div class="dashboard-hero-badge">
             <span>{{ $stats['documents'] }}</span>
-            <small>وثيقة مؤرشفة</small>
+            <small>مستند مرفق</small>
         </div>
     </div>
 
@@ -76,41 +78,43 @@
         <div class="card-header">
             <div>
                 <h3 class="card-title">أحدث الوثائق</h3>
-                <p class="card-subtitle">آخر الوثائق المضافة إلى النظام</p>
+                <p class="card-subtitle">آخر المستندات المرفقة بالمعاملات</p>
             </div>
             <a href="{{ route('documents.index') }}" class="btn btn-secondary btn-sm">عرض الكل</a>
         </div>
         <div class="card-body card-body-flush">
-            @if ($recentDocuments->isEmpty())
+            @if ($recentAttachments->isEmpty())
                 <div class="empty-state">
                     <div class="empty-state-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
                     </div>
-                    <p>لا توجد وثائق بعد. ابدأ برفع أول وثيقة.</p>
-                    <a href="{{ route('documents.create') }}" class="btn btn-primary">إضافة وثيقة</a>
+                    <p>لا توجد مستندات بعد. أنشئ معاملة وارفع المستندات المطلوبة.</p>
+                    @permission('transactions.create')
+                        <a href="{{ route('transactions.create') }}" class="btn btn-primary">إنشاء معاملة</a>
+                    @endpermission
                 </div>
             @else
                 <div class="table-wrapper">
                     <table class="table table-modern">
                         <thead>
                             <tr>
-                                <th>الرقم المرجعي</th>
-                                <th>العنوان</th>
+                                <th>المستند</th>
+                                <th>المعاملة</th>
                                 <th>القسم</th>
-                                <th>الحالة</th>
                                 <th>التاريخ</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($recentDocuments as $document)
+                            @foreach ($recentAttachments as $attachment)
                                 <tr>
                                     <td>
-                                        <a href="{{ route('documents.show', $document) }}" class="ref-pill">{{ $document->reference_number }}</a>
+                                        <a href="{{ route('documents.show', $attachment) }}" class="table-title">{{ $attachment->displayName() }}</a>
                                     </td>
-                                    <td class="table-title">{{ $document->title }}</td>
-                                    <td>{{ $document->department?->name ?? '—' }}</td>
-                                    <td><x-status-badge :status="$document->status" /></td>
-                                    <td class="text-muted">{{ $document->created_at->format('Y-m-d') }}</td>
+                                    <td>
+                                        <a href="{{ route('transactions.show', $attachment->transaction) }}" class="ref-pill">{{ $attachment->transaction->reference_number }}</a>
+                                    </td>
+                                    <td>{{ $attachment->transaction->department?->name ?? '—' }}</td>
+                                    <td class="text-muted">{{ $attachment->created_at->format('Y-m-d') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

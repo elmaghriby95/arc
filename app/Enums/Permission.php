@@ -99,7 +99,7 @@ enum Permission: string
         return match ($this) {
             self::DashboardView => 'عرض لوحة التحكم',
 
-            self::DocumentsView => 'عرض الوثائق',
+            self::DocumentsView => 'عرض الوثائق (مستندات المعاملات)',
             self::DocumentsCreate => 'إضافة وثيقة',
             self::DocumentsEdit => 'تعديل وثيقة',
             self::DocumentsDelete => 'حذف وثيقة',

@@ -3,12 +3,12 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">الوثائق</h1>
-                <p class="page-subtitle">إدارة وبحث جميع الوثائق المؤرشفة</p>
+                <p class="page-subtitle">المستندات المرفقة بالمعاملات في نطاقك التنظيمي</p>
             </div>
-            @permission('documents.create')
-                <a href="{{ route('documents.create') }}" class="btn btn-primary btn-lg">
+            @permission('transactions.create')
+                <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                    إضافة وثيقة
+                    إنشاء معاملة
                 </a>
             @endpermission
         </div>
@@ -18,14 +18,14 @@
         <div class="card-header">
             <div>
                 <h3 class="card-title">تصفية البحث</h3>
-                <p class="card-subtitle">ابحث وفلتر الوثائق حسب القسم والتصنيف والحالة</p>
+                <p class="card-subtitle">ابحث في المستندات أو المعاملات المرتبطة بها</p>
             </div>
         </div>
         <div class="card-body">
             <form method="GET" class="form-grid">
                 <div class="form-group">
                     <x-input-label for="search" value="بحث" />
-                    <x-text-input id="search" name="search" type="text" :value="request('search')" placeholder="العنوان أو الرقم المرجعي" />
+                    <x-text-input id="search" name="search" type="text" :value="request('search')" placeholder="اسم المستند أو عنوان المعاملة أو الرقم الإشاري" />
                 </div>
                 <div class="form-group">
                     <x-input-label for="department_id" value="الوحدة التنظيمية" />
@@ -35,24 +35,6 @@
                         'placeholder' => '— الكل —',
                         'showHint' => false,
                     ])
-                </div>
-                <div class="form-group">
-                    <x-input-label for="category_id" value="التصنيف" />
-                    <select id="category_id" name="category_id" class="form-select">
-                        <option value="">الكل</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>{{ $category->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group">
-                    <x-input-label for="status" value="الحالة" />
-                    <select id="status" name="status" class="form-select">
-                        <option value="">الكل</option>
-                        @foreach ($statuses as $status)
-                            <option value="{{ $status->value }}" @selected(request('status') == $status->value)>{{ $status->label() }}</option>
-                        @endforeach
-                    </select>
                 </div>
                 <div class="form-group" style="display:flex; align-items:flex-end;">
                     <x-primary-button>تصفية</x-primary-button>
@@ -65,7 +47,7 @@
         <div class="card-header">
             <div>
                 <h3 class="card-title">قائمة الوثائق</h3>
-                <p class="card-subtitle">{{ $documents->total() }} وثيقة</p>
+                <p class="card-subtitle">{{ $attachments->total() }} مستند مرفق بمعاملات</p>
             </div>
         </div>
         <div class="card-body card-body-flush">
@@ -73,34 +55,41 @@
                 <table class="table table-modern">
                     <thead>
                         <tr>
-                            <th>الرقم المرجعي</th>
-                            <th>العنوان</th>
+                            <th>المستند</th>
+                            <th>المعاملة</th>
                             <th>القسم</th>
-                            <th>التصنيف</th>
-                            <th>الحالة</th>
+                            <th>نوع الملف</th>
+                            <th>رفع بواسطة</th>
+                            <th>التاريخ</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($documents as $document)
+                        @forelse ($attachments as $attachment)
                             <tr>
-                                <td><a href="{{ route('documents.show', $document) }}" class="ref-pill">{{ $document->reference_number }}</a></td>
-                                <td class="table-title">{{ $document->title }}</td>
-                                <td>{{ $document->department?->name ?? '—' }}</td>
-                                <td>{{ $document->category?->name ?? '—' }}</td>
-                                <td><x-status-badge :status="$document->status" /></td>
+                                <td class="table-title">{{ $attachment->displayName() }}</td>
+                                <td>
+                                    <a href="{{ route('transactions.show', $attachment->transaction) }}" class="ref-pill">{{ $attachment->transaction->reference_number }}</a>
+                                </td>
+                                <td>{{ $attachment->transaction->department?->name ?? '—' }}</td>
+                                <td>{{ strtoupper($attachment->fileKind()) }}</td>
+                                <td>{{ $attachment->uploader?->name ?? '—' }}</td>
+                                <td class="text-muted">{{ $attachment->created_at->format('Y-m-d') }}</td>
                                 <td class="table-actions">
-                                    <a href="{{ route('documents.show', $document) }}">عرض</a>
-                                    @permission('documents.edit')
-                                        <a href="{{ route('documents.edit', $document) }}">تعديل</a>
+                                    <a href="{{ route('documents.show', $attachment) }}">عرض</a>
+                                    @permission('documents.download')
+                                        <a href="{{ route('documents.download', $attachment) }}">تحميل</a>
                                     @endpermission
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6">
+                                <td colspan="7">
                                     <div class="empty-state" style="padding:2rem;">
-                                        <p class="text-muted">لا توجد وثائق مطابقة.</p>
+                                        <p class="text-muted">لا توجد مستندات مرفقة بمعاملات بعد.</p>
+                                        @permission('transactions.create')
+                                            <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-sm">إنشاء معاملة ورفع مستندات</a>
+                                        @endpermission
                                     </div>
                                 </td>
                             </tr>
@@ -108,7 +97,7 @@
                     </tbody>
                 </table>
             </div>
-            <div style="padding: 1rem 1.5rem;">{{ $documents->links() }}</div>
+            <div style="padding: 1rem 1.5rem;">{{ $attachments->links() }}</div>
         </div>
     </div>
 </x-app-layout>
