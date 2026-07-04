@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ config('app.name') }}</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+</head>
+<body>
+    <div class="guest-layout">
+        <div class="guest-card" style="text-align:center;">
+            <h1 class="page-title">{{ config('app.name') }}</h1>
+            <p class="text-muted">منظومة الأرشفة الإلكترونية</p>
+            <div class="form-actions" style="justify-content:center; margin-top:1.5rem;">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="btn btn-primary">لوحة التحكم</a>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-primary">تسجيل الدخول</a>
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="btn btn-secondary">إنشاء حساب</a>
+                    @endif
+                @endauth
+            </div>
+        </div>
+    </div>
+</body>
+</html>
