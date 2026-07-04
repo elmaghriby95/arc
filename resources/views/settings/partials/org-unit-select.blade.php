@@ -6,10 +6,11 @@
     'required' => false,
     'placeholder' => '— اختر موقعك في الهيكل التنظيمي —',
     'showHint' => true,
+    'selectClass' => 'form-select org-unit-select',
 ])
 
 <div class="org-unit-picker">
-    <select id="{{ $id }}" name="{{ $name }}" class="form-select org-unit-select" @if($required) required @endif>
+    <select id="{{ $id }}" name="{{ $name }}" class="{{ $selectClass }}" @if($required) required @endif>
         <option value="">{{ $placeholder }}</option>
         @foreach ($orgUnits as $unit)
             <option

@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\Folder;
+use App\Models\ReferenceNumberSetting;
 use App\Models\Transaction;
 use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Models\User;
+use App\Services\ReferenceNumberService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File;
 use Illuminate\View\View;
 
 class TransactionController extends Controller
@@ -51,21 +54,25 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request, ReferenceNumberService $referenceNumbers): View
     {
         $user = $request->user();
         $initialStatus = TransactionStatus::initial();
+        $departmentIds = $user->orgScopeDepartmentIds();
 
         return view('transactions.create', [
             'orgUnits' => $this->scopedOrgUnitOptions($user),
             'folders' => $this->scopedFolders($user),
+            'folderTree' => Folder::scopedTree($departmentIds, activeOnly: true),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
             'initialStatus' => $initialStatus,
             'defaultDepartmentId' => $user->department_id,
+            'referenceSettings' => ReferenceNumberSetting::instance(),
+            'referenceFormConfig' => $referenceNumbers->formConfig($user),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ReferenceNumberService $referenceNumbers): RedirectResponse
     {
         $initialStatus = TransactionStatus::initial();
 
@@ -80,9 +87,27 @@ class TransactionController extends Controller
             'description' => ['nullable', 'string'],
             'transaction_type_id' => ['nullable', 'exists:transaction_types,id'],
             'department_id' => ['required', 'exists:departments,id'],
-            'folder_id' => ['nullable', 'exists:folders,id'],
+            'folder_id' => ['required', 'exists:folders,id'],
             'transaction_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'files' => ['nullable', 'array'],
+            'files.*' => [
+                'file',
+                'max:20480',
+                File::types(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']),
+            ],
+            'titles' => ['nullable', 'array'],
+            'titles.*' => ['nullable', 'string', 'max:255'],
+            'reference_numbers' => ['nullable', 'array'],
+            'reference_numbers.*' => ['nullable', 'string', 'max:255'],
+            'reference_years' => ['nullable', 'array'],
+            'reference_years.*' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'reference_months' => ['nullable', 'array'],
+            'reference_months.*' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'original_document_numbers' => ['nullable', 'array'],
+            'original_document_numbers.*' => ['nullable', 'string', 'max:255'],
+            'use_operational' => ['nullable', 'array'],
+            'use_operational.*' => ['nullable', 'boolean'],
         ]);
 
         if (! $request->user()->canAccessDepartment($validated['department_id'])) {
@@ -91,10 +116,10 @@ class TransactionController extends Controller
                 ->withErrors(['department_id' => 'لا يمكنك إنشاء معاملة في هذه الوحدة التنظيمية.']);
         }
 
-        if (! empty($validated['folder_id']) && ! $this->folderBelongsToDepartment($validated['folder_id'], $validated['department_id'], $request->user())) {
+        if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user())) {
             return back()
                 ->withInput()
-                ->withErrors(['folder_id' => 'المجلد المحدد لا ينتمي لوحدتك التنظيمية.']);
+                ->withErrors(['folder_id' => $folderError]);
         }
 
         $transaction = Transaction::create([
@@ -103,7 +128,7 @@ class TransactionController extends Controller
             'description' => $validated['description'] ?? null,
             'transaction_type_id' => $validated['transaction_type_id'] ?? null,
             'department_id' => $validated['department_id'],
-            'folder_id' => $validated['folder_id'] ?? null,
+            'folder_id' => $validated['folder_id'],
             'transaction_status_id' => $initialStatus->id,
             'created_by' => $request->user()->id,
             'transaction_date' => $validated['transaction_date'] ?? null,
@@ -116,6 +141,49 @@ class TransactionController extends Controller
             'changed_by' => $request->user()->id,
             'notes' => 'إنشاء المعاملة',
         ]);
+
+        $department = Department::findOrFail($validated['department_id']);
+        $transactionType = isset($validated['transaction_type_id'])
+            ? TransactionType::find($validated['transaction_type_id'])
+            : null;
+
+        if (! empty($validated['files'])) {
+            $sortOrder = 0;
+
+            foreach ($validated['files'] as $index => $file) {
+                $sortOrder++;
+                $path = $file->store('transaction-attachments/'.$transaction->id, 'local');
+
+                $referenceData = $referenceNumbers->resolveForAttachment(
+                    [
+                        'reference_number' => $validated['reference_numbers'][$index] ?? null,
+                        'reference_year' => $validated['reference_years'][$index] ?? null,
+                        'reference_month' => $validated['reference_months'][$index] ?? null,
+                        'original_document_number' => $validated['original_document_numbers'][$index] ?? null,
+                        'use_operational' => $validated['use_operational'][$index] ?? false,
+                    ],
+                    $department,
+                    $transactionType,
+                    $request->user(),
+                );
+
+                $transaction->attachments()->create([
+                    'title' => $validated['titles'][$index] ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                    'reference_number' => $referenceData['reference_number'],
+                    'reference_year' => $referenceData['reference_year'],
+                    'reference_month' => $referenceData['reference_month'],
+                    'original_document_number' => $referenceData['original_document_number'],
+                    'is_operational_number' => $referenceData['is_operational_number'],
+                    'file_path' => $path,
+                    'file_name' => basename($path),
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                    'uploaded_by' => $request->user()->id,
+                    'sort_order' => $sortOrder,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('transactions.show', $transaction)
@@ -184,7 +252,7 @@ class TransactionController extends Controller
             'description' => ['nullable', 'string'],
             'transaction_type_id' => ['nullable', 'exists:transaction_types,id'],
             'department_id' => ['required', 'exists:departments,id'],
-            'folder_id' => ['nullable', 'exists:folders,id'],
+            'folder_id' => ['required', 'exists:folders,id'],
             'transaction_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -195,10 +263,10 @@ class TransactionController extends Controller
                 ->withErrors(['department_id' => 'لا يمكنك نقل المعاملة إلى هذه الوحدة التنظيمية.']);
         }
 
-        if (! empty($validated['folder_id']) && ! $this->folderBelongsToDepartment($validated['folder_id'], $validated['department_id'], $request->user())) {
+        if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user())) {
             return back()
                 ->withInput()
-                ->withErrors(['folder_id' => 'المجلد المحدد لا ينتمي لوحدتك التنظيمية.']);
+                ->withErrors(['folder_id' => $folderError]);
         }
 
         $transaction->update([
@@ -206,7 +274,7 @@ class TransactionController extends Controller
             'description' => $validated['description'] ?? null,
             'transaction_type_id' => $validated['transaction_type_id'] ?? null,
             'department_id' => $validated['department_id'],
-            'folder_id' => $validated['folder_id'] ?? null,
+            'folder_id' => $validated['folder_id'],
             'transaction_date' => $validated['transaction_date'] ?? null,
             'notes' => $validated['notes'] ?? null,
         ]);
@@ -289,15 +357,23 @@ class TransactionController extends Controller
             ->get();
     }
 
-    private function folderBelongsToDepartment(int $folderId, int $departmentId, User $user): bool
+    private function validateTransactionFolder(int $folderId, int $departmentId, User $user): ?string
     {
         $folder = Folder::find($folderId);
 
-        if (! $folder || ! $user->canAccessFolder($folder)) {
-            return false;
+        if (! $folder || ! $folder->is_active) {
+            return 'المجلد المحدد غير متاح.';
         }
 
-        return $folder->department_id === $departmentId;
+        if (! $user->canAccessFolder($folder)) {
+            return 'المجلد المحدد غير متاح ضمن نطاقك التنظيمي.';
+        }
+
+        if ($folder->department_id !== $departmentId) {
+            return 'المجلد المحدد لا ينتمي للوحدة التنظيمية المختارة.';
+        }
+
+        return null;
     }
 
     private function authorizeTransactionAccess(Transaction $transaction): void

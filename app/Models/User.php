@@ -48,6 +48,27 @@ class User extends Authenticatable
         return $this->role?->hasPermission($permission) ?? false;
     }
 
+    public function homeUrl(): string
+    {
+        $routes = [
+            'dashboard.view' => 'dashboard',
+            'transactions.view' => 'transactions.index',
+            'documents.view' => 'documents.index',
+            'departments.view' => 'departments.index',
+            'categories.view' => 'categories.index',
+            'settings.view' => 'settings.index',
+            'profile.view' => 'profile.edit',
+        ];
+
+        foreach ($routes as $permission => $route) {
+            if ($this->hasPermission($permission)) {
+                return route($route, absolute: false);
+            }
+        }
+
+        abort(403, 'لا تملك صلاحية الوصول إلى أي صفحة في النظام. تواصل مع مدير النظام.');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role?->slug === 'admin';

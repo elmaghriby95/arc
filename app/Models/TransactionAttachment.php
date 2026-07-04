@@ -12,6 +12,11 @@ class TransactionAttachment extends Model
         'transaction_id',
         'document_id',
         'title',
+        'reference_number',
+        'reference_year',
+        'reference_month',
+        'original_document_number',
+        'is_operational_number',
         'file_path',
         'file_name',
         'original_name',
@@ -20,6 +25,13 @@ class TransactionAttachment extends Model
         'uploaded_by',
         'sort_order',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_operational_number' => 'boolean',
+        ];
+    }
 
     public function transaction(): BelongsTo
     {

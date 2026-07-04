@@ -35,15 +35,10 @@
                                 'selected' => old('department_id', $transaction->department_id),
                             ])
                         </div>
-                        <div class="form-group">
-                            <x-input-label for="folder_id" value="المجلد" />
-                            <select id="folder_id" name="folder_id" class="form-select">
-                                <option value="">—</option>
-                                @foreach ($folders as $folder)
-                                    <option value="{{ $folder->id }}" @selected(old('folder_id', $transaction->folder_id) == $folder->id)>{{ $folder->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        @include('transactions.partials.folder-select', [
+                            'folders' => $folders,
+                            'selected' => old('folder_id', $transaction->folder_id),
+                        ])
                     </div>
 
                     <div class="form-grid">

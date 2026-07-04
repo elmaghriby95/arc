@@ -43,10 +43,15 @@ class Folder extends Model
     }
 
     /** @param list<int>|null $departmentIds null = unrestricted (admin) */
-    public static function scopedTree(?array $departmentIds): Collection
+    public static function scopedTree(?array $departmentIds, bool $activeOnly = false): Collection
     {
-        $folders = static::scopedQuery($departmentIds)
-            ->with('department')
+        $query = static::scopedQuery($departmentIds)->with('department');
+
+        if ($activeOnly) {
+            $query->where('is_active', true);
+        }
+
+        $folders = $query
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();

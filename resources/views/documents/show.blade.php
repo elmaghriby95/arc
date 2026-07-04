@@ -26,6 +26,7 @@
             <div class="card-body">
                 <dl class="dl-grid">
                     <div><dt>اسم الملف</dt><dd>{{ $attachment->effectiveFileName() ?? '—' }}</dd></div>
+                    <div><dt>الرقم الإشاري</dt><dd><code class="txn-ref">{{ $attachment->reference_number ?? $attachment->transaction->reference_number }}</code></dd></div>
                     <div><dt>نوع الملف</dt><dd>{{ strtoupper($attachment->fileKind()) }}</dd></div>
                     <div><dt>حجم الملف</dt><dd>{{ $attachment->formattedSize() }}</dd></div>
                     <div><dt>رفع بواسطة</dt><dd>{{ $attachment->uploader?->name ?? '—' }}</dd></div>

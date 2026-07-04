@@ -35,7 +35,7 @@ class RoleManagementController extends Controller
             'name' => $request->string('name'),
             'slug' => $slug,
             'description' => $request->string('description'),
-            'permissions' => $request->input('permissions', []),
+            'permissions' => Role::normalizePermissions($request->input('permissions', [])),
             'is_system' => false,
         ]);
 
@@ -57,7 +57,7 @@ class RoleManagementController extends Controller
         $role->update([
             'name' => $request->string('name'),
             'description' => $request->string('description'),
-            'permissions' => $request->input('permissions', []),
+            'permissions' => Role::normalizePermissions($request->input('permissions', [])),
         ]);
 
         return redirect()

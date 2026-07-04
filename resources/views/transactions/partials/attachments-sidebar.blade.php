@@ -51,6 +51,14 @@
                     </div>
                     <div class="txn-attachment-body">
                         <h4 class="txn-attachment-name" title="{{ $attachment->displayName() }}">{{ $attachment->displayName() }}</h4>
+                        @if ($attachment->reference_number)
+                            <div class="txn-attachment-ref">
+                                <code>{{ $attachment->reference_number }}</code>
+                                @if ($attachment->is_operational_number)
+                                    <span class="txn-attachment-ref-tag">تشغيلي</span>
+                                @endif
+                            </div>
+                        @endif
                         <div class="txn-attachment-meta">
                             <span>{{ $attachment->formattedSize() }}</span>
                         </div>

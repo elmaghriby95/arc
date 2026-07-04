@@ -67,6 +67,48 @@
         </div>
 
         <div class="navbar-end">
+            <div class="dropdown navbar-notifications" data-dropdown>
+                <button type="button" class="navbar-notifications-btn" data-dropdown-toggle aria-haspopup="true" aria-expanded="false" aria-label="الإشعارات">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
+                    </svg>
+                    @if (($navbarUnreadCount ?? 0) > 0)
+                        <span class="navbar-notifications-badge">{{ $navbarUnreadCount > 99 ? '99+' : $navbarUnreadCount }}</span>
+                    @endif
+                </button>
+                <div class="dropdown-menu navbar-notifications-menu">
+                    <div class="navbar-notifications-header">
+                        <strong>الإشعارات</strong>
+                        @if (($navbarUnreadCount ?? 0) > 0)
+                            <form method="POST" action="{{ route('notifications.read-all') }}">
+                                @csrf
+                                <button type="submit" class="navbar-notifications-mark-all">تعليم الكل كمقروء</button>
+                            </form>
+                        @endif
+                    </div>
+                    <div class="navbar-notifications-list">
+                        @forelse ($navbarNotifications ?? [] as $notification)
+                            @php
+                                $data = $notification->data;
+                                $isUnread = $notification->read_at === null;
+                            @endphp
+                            <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="navbar-notification-item {{ $isUnread ? 'is-unread' : '' }}">
+                                @csrf
+                                <button type="submit" class="navbar-notification-link">
+                                    <span class="navbar-notification-message">{{ $data['message'] ?? '' }}</span>
+                                    <span class="navbar-notification-meta">
+                                        <span class="navbar-notification-ref">{{ $data['reference_number'] ?? '' }}</span>
+                                        <time datetime="{{ $notification->created_at->toIso8601String() }}">{{ $notification->created_at->diffForHumans() }}</time>
+                                    </span>
+                                </button>
+                            </form>
+                        @empty
+                            <div class="navbar-notifications-empty">لا توجد إشعارات</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
             <div class="dropdown navbar-user" data-dropdown>
                 <button type="button" class="navbar-user-btn" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
                     <span class="navbar-user-avatar">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
