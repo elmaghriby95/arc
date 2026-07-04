@@ -149,7 +149,7 @@
                                 </div>
 
                                 <div class="txn-create-actions">
-                                    <x-primary-button @disabled($folders->isEmpty())>إنشاء المعاملة</x-primary-button>
+                                    <button type="submit" class="btn btn-primary" {{ $folders->isEmpty() ? 'disabled' : '' }}>إنشاء المعاملة</button>
                                     <a href="{{ route('transactions.index') }}" class="btn btn-secondary btn-sm">إلغاء</a>
                                 </div>
                             </div>
