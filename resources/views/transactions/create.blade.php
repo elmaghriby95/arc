@@ -157,10 +157,10 @@
                     </div>
                 </div>
             </form>
-
-            @push('scripts')
-                <script src="{{ asset('js/transaction-create.js') }}"></script>
-            @endpush
         @endif
     </div>
+
+    @push('scripts')
+        <script src="{{ asset('js/transaction-create.js') }}"></script>
+    @endpush
 </x-app-layout>
