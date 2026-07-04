@@ -8,10 +8,6 @@
         </div>
     </x-slot>
 
-    @push('styles')
-        <link rel="stylesheet" href="{{ asset('css/transaction-create.css') }}?v=3">
-    @endpush
-
     <div class="txnw-page">
         <div class="txnw-wrap">
             @if (! $initialStatus)
@@ -213,7 +209,4 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script src="{{ asset('js/transaction-create.js') }}?v=3"></script>
-    @endpush
 </x-app-layout>
