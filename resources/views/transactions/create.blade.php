@@ -11,7 +11,7 @@
     <div class="container txn-create-page">
         <x-flash-messages />
 
-        @unless ($initialStatus)
+        @if (! $initialStatus)
             <div class="alert alert-warning">
                 يجب إعداد <a href="{{ route('settings.transaction-statuses.index') }}">حالات المعاملات</a> في الإعدادات قبل إنشاء معاملة.
             </div>
@@ -157,10 +157,10 @@
                     </div>
                 </div>
             </form>
-        @endunless
-    </div>
 
-    @push('scripts')
-        <script src="{{ asset('js/transaction-create.js') }}"></script>
-    @endpush
+            @push('scripts')
+                <script src="{{ asset('js/transaction-create.js') }}"></script>
+            @endpush
+        @endif
+    </div>
 </x-app-layout>
