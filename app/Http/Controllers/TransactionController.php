@@ -64,6 +64,7 @@ class TransactionController extends Controller
             'orgUnits' => $this->scopedOrgUnitOptions($user),
             'folders' => $this->scopedFolders($user),
             'folderTree' => Folder::scopedTree($departmentIds, activeOnly: true),
+            'departmentBreadcrumbs' => Department::breadcrumbMap(),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
             'initialStatus' => $initialStatus,
             'workflow' => TransactionStatus::workflowSequence(),
@@ -370,7 +371,7 @@ class TransactionController extends Controller
             return 'المجلد المحدد غير متاح ضمن نطاقك التنظيمي.';
         }
 
-        if ($folder->department_id !== $departmentId) {
+        if ((int) $folder->department_id !== (int) $departmentId) {
             return 'المجلد المحدد لا ينتمي للوحدة التنظيمية المختارة.';
         }
 

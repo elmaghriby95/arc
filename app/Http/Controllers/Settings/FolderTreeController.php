@@ -33,7 +33,7 @@ class FolderTreeController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'parent_id' => ['nullable', 'exists:folders,id'],
-            'department_id' => ['nullable', 'exists:departments,id'],
+            'department_id' => ['required', 'exists:departments,id'],
             'description' => ['nullable', 'string'],
             'color' => ['nullable', 'string', 'max:20'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
@@ -45,9 +45,7 @@ class FolderTreeController extends Controller
             $this->authorizeFolderAccess($user, $parent);
         }
 
-        $departmentId = $validated['department_id']
-            ?? ($validated['parent_id'] ? Folder::find($validated['parent_id'])?->department_id : null)
-            ?? $user->department_id;
+        $departmentId = $validated['department_id'];
 
         if (! $user->canAccessDepartment($departmentId)) {
             return back()
@@ -75,7 +73,7 @@ class FolderTreeController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'parent_id' => ['nullable', 'exists:folders,id', 'not_in:'.$folder->id],
-            'department_id' => ['nullable', 'exists:departments,id'],
+            'department_id' => ['required', 'exists:departments,id'],
             'description' => ['nullable', 'string'],
             'color' => ['nullable', 'string', 'max:20'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
@@ -86,7 +84,7 @@ class FolderTreeController extends Controller
             $this->authorizeFolderAccess($user, Folder::findOrFail($validated['parent_id']));
         }
 
-        $departmentId = $validated['department_id'] ?? $folder->department_id;
+        $departmentId = $validated['department_id'];
 
         if (! $user->canAccessDepartment($departmentId)) {
             return back()

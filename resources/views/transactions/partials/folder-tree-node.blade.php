@@ -2,6 +2,7 @@
     'folder',
     'depth' => 0,
     'selected' => null,
+    'departmentBreadcrumbs' => [],
 ])
 
 @php
@@ -16,9 +17,17 @@
         <span class="txnw-folder-radio" aria-hidden="true"></span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ $folder->color ?? '#6366f1' }}" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h5l2 2h9a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
         <span class="txnw-folder-name">{{ $folder->name }}</span>
+        @if ($folder->department_id && isset($departmentBreadcrumbs[$folder->department_id]))
+            <span class="txnw-folder-unit">{{ $departmentBreadcrumbs[$folder->department_id] }}</span>
+        @endif
     </button>
 
     @foreach ($folder->children as $child)
-        @include('transactions.partials.folder-tree-node', ['folder' => $child, 'depth' => $depth + 1, 'selected' => $selected])
+        @include('transactions.partials.folder-tree-node', [
+            'folder' => $child,
+            'depth' => $depth + 1,
+            'selected' => $selected,
+            'departmentBreadcrumbs' => $departmentBreadcrumbs,
+        ])
     @endforeach
 </div>

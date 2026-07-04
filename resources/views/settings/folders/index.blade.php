@@ -47,7 +47,9 @@
                                 'selected' => old('department_id'),
                                 'placeholder' => '— اختر الوحدة التنظيمية —',
                                 'showHint' => false,
+                                'required' => true,
                             ])
+                            <p class="form-hint">يجب أن تطابق الوحدة المختارة هنا الوحدة التي ستُحدَّد عند إنشاء المعاملة.</p>
                             @error('department_id')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                         <div class="form-group">

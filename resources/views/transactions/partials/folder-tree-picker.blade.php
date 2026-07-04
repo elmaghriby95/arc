@@ -2,6 +2,7 @@
     'folders',
     'folderTree',
     'selected' => null,
+    'departmentBreadcrumbs' => [],
 ])
 
 <div class="txnw-folder-picker" data-folder-picker>
@@ -18,7 +19,12 @@
         </div>
         <div class="txnw-folder-list" data-folder-tree>
             @foreach ($folderTree as $folder)
-                @include('transactions.partials.folder-tree-node', ['folder' => $folder, 'depth' => 0, 'selected' => old('folder_id', $selected)])
+                @include('transactions.partials.folder-tree-node', [
+                    'folder' => $folder,
+                    'depth' => 0,
+                    'selected' => old('folder_id', $selected),
+                    'departmentBreadcrumbs' => $departmentBreadcrumbs,
+                ])
             @endforeach
         </div>
     @endif

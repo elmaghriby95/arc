@@ -470,6 +470,16 @@ select.txnw-input {
     white-space: nowrap;
 }
 
+.txnw-folder-unit {
+    flex: 0 1 auto;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    color: #64748b;
+}
+
 /* Upload */
 .txnw-upload {
     border: 2px dashed #a5b4fc;

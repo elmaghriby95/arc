@@ -70,6 +70,7 @@
                             'selected' => $folder->department_id,
                             'placeholder' => '— اختر الوحدة التنظيمية —',
                             'showHint' => false,
+                            'required' => true,
                         ])
                     </div>
                     <div class="form-grid">

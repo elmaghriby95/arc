@@ -234,13 +234,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const deptId = departmentSelect?.value;
 
         folderPicker?.querySelectorAll('[data-folder-node]').forEach((node) => {
-            node.classList.toggle('is-hidden', deptId && node.dataset.department !== deptId);
+            const folderDept = node.dataset.department || '';
+            const matches = ! deptId || (folderDept !== '' && folderDept === deptId);
+            node.classList.toggle('is-hidden', ! matches);
         });
 
-        if (folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]')?.classList.contains('is-hidden')) {
+        const selectedNode = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
+
+        if (selectedNode?.classList.contains('is-hidden')) {
             folderInput.value = '';
-            folderPicker.querySelectorAll('[data-folder-select]').forEach((b) => b.classList.remove('is-selected'));
+            folderPicker.querySelectorAll('[data-folder-select]').forEach((b) => {
+                b.classList.remove('is-selected');
+                b.setAttribute('aria-pressed', 'false');
+            });
             updateFolderSelected(null);
+        }
+    };
+
+    const syncDepartmentFromFolder = (node) => {
+        const folderDeptId = node?.dataset.department;
+
+        if (! folderDeptId || ! departmentSelect) {
+            return;
+        }
+
+        if (departmentSelect.value !== folderDeptId) {
+            departmentSelect.value = folderDeptId;
+            filterFolders();
         }
     };
 
@@ -259,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             btn.classList.add('is-selected');
             btn.setAttribute('aria-pressed', 'true');
+            syncDepartmentFromFolder(node);
             updateFolderSelected(node.dataset.folderName);
             btn.closest('.txnw-box')?.classList.remove('txnw-box--error');
         });
@@ -269,9 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const deptId = departmentSelect?.value;
 
         folderPicker?.querySelectorAll('[data-folder-node]').forEach((node) => {
-            const match = ! q || (node.dataset.folderName || '').toLowerCase().includes(q);
-            const dept = ! deptId || node.dataset.department === deptId;
-            node.classList.toggle('is-hidden', ! (match && dept));
+            const name = (node.dataset.folderName || '').toLowerCase();
+            const folderDept = node.dataset.department || '';
+            const searchMatch = ! q || name.includes(q);
+            const deptMatch = ! deptId || (folderDept !== '' && folderDept === deptId);
+            node.classList.toggle('is-hidden', ! (searchMatch && deptMatch));
         });
     });
 
@@ -281,8 +304,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const init = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
 
     if (init) {
+        syncDepartmentFromFolder(init);
         updateFolderSelected(init.dataset.folderName);
     }
+
+    form.addEventListener('submit', (event) => {
+        const deptId = departmentSelect?.value;
+        const selectedNode = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
+        const folderDeptId = selectedNode?.dataset.department || '';
+
+        if (deptId && folderDeptId && deptId !== folderDeptId) {
+            event.preventDefault();
+            showStep(2);
+            alert('المجلد المحدد لا ينتمي للوحدة التنظيمية المختارة. اختر مجلداً يطابق الوحدة في الخطوة الأولى، أو غيّر الوحدة التنظيمية.');
+        }
+    });
 
     const initialStep = Number(form.dataset.initialStep) || 1;
 

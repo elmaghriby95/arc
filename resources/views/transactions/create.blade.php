@@ -140,7 +140,7 @@
                             <section class="txnw-step" data-step="2">
                                 <header class="txnw-step-head">
                                     <h3>المجلد والوصف</h3>
-                                    <p>حدد مكان حفظ المعاملة في شجرة الأرشفة</p>
+                                    <p>حدد مكان حفظ المعاملة في شجرة الأرشفة — يجب أن يطابق المجلد الوحدة التنظيمية في الخطوة الأولى</p>
                                 </header>
 
                                 <div class="txnw-box {{ $errors->has('folder_id') ? 'txnw-box--error' : '' }}">
@@ -154,6 +154,7 @@
                                             'folders' => $folders,
                                             'folderTree' => $folderTree,
                                             'selected' => old('folder_id'),
+                                            'departmentBreadcrumbs' => $departmentBreadcrumbs ?? [],
                                         ])
                                     </div>
                                     <div class="txnw-row">
