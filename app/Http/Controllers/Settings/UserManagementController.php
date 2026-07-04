@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\StoreUserRequest;
 use App\Http\Requests\Settings\UpdateUserRequest;
 use App\Models\Department;
 use App\Models\Role;
@@ -20,6 +21,27 @@ class UserManagementController extends Controller
             'users' => User::with(['department', 'role'])->latest()->paginate(15),
             'breadcrumbs' => $breadcrumbs,
         ]);
+    }
+
+    public function create(): View
+    {
+        return view('settings.users.create', [
+            'roles' => Role::orderByDesc('is_system')->orderBy('name')->get(),
+            'orgUnits' => Department::optionsForSelect(),
+            'breadcrumbs' => Department::breadcrumbMap(),
+        ]);
+    }
+
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        User::create([
+            ...$request->validated(),
+            'email_verified_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('settings.users.index')
+            ->with('success', 'تم إنشاء المستخدم بنجاح.');
     }
 
     public function edit(User $user): View

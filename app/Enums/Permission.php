@@ -31,6 +31,7 @@ enum Permission: string
 
     // إدارة المستخدمين
     case SettingsUsersView = 'settings.users.view';
+    case SettingsUsersCreate = 'settings.users.create';
     case SettingsUsersEdit = 'settings.users.edit';
 
     // إدارة الأدوار
@@ -117,6 +118,7 @@ enum Permission: string
             self::SettingsView => 'عرض صفحة الإعدادات',
 
             self::SettingsUsersView => 'عرض المستخدمين',
+            self::SettingsUsersCreate => 'إنشاء مستخدم',
             self::SettingsUsersEdit => 'تعديل المستخدمين',
 
             self::SettingsRolesView => 'عرض الأدوار',
@@ -194,6 +196,7 @@ enum Permission: string
             self::SettingsView => 'الإعدادات',
 
             self::SettingsUsersView,
+            self::SettingsUsersCreate,
             self::SettingsUsersEdit => 'إدارة المستخدمين',
 
             self::SettingsRolesView,

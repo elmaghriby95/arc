@@ -30,32 +30,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:dashboard.view')
         ->name('dashboard');
 
-    Route::get('documents/{document}/download', [DocumentController::class, 'download'])
+    Route::get('documents/{attachment}/download', [DocumentController::class, 'download'])
         ->middleware('permission:documents.download')
         ->name('documents.download');
 
     Route::middleware('permission:documents.view')->group(function () {
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+        Route::get('documents/{attachment}', [DocumentController::class, 'show'])->name('documents.show');
     });
-
-    Route::middleware('permission:documents.create')->group(function () {
-        Route::get('documents/create', [DocumentController::class, 'create'])->name('documents.create');
-        Route::post('documents', [DocumentController::class, 'store'])->name('documents.store');
-    });
-
-    Route::middleware('permission:documents.view')->group(function () {
-        Route::get('documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
-    });
-
-    Route::middleware('permission:documents.edit')->group(function () {
-        Route::get('documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
-        Route::put('documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
-        Route::patch('documents/{document}', [DocumentController::class, 'update']);
-    });
-
-    Route::delete('documents/{document}', [DocumentController::class, 'destroy'])
-        ->middleware('permission:documents.delete')
-        ->name('documents.destroy');
 
     Route::middleware('permission:departments.view')->group(function () {
         Route::get('departments', [DepartmentController::class, 'index'])->name('departments.index');
@@ -129,8 +111,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:transactions.edit')->group(function () {
         Route::post('transactions/{transaction}/attachments/upload', [TransactionAttachmentController::class, 'storeUpload'])
             ->name('transactions.attachments.upload');
-        Route::post('transactions/{transaction}/attachments/link', [TransactionAttachmentController::class, 'storeLink'])
-            ->name('transactions.attachments.link');
         Route::delete('transactions/{transaction}/attachments/{attachment}', [TransactionAttachmentController::class, 'destroy'])
             ->name('transactions.attachments.destroy');
     });
@@ -143,6 +123,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])
             ->middleware('permission:settings.users.view')
             ->name('users.index');
+
+        Route::middleware('permission:settings.users.create')->group(function () {
+            Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
+            Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+        });
 
         Route::middleware('permission:settings.users.edit')->group(function () {
             Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');

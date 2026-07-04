@@ -1973,6 +1973,176 @@ textarea.form-control:focus {
     margin-bottom: 0.35rem;
 }
 
+/* ===== User Create Form ===== */
+.user-create-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.user-create-step {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.user-create-step--active {
+    color: var(--primary);
+}
+
+.user-create-step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: #eef2ff;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.user-create-step--active .user-create-step-num {
+    background: var(--primary);
+    color: #fff;
+}
+
+.user-create-step-line {
+    width: 3rem;
+    height: 2px;
+    margin: 0 1rem;
+    background: var(--border);
+    border-radius: 1px;
+}
+
+.user-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.user-create-card {
+    overflow: hidden;
+}
+
+.user-create-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-create-card-desc {
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.user-create-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+}
+
+.user-create-card-icon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+}
+
+.user-create-card-icon--account {
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.user-create-card-icon--role {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.user-create-footer .card-footer {
+    border-top: none;
+    padding-top: 0;
+}
+
+.form-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.form-label-row label {
+    margin-bottom: 0;
+}
+
+.password-input-wrap {
+    position: relative;
+}
+
+.password-input-wrap .form-control {
+    padding-left: 2.75rem;
+}
+
+.password-toggle {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 0.35rem;
+    transition: color 0.15s, background 0.15s;
+}
+
+.password-toggle:hover {
+    color: var(--primary);
+    background: #f5f3ff;
+}
+
+.password-toggle svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.role-description-preview {
+    margin-top: 0.65rem;
+    padding: 0.65rem 0.85rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 0.55rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #166534;
+}
+
+.role-description-preview-label {
+    font-weight: 600;
+    margin-left: 0.35rem;
+}
+
 .btn-sm {
     padding: 0.35rem 0.75rem;
     font-size: 0.82rem;

@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('[data-password-toggle]').forEach((button) => {
-        const input = button.closest('.login-input-wrap')?.querySelector('[data-password-input]');
+        const input = button.closest('.login-input-wrap, .password-input-wrap')?.querySelector('[data-password-input]');
         const iconShow = button.querySelector('[data-icon-show]');
         const iconHide = button.querySelector('[data-icon-hide]');
 
@@ -109,6 +109,84 @@ document.addEventListener('DOMContentLoaded', () => {
             button.setAttribute('aria-label', isHidden ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
         });
     });
+
+    const userCreateForm = document.querySelector('[data-user-create-form]');
+
+    if (userCreateForm) {
+        const generatePassword = () => {
+            const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%';
+            let password = '';
+
+            for (let i = 0; i < 12; i += 1) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            return password;
+        };
+
+        userCreateForm.querySelector('[data-generate-password]')?.addEventListener('click', () => {
+            const password = generatePassword();
+            const passwordInput = userCreateForm.querySelector('#password');
+            const confirmInput = userCreateForm.querySelector('#password_confirmation');
+
+            if (passwordInput) {
+                passwordInput.value = password;
+                passwordInput.type = 'text';
+            }
+
+            if (confirmInput) {
+                confirmInput.value = password;
+                confirmInput.type = 'text';
+            }
+        });
+
+        const roleSelect = userCreateForm.querySelector('[data-role-select]');
+        const roleDescription = userCreateForm.querySelector('[data-role-description]');
+        const roleDescriptionText = userCreateForm.querySelector('[data-role-description-text]');
+
+        const updateRoleDescription = () => {
+            const option = roleSelect?.selectedOptions[0];
+            const description = option?.dataset.description;
+
+            if (! roleDescription || ! roleDescriptionText) {
+                return;
+            }
+
+            if (description) {
+                roleDescriptionText.textContent = description;
+                roleDescription.hidden = false;
+            } else {
+                roleDescription.hidden = true;
+            }
+        };
+
+        roleSelect?.addEventListener('change', updateRoleDescription);
+        updateRoleDescription();
+
+        const departmentSelect = userCreateForm.querySelector('#department_id');
+        const orgPreview = userCreateForm.querySelector('[data-org-preview]');
+        const orgPreviewText = userCreateForm.querySelector('[data-org-preview-text]');
+        const breadcrumbs = window.__userCreateBreadcrumbs ?? {};
+
+        const updateOrgPreview = () => {
+            const departmentId = departmentSelect?.value;
+            const path = departmentId ? breadcrumbs[departmentId] : null;
+
+            if (! orgPreview || ! orgPreviewText) {
+                return;
+            }
+
+            if (path) {
+                orgPreviewText.textContent = path;
+                orgPreview.hidden = false;
+            } else {
+                orgPreview.hidden = true;
+            }
+        };
+
+        departmentSelect?.addEventListener('change', updateOrgPreview);
+        updateOrgPreview();
+    }
 
     document.querySelectorAll('[data-org-toggle]').forEach((button) => {
         button.addEventListener('click', () => {

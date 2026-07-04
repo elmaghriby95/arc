@@ -6,6 +6,12 @@
                 <h2 class="page-title">إدارة المستخدمين</h2>
                 <p class="page-subtitle">تعيين الدور والموقع في الهيكل التنظيمي لكل مستخدم</p>
             </div>
+            @permission('settings.users.create')
+                <a href="{{ route('settings.users.create') }}" class="btn btn-primary btn-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                    إنشاء مستخدم جديد
+                </a>
+            @endpermission
         </div>
     </x-slot>
 
@@ -26,6 +32,9 @@
                             </svg>
                         </div>
                         <p>لا يوجد مستخدمون مسجّلون بعد.</p>
+                        @permission('settings.users.create')
+                            <a href="{{ route('settings.users.create') }}" class="btn btn-primary">إنشاء أول مستخدم</a>
+                        @endpermission
                     </div>
                 @else
                     <div class="table-wrapper">

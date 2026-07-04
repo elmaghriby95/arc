@@ -134,21 +134,12 @@ class TransactionController extends Controller
             'status',
             'creator',
             'attachments.uploader',
-            'attachments.document',
             'statusHistories.fromStatus',
             'statusHistories.toStatus',
             'statusHistories.changedBy',
         ]);
 
         $user = auth()->user();
-        $linkedDocumentIds = $transaction->attachments->pluck('document_id')->filter()->all();
-
-        $availableDocuments = Document::query()
-            ->when($ids = $user->orgScopeDepartmentIds(), fn ($q) => $q->whereIn('department_id', $ids))
-            ->when($linkedDocumentIds, fn ($q) => $q->whereNotIn('id', $linkedDocumentIds))
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get(['id', 'title', 'reference_number', 'file_name', 'mime_type', 'file_size']);
 
         $workflow = TransactionStatus::workflowSequence();
 
@@ -157,7 +148,6 @@ class TransactionController extends Controller
             'workflow' => $workflow,
             'nextStatus' => $transaction->nextStatus(),
             'canAdvance' => $transaction->canUserAdvance($user),
-            'availableDocuments' => $availableDocuments,
             'canManageAttachments' => $user->hasPermission('transactions.edit') && ! $transaction->isAtFinalStatus(),
         ]);
     }

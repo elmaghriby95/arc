@@ -97,6 +97,13 @@ class User extends Authenticatable
         return $this->canAccessDepartment($document->department_id);
     }
 
+    public function canAccessAttachment(TransactionAttachment $attachment): bool
+    {
+        $attachment->loadMissing('transaction');
+
+        return $this->canAccessTransaction($attachment->transaction);
+    }
+
     public function canAccessFolder(Folder $folder): bool
     {
         return $this->canAccessDepartment($folder->department_id);
