@@ -1,8 +1,9 @@
 param(
     [Parameter(Mandatory = $true)][string]$InputPath,
     [Parameter(Mandatory = $true)][string]$OutputPath,
-    [int]$MaxWidth = 992,
-    [int]$Quality = 48
+    [int]$MaxWidth = 768,
+    [int]$MaxHeight = 1050,
+    [int]$Quality = 35
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -12,18 +13,31 @@ $graphics = $null
 $bitmap = $null
 
 try {
-    if ($image.Width -le $MaxWidth) {
+    $ratioW = 1.0
+    $ratioH = 1.0
+
+    if ($image.Width -gt $MaxWidth) {
+        $ratioW = $MaxWidth / [double]$image.Width
+    }
+
+    if ($image.Height -gt $MaxHeight) {
+        $ratioH = $MaxHeight / [double]$image.Height
+    }
+
+    $ratio = [Math]::Min($ratioW, $ratioH)
+
+    if ($ratio -lt 1.0) {
+        $targetWidth = [int][Math]::Max(1, [Math]::Round($image.Width * $ratio))
+        $targetHeight = [int][Math]::Max(1, [Math]::Round($image.Height * $ratio))
+    } else {
         $targetWidth = $image.Width
         $targetHeight = $image.Height
-    } else {
-        $ratio = $MaxWidth / [double]$image.Width
-        $targetWidth = $MaxWidth
-        $targetHeight = [int][Math]::Max(1, [Math]::Round($image.Height * $ratio))
     }
 
     $bitmap = New-Object System.Drawing.Bitmap $targetWidth, $targetHeight, ([System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBilinear
+    $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighSpeed
 
     $colorMatrix = New-Object System.Drawing.Imaging.ColorMatrix
     $colorMatrix.Matrix00 = 0.299
@@ -54,7 +68,7 @@ try {
         Where-Object { $_.MimeType -eq 'image/jpeg' } |
         Select-Object -First 1
 
-    $clampedQuality = [long64][Math]::Max(35, [Math]::Min(75, $Quality))
+    $clampedQuality = [long64][Math]::Max(32, [Math]::Min(55, $Quality))
     $encoderParams = New-Object System.Drawing.Imaging.EncoderParameters 1
     $encoderParams.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter(
         [System.Drawing.Imaging.Encoder]::Quality,

@@ -155,7 +155,12 @@ def release_com_objects() -> None:
 
 
 def target_width(resolution: int) -> int:
-    return max(900, min(1400, int(round(8.27 * resolution))))
+    # Archive documents: ~7" usable width at scan DPI, capped for small PDFs.
+    return max(720, min(900, int(round(7.0 * resolution))))
+
+
+def target_height(resolution: int) -> int:
+    return max(1000, min(1300, int(round(9.8 * resolution))))
 
 
 def temp_path(suffix: str) -> Path:
@@ -219,8 +224,8 @@ FAST_BATCH_MIN_PAGES = 2
 PARALLEL_WORKERS = 6
 
 
-def _shrink_jpeg_worker(args: tuple[str, int, int, str]) -> str:
-    path_str, quality, max_width, script_dir = args
+def _shrink_jpeg_worker(args: tuple[str, int, int, int, str]) -> str:
+    path_str, quality, max_width, max_height, script_dir = args
     path = Path(path_str)
 
     if not path.is_file():
@@ -246,6 +251,8 @@ def _shrink_jpeg_worker(args: tuple[str, int, int, str]) -> str:
             str(target),
             "-MaxWidth",
             str(max_width),
+            "-MaxHeight",
+            str(max_height),
             "-Quality",
             str(quality),
         ],
@@ -254,6 +261,9 @@ def _shrink_jpeg_worker(args: tuple[str, int, int, str]) -> str:
         check=False,
         **subprocess_kwargs(),
     )
+
+    if result.returncode != 0:
+        app.logger.warning("Shrink failed for %s: %s", path.name, result.stderr.decode("utf-8", errors="replace")[:200])
 
     if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
         path.unlink(missing_ok=True)
@@ -267,12 +277,13 @@ def parallel_batch_compress(
     pages: list[Path],
     quality: int,
     max_width: int,
+    max_height: int,
 ) -> list[Path]:
     if not pages:
         return pages
 
     script_dir = str(Path(__file__).resolve().parent)
-    tasks = [(str(page), quality, max_width, script_dir) for page in pages]
+    tasks = [(str(page), quality, max_width, max_height, script_dir) for page in pages]
 
     if len(pages) == 1:
         return [Path(_shrink_jpeg_worker(tasks[0]))]
@@ -280,7 +291,13 @@ def parallel_batch_compress(
     with ThreadPoolExecutor(max_workers=PARALLEL_WORKERS) as pool:
         results = list(pool.map(_shrink_jpeg_worker, tasks))
 
-    return [Path(result) for result in results]
+    compressed = [Path(result) for result in results]
+
+    for original, shrunk in zip(pages, compressed, strict=True):
+        if shrunk == original and original.exists():
+            app.logger.info("Page kept original size: %s bytes", original.stat().st_size)
+
+    return compressed
 
 
 def build_pdf_fast(jpeg_paths: list[Path], dpi: int) -> bytes:
@@ -476,8 +493,8 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     fast_mode = profile in {"fast", "batch", "speed"}
 
     if fast_mode:
-        resolution = max(100, min(120, int(payload.get("resolution", 100))))
-        quality = max(35, min(48, int(payload.get("quality", 40))))
+        resolution = max(96, min(120, int(payload.get("resolution", 96))))
+        quality = max(32, min(42, int(payload.get("quality", 35))))
     else:
         resolution = max(100, min(300, int(payload.get("resolution", 120))))
         quality = max(35, min(75, int(payload.get("quality", 48))))
@@ -511,11 +528,19 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     page_count = len(raw_pages)
     app.logger.info("Scanned %s page(s), profile=%s", page_count, profile)
     max_width = target_width(resolution)
+    max_height = target_height(resolution)
     working_pages = list(raw_pages)
 
-    if fast_mode and page_count >= FAST_BATCH_MIN_PAGES:
-        app.logger.info("Fast batch: parallel compress (%s workers) + PDF", PARALLEL_WORKERS)
-        working_pages = parallel_batch_compress(working_pages, quality, max_width)
+    if fast_mode:
+        app.logger.info(
+            "Compress %s page(s): %sdpi q=%s max=%sx%s",
+            page_count,
+            resolution,
+            quality,
+            max_width,
+            max_height,
+        )
+        working_pages = parallel_batch_compress(working_pages, quality, max_width, max_height)
     elif not fast_mode:
         optimized: list[Path] = []
 
