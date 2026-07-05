@@ -7,6 +7,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\ScanAgentProxyController;
 use App\Http\Controllers\TransactionAttachmentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Settings\DocumentTypeController;
@@ -104,6 +105,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:transactions.create')->group(function () {
         Route::get('transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
         Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
+
+        Route::prefix('scan-agent')->name('scan-agent.')->group(function () {
+            Route::get('health', [ScanAgentProxyController::class, 'health'])->name('health');
+            Route::get('devices', [ScanAgentProxyController::class, 'devices'])->name('devices');
+            Route::post('scan', [ScanAgentProxyController::class, 'scan'])->name('scan');
+        });
     });
 
     Route::middleware('permission:transactions.view')->group(function () {

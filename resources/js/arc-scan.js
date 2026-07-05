@@ -4,9 +4,26 @@
 
     const resolveAgentUrl = (element) => {
         const host = element?.closest('[data-scan-agent-url]') ?? document.querySelector('[data-scan-agent-url]');
-        const url = host?.dataset.scanAgentUrl?.trim() || DEFAULT_URL;
+        let url = host?.dataset.scanAgentUrl?.trim() || DEFAULT_URL;
+
+        if (url.startsWith('/')) {
+            url = `${window.location.origin}${url}`;
+        }
 
         return url.replace(/\/$/, '');
+    };
+
+    const buildHeaders = (agentUrl) => {
+        const headers = { 'Content-Type': 'application/json' };
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+        const sameOrigin = agentUrl.startsWith(window.location.origin);
+
+        if (csrf && sameOrigin) {
+            headers['X-CSRF-TOKEN'] = csrf;
+            headers['X-Requested-With'] = 'XMLHttpRequest';
+        }
+
+        return headers;
     };
 
     const scanFileName = (prefix = 'scan', mimeType = 'application/pdf') => {
@@ -32,7 +49,7 @@
         }
 
         if (error instanceof TypeError) {
-            return new Error('تعذّر الاتصال بـ ARC Scan Agent. شغّل scan-agent/start-windows.bat.');
+            return new Error('تعذّر الاتصال بخدمة المسح. تحقق من Agent على السيرفر أو start-windows.bat محلياً.');
         }
 
         return error instanceof Error ? error : new Error('تعذّر المسح.');
@@ -46,8 +63,9 @@
         try {
             const response = await fetch(`${agentUrl}/scan`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: buildHeaders(agentUrl),
                 signal: controller.signal,
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     format: 'pdf',
                     resolution: options.resolution ?? 120,
