@@ -15,7 +15,7 @@ class DatabaseLoader extends FileLoader
     {
         $lines = parent::load($locale, $group, $namespace);
 
-        if ($namespace !== null || ! Schema::hasTable('translation_keys')) {
+        if ($this->shouldSkipDatabaseLoad($group, $namespace) || ! Schema::hasTable('translation_keys')) {
             return $lines;
         }
 
@@ -32,6 +32,15 @@ class DatabaseLoader extends FileLoader
         }
 
         return array_replace($lines, $dbLines);
+    }
+
+    protected function shouldSkipDatabaseLoad(string $group, ?string $namespace): bool
+    {
+        if ($group === '*' && $namespace === '*') {
+            return true;
+        }
+
+        return $namespace !== null && $namespace !== '*';
     }
 
     protected function loadFromDatabase(string $locale, string $group): array
