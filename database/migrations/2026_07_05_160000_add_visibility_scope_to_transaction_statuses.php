@@ -7,21 +7,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /** @var list<string> */
-    private array globalCodes = [
-        'REVIEW',
-        'APPROVED',
-        'INITIAL_ARCHIVE',
-        'ARCHIVED',
-    ];
-
     public function up(): void
     {
         Schema::table('transaction_statuses', function (Blueprint $table) {
             $table->string('visibility_scope', 10)->default('unit')->after('required_permission');
         });
 
-        foreach ($this->globalCodes as $code) {
+        $globalCodes = [
+            'REVIEW',
+            'APPROVED',
+            'INITIAL_ARCHIVE',
+            'ARCHIVED',
+        ];
+
+        foreach ($globalCodes as $code) {
             DB::table('transaction_statuses')
                 ->where('code', $code)
                 ->update(['visibility_scope' => 'global']);
