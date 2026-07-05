@@ -9,7 +9,7 @@ use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Services\Reports\ReportRunner;
 use App\Support\Reports\ReportFilter;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as DomPdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -49,8 +49,10 @@ class ReportController extends Controller
         ]);
     }
 
-    public function exportPdf(Request $request, string $type): Response
+    public function exportPdf(Request $request, string $type, DomPdf $domPdf): Response
     {
+        $this->ensurePdfExportAvailable();
+
         $reportType = $this->resolveType($type);
         $this->authorizeReport($reportType);
         $user = $request->user();
@@ -58,7 +60,7 @@ class ReportController extends Controller
         $scope = $this->runner->scope($user);
         $data = $this->runner->run($reportType, $user, $filter);
 
-        $pdf = Pdf::loadView($reportType->pdfView(), [
+        $pdf = $domPdf->loadView($reportType->pdfView(), [
             'reportType' => $reportType,
             'filter' => $filter,
             'data' => $data,
@@ -74,6 +76,8 @@ class ReportController extends Controller
 
     public function exportExcel(Request $request, string $type): BinaryFileResponse
     {
+        $this->ensureExcelExportAvailable();
+
         $reportType = $this->resolveType($type);
         $this->authorizeReport($reportType);
         $user = $request->user();
@@ -102,5 +106,23 @@ class ReportController extends Controller
     private function authorizeReport(ReportType $reportType): void
     {
         abort_unless(auth()->user()?->canViewReport($reportType), 403);
+    }
+
+    private function ensurePdfExportAvailable(): void
+    {
+        abort_unless(
+            class_exists(DomPdf::class),
+            503,
+            __('reports.export_pdf_unavailable')
+        );
+    }
+
+    private function ensureExcelExportAvailable(): void
+    {
+        abort_unless(
+            class_exists(\Maatwebsite\Excel\Facades\Excel::class),
+            503,
+            __('reports.export_excel_unavailable')
+        );
     }
 }

@@ -5,6 +5,7 @@ namespace App\Translation;
 use App\Models\Language;
 use App\Models\TranslationKey;
 use App\Services\TranslationCache;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Translation\FileLoader;
@@ -31,7 +32,7 @@ class DatabaseLoader extends FileLoader
             }
         }
 
-        return array_replace($lines, $dbLines);
+        return array_replace_recursive($lines, $dbLines);
     }
 
     protected function shouldSkipDatabaseLoad(string $group, ?string $namespace): bool
@@ -51,15 +52,31 @@ class DatabaseLoader extends FileLoader
             return [];
         }
 
-        return TranslationKey::query()
-            ->where('group', $group)
-            ->with(['translations' => fn ($query) => $query->where('language_id', $languageId)])
-            ->get()
-            ->mapWithKeys(function (TranslationKey $translationKey) {
-                $value = $translationKey->translations->first()?->value;
+        $lines = [];
 
-                return [$translationKey->key => $value ?? $translationKey->key];
+        $translationKeys = TranslationKey::query()
+            ->where(function ($query) use ($group) {
+                $query->where('group', $group)
+                    ->orWhere('group', 'like', $group.'.%');
             })
-            ->all();
+            ->with(['translations' => fn ($query) => $query->where('language_id', $languageId)])
+            ->get();
+
+        foreach ($translationKeys as $translationKey) {
+            $value = $translationKey->translations->first()?->value;
+
+            if ($value === null) {
+                continue;
+            }
+
+            if ($translationKey->group === $group) {
+                Arr::set($lines, $translationKey->key, $value);
+            } else {
+                $nestedKey = substr($translationKey->group, strlen($group) + 1).'.'.$translationKey->key;
+                Arr::set($lines, $nestedKey, $value);
+            }
+        }
+
+        return $lines;
     }
 }

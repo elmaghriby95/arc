@@ -200,7 +200,8 @@
                                                         class="txnw-btn txnw-btn--primary"
                                                         data-txn-scan
                                                         data-scan-idle-label="{{ __('transactions.scan_direct') }}"
-                                                        data-scanning-label="{{ __('transactions.scanning') }}">
+                                                        data-scanning-label="{{ __('transactions.scanning') }}"
+                                                        data-scan-processing-label="{{ __('transactions.scan_processing') }}">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7h10z"/><path stroke-linecap="round" d="M9 12h6M9 16h4"/></svg>
                                                     {{ __('transactions.scan_direct') }}
                                                 </button>

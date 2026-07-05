@@ -240,14 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.ArcScan?.bindButton(scanBtn, {
         onSuccess: (file) => addFiles([file]),
         onError: (error) => {
-            const detailTemplate = form.dataset.scanFailedDetail || '';
-            const fallback = form.dataset.scanFailed || 'Scan failed.';
-
-            alert(
-                error?.message && detailTemplate
-                    ? detailTemplate.replace(':message', error.message)
-                    : fallback,
-            );
+            alert(error?.message || 'تعذّر المسح. شغّل scan-agent/start-windows.bat ثم حاول مجدداً.');
         },
     });
 
