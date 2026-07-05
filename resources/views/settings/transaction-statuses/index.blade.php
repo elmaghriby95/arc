@@ -15,8 +15,8 @@
         @if ($statuses->isNotEmpty())
             <div class="card txn-workflow-preview">
                 <div class="card-header">
-                    <h3 class="card-title">{{ __('settings.txn_statuses.workflow_title') }}</h3>
-                    <p class="card-subtitle">{{ __('settings.txn_statuses.workflow_subtitle') }}</p>
+                    <h3 class="card-title">{{ __('settings.txn_statuses.workflow_path_title') }}</h3>
+                    <p class="card-subtitle">{{ __('settings.txn_statuses.workflow_path_subtitle') }}</p>
                 </div>
                 <div class="card-body">
                     <div class="txn-workflow-steps">
@@ -25,10 +25,10 @@
                                 <span class="txn-workflow-step-num">{{ $index + 1 }}</span>
                                 <span class="txn-status-badge" style="--txn-status-color: {{ $status->color ?? '#64748b' }}">{{ $status->name }}</span>
                                 @if ($status->is_initial)
-                                    <span class="settings-badge">{{ __('settings.txn_statuses.initial_badge') }}</span>
+                                    <span class="settings-badge">{{ __('settings.txn_statuses.badge_initial') }}</span>
                                 @endif
                                 @if ($status->is_final)
-                                    <span class="settings-badge settings-badge--success">{{ __('settings.txn_statuses.final_badge') }}</span>
+                                    <span class="settings-badge settings-badge--success">{{ __('settings.txn_statuses.badge_final') }}</span>
                                 @endif
                             </div>
                             @if (! $loop->last)
@@ -58,7 +58,7 @@
                             <x-text-input id="code" name="code" type="text" :value="old('code')" required />
                         </div>
                         <div class="form-group">
-                            <x-input-label for="sort_order" :value="__('settings.txn_statuses.sequence_order')" />
+                            <x-input-label for="sort_order" :value="__('settings.txn_statuses.sort_order')" />
                             <x-text-input id="sort_order" name="sort_order" type="number" :value="old('sort_order', ($statuses->max('sort_order') ?? 0) + 1)" min="0" />
                         </div>
                         <div class="form-group">
@@ -77,21 +77,29 @@
                                 @if (old('name') || old('code'))
                                     {{ __('settings.txn_statuses.transition_preview', ['name' => old('name', '…'), 'code' => Str::lower(old('code', ''))]) }}
                                 @else
-                                    {{ __('settings.txn_statuses.auto_permission_hint') }}
+                                    {{ __('settings.txn_statuses.permission_auto_hint') }}
                                 @endif
                             @endunless
                         </p>
                         <small class="form-hint" data-status-permission-hint-required>{{ __('settings.txn_statuses.permission_roles_hint') }}</small>
-                        <small class="form-hint" data-status-permission-hint-initial hidden>{{ __('settings.txn_statuses.initial_permission_hint') }}</small>
+                        <small class="form-hint" data-status-permission-hint-initial hidden>{{ __('settings.txn_statuses.initial_depends_create') }}</small>
+                    </div>
+                    <div class="form-group" data-visibility-scope-field @if (old('is_initial')) hidden @endif>
+                        <x-input-label for="visibility_scope" :value="__('settings.txn_statuses.visibility_scope')" />
+                        <select id="visibility_scope" name="visibility_scope" class="form-select">
+                            <option value="unit" @selected(old('visibility_scope', 'unit') === 'unit')>{{ __('settings.txn_statuses.visibility_scope_unit') }}</option>
+                            <option value="global" @selected(old('visibility_scope') === 'global')>{{ __('settings.txn_statuses.visibility_scope_global') }}</option>
+                        </select>
+                        <small class="form-hint">{{ __('settings.txn_statuses.visibility_scope_hint') }}</small>
                     </div>
                     <div class="form-grid form-grid--checks">
                         <div class="form-check">
                             <input id="is_initial" name="is_initial" type="checkbox" value="1" @checked(old('is_initial')) data-status-initial-toggle>
-                            <x-input-label for="is_initial" :value="__('settings.txn_statuses.initial_draft')" />
+                            <x-input-label for="is_initial" :value="__('settings.txn_statuses.is_initial')" />
                         </div>
                         <div class="form-check">
                             <input id="is_final" name="is_final" type="checkbox" value="1" @checked(old('is_final'))>
-                            <x-input-label for="is_final" :value="__('settings.txn_statuses.final_status')" />
+                            <x-input-label for="is_final" :value="__('settings.txn_statuses.is_final')" />
                         </div>
                         <div class="form-check">
                             <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', true))>
@@ -120,17 +128,18 @@
                         @endif
                         <div class="ref-type-card-meta">
                             @if ($status->is_initial)
-                                <span class="settings-badge">{{ __('settings.txn_statuses.initial_badge') }}</span>
+                                <span class="settings-badge">{{ __('settings.txn_statuses.badge_initial') }}</span>
                             @endif
                             @if ($status->is_final)
-                                <span class="settings-badge settings-badge--success">{{ __('settings.txn_statuses.final_badge') }}</span>
+                                <span class="settings-badge settings-badge--success">{{ __('settings.txn_statuses.badge_final') }}</span>
                             @endif
                             @if ($status->is_initial)
-                                <span class="settings-badge settings-badge--muted">{{ __('settings.txn_statuses.create_transaction') }}</span>
+                                <span class="settings-badge settings-badge--muted">{{ __('settings.txn_statuses.badge_create_txn') }}</span>
                             @elseif ($status->required_permission)
                                 <span class="settings-badge settings-badge--muted" title="{{ $status->required_permission }}">{{ $status->permissionLabel() }}</span>
+                                <span class="settings-badge settings-badge--muted">{{ $status->isGlobalScope() ? __('settings.txn_statuses.badge_scope_global') : __('settings.txn_statuses.badge_scope_unit') }}</span>
                             @else
-                                <span class="settings-badge settings-badge--danger">{{ __('settings.txn_statuses.no_permission') }}</span>
+                                <span class="settings-badge settings-badge--danger">{{ __('settings.txn_statuses.badge_no_permission') }}</span>
                             @endif
                             @unless ($status->is_active)
                                 <span class="settings-badge settings-badge--danger">{{ __('common.inactive') }}</span>
@@ -169,16 +178,24 @@
                                     <p class="form-hint">{{ $status->workflowPermissionLabel() }}</p>
                                     <span class="permission-checkbox-key">{{ $status->workflowPermissionKey() }}</span>
                                 @endunless
-                                <small class="form-hint" data-status-permission-hint-required @if ($status->is_initial) hidden @endif>{{ __('settings.txn_statuses.manage_in_roles') }}</small>
-                                <small class="form-hint" data-status-permission-hint-initial @unless ($status->is_initial) hidden @endunless>{{ __('settings.txn_statuses.initial_permission_hint') }}</small>
+                                <small class="form-hint" data-status-permission-hint-required @if ($status->is_initial) hidden @endif>{{ __('settings.txn_statuses.managed_in_roles') }}</small>
+                                <small class="form-hint" data-status-permission-hint-initial @unless ($status->is_initial) hidden @endunless>{{ __('settings.txn_statuses.initial_depends_create') }}</small>
+                            </div>
+                            <div class="form-group" data-visibility-scope-field @if ($status->is_initial) hidden @endif>
+                                <x-input-label :value="__('settings.txn_statuses.visibility_scope')" />
+                                <select name="visibility_scope" class="form-select">
+                                    <option value="unit" @selected(old('visibility_scope', $status->visibility_scope ?? 'unit') === 'unit')>{{ __('settings.txn_statuses.visibility_scope_unit') }}</option>
+                                    <option value="global" @selected(old('visibility_scope', $status->visibility_scope ?? 'unit') === 'global')>{{ __('settings.txn_statuses.visibility_scope_global') }}</option>
+                                </select>
+                                <small class="form-hint">{{ __('settings.txn_statuses.visibility_scope_hint') }}</small>
                             </div>
                             <div class="form-check form-group">
                                 <input name="is_initial" type="checkbox" value="1" @checked(old('is_initial', $status->is_initial)) data-status-initial-toggle>
-                                <x-input-label :value="__('settings.txn_statuses.initial_status')" />
+                                <x-input-label :value="__('settings.txn_statuses.is_initial')" />
                             </div>
                             <div class="form-check form-group">
                                 <input name="is_final" type="checkbox" value="1" @checked(old('is_final', $status->is_final))>
-                                <x-input-label :value="__('settings.txn_statuses.final_status')" />
+                                <x-input-label :value="__('settings.txn_statuses.is_final')" />
                             </div>
                             <div class="form-check form-group">
                                 <input name="is_active" type="checkbox" value="1" @checked(old('is_active', $status->is_active))>
@@ -208,14 +225,12 @@
 
     @push('scripts')
         <script>
-            const txnStatusI18n = @json([
-                'transitionPrefix' => __('settings.txn_statuses.transition_prefix'),
-                'autoPermissionHint' => __('settings.txn_statuses.auto_permission_hint'),
-            ]);
+            const txnStatusI18n = @json($txnStatusI18n);
 
             document.querySelectorAll('[data-status-initial-toggle]').forEach((checkbox) => {
                 const form = checkbox.closest('form');
                 const permissionField = form?.querySelector('[data-status-permission-field]');
+                const visibilityScopeField = form?.querySelector('[data-visibility-scope-field]');
                 const hintRequired = form?.querySelector('[data-status-permission-hint-required]');
                 const hintInitial = form?.querySelector('[data-status-permission-hint-initial]');
                 const nameInput = form?.querySelector('[name="name"]');
@@ -235,6 +250,10 @@
 
                     if (permissionField) {
                         permissionField.hidden = isInitial;
+                    }
+
+                    if (visibilityScopeField) {
+                        visibilityScopeField.hidden = isInitial;
                     }
 
                     if (preview && nameInput && codeInput) {

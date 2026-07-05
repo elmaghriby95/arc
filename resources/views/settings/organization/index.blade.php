@@ -37,7 +37,7 @@
                 <div class="card-body">
                     @include('settings.partials.org-add-form', [
                         'parentId' => null,
-                        'defaultUnitLabel' => __('settings.org.unit_sector'),
+                        'defaultUnitLabel' => __('settings.org.sector'),
                         'users' => $users,
                         'unitLabelSuggestions' => $unitLabelSuggestions,
                     ])

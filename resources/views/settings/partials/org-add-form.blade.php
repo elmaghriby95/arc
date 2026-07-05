@@ -1,6 +1,6 @@
 @props([
     'parentId' => null,
-    'defaultUnitLabel' => __('settings.org.unit_sector'),
+    'defaultUnitLabel' => __('settings.org.sector'),
     'users' => collect(),
     'unitLabelSuggestions' => [],
 ])

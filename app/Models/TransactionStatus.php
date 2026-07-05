@@ -9,12 +9,17 @@ use Illuminate\Support\Str;
 
 class TransactionStatus extends Model
 {
+    public const VISIBILITY_UNIT = 'unit';
+
+    public const VISIBILITY_GLOBAL = 'global';
+
     protected $fillable = [
         'name',
         'code',
         'description',
         'sort_order',
         'required_permission',
+        'visibility_scope',
         'color',
         'is_initial',
         'is_final',
@@ -146,5 +151,10 @@ class TransactionStatus extends Model
         }
 
         return PermissionRegistry::labelFor($this->required_permission);
+    }
+
+    public function isGlobalScope(): bool
+    {
+        return ($this->visibility_scope ?? self::VISIBILITY_UNIT) === self::VISIBILITY_GLOBAL;
     }
 }

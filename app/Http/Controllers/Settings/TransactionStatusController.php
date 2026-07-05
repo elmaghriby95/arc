@@ -16,6 +16,10 @@ class TransactionStatusController extends Controller
     {
         return view('settings.transaction-statuses.index', [
             'statuses' => TransactionStatus::orderBy('sort_order')->orderBy('id')->get(),
+            'txnStatusI18n' => [
+                'transitionPrefix' => __('settings.txn_statuses.transition_prefix'),
+                'autoPermissionHint' => __('settings.txn_statuses.permission_auto_hint'),
+            ],
         ]);
     }
 
@@ -36,6 +40,9 @@ class TransactionStatusController extends Controller
             'is_final' => $request->boolean('is_final'),
             'is_active' => $request->boolean('is_active', true),
             'required_permission' => null,
+            'visibility_scope' => $isInitial
+                ? TransactionStatus::VISIBILITY_UNIT
+                : $this->resolveVisibilityScope($request),
         ]);
 
         $workflowPermissions->sync($status);
@@ -62,6 +69,9 @@ class TransactionStatusController extends Controller
             'is_initial' => $isInitial,
             'is_final' => $request->boolean('is_final'),
             'is_active' => $request->boolean('is_active'),
+            'visibility_scope' => $isInitial
+                ? TransactionStatus::VISIBILITY_UNIT
+                : $this->resolveVisibilityScope($request),
         ]);
 
         $workflowPermissions->sync($transactionStatus->fresh(), $previousPermissionKey);
@@ -111,7 +121,20 @@ class TransactionStatusController extends Controller
             'description' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'color' => ['nullable', 'string', 'max:20'],
+            'visibility_scope' => ['nullable', Rule::in([
+                TransactionStatus::VISIBILITY_UNIT,
+                TransactionStatus::VISIBILITY_GLOBAL,
+            ])],
         ]);
+    }
+
+    private function resolveVisibilityScope(Request $request): string
+    {
+        $scope = $request->input('visibility_scope', TransactionStatus::VISIBILITY_UNIT);
+
+        return in_array($scope, [TransactionStatus::VISIBILITY_UNIT, TransactionStatus::VISIBILITY_GLOBAL], true)
+            ? $scope
+            : TransactionStatus::VISIBILITY_UNIT;
     }
 
     private function nextSortOrder(): int

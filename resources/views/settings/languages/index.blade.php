@@ -105,8 +105,8 @@
                             <div class="form-group">
                                 <x-input-label :value="__('languages.direction')" />
                                 <select name="direction" class="form-select" required>
-                                    <option value="rtl" @selected($language->direction === 'rtl')>RTL</option>
-                                    <option value="ltr" @selected($language->direction === 'ltr')>LTR</option>
+                                    <option value="rtl" @selected($language->direction === 'rtl')>{{ __('common.direction_rtl_short') }}</option>
+                                    <option value="ltr" @selected($language->direction === 'ltr')>{{ __('common.direction_ltr_short') }}</option>
                                 </select>
                             </div>
                             <div class="form-check form-group">

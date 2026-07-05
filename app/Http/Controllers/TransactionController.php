@@ -11,6 +11,7 @@ use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Models\User;
 use App\Services\ReferenceNumberService;
+use App\Services\TransactionScopeService;
 use App\Services\WorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,11 +22,11 @@ use Illuminate\View\View;
 
 class TransactionController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, TransactionScopeService $scope): View
     {
         $user = $request->user();
 
-        $transactions = $this->scopedTransactionsQuery($user)
+        $transactions = $this->scopedTransactionsQuery($user, $scope)
             ->with(['department', 'folder', 'transactionType', 'status', 'creator'])
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->string('search');
@@ -53,7 +54,10 @@ class TransactionController extends Controller
             'orgUnits' => $this->scopedOrgUnitOptions($user),
             'folders' => $this->scopedFolders($user),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
-            'statuses' => TransactionStatus::where('is_active', true)->orderBy('sort_order')->get(),
+            'statuses' => TransactionStatus::where('is_active', true)
+                ->whereIn('id', $scope->visibleStatusIds($user))
+                ->orderBy('sort_order')
+                ->get(),
         ]);
     }
 
@@ -341,13 +345,10 @@ class TransactionController extends Controller
         return $reference;
     }
 
-    private function scopedTransactionsQuery(User $user)
+    private function scopedTransactionsQuery(User $user, TransactionScopeService $scope)
     {
         $query = Transaction::query();
-
-        if ($ids = $user->transactionOrgScopeDepartmentIds()) {
-            $query->whereIn('department_id', $ids);
-        }
+        $scope->applyScopeToQuery($query, $user);
 
         return $query;
     }

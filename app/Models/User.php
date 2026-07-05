@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use App\Services\TransactionScopeService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -199,15 +200,7 @@ class User extends Authenticatable
 
     public function canAccessTransaction(Transaction $transaction): bool
     {
-        if ($this->hasPermission('transactions.view-all')) {
-            return true;
-        }
-
-        if ($transaction->created_by !== null && (int) $transaction->created_by === (int) $this->id) {
-            return true;
-        }
-
-        return $this->canAccessDepartment($transaction->department_id);
+        return app(TransactionScopeService::class)->canViewTransaction($this, $transaction);
     }
 
     /** @return list<int>|null null = unrestricted (transactions.view-all only) */

@@ -155,6 +155,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
             Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
             Route::patch('/users/{user}', [UserManagementController::class, 'update']);
+            Route::post('/users/{user}/avatar', [UserManagementController::class, 'updateAvatar'])->name('users.avatar.update');
+            Route::delete('/users/{user}/avatar', [UserManagementController::class, 'destroyAvatar'])->name('users.avatar.destroy');
         });
 
         Route::get('/roles', [RoleManagementController::class, 'index'])

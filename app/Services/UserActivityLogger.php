@@ -62,4 +62,31 @@ class UserActivityLogger
     {
         return $this->log($user, 'password.changed', $user, null, null, $request);
     }
+
+    public function logAdminUserUpdate(
+        User $admin,
+        User $target,
+        array $oldValues,
+        array $newValues,
+        ?Request $request = null,
+    ): AuditLog {
+        return $this->log($admin, 'admin.user.updated', $target, $oldValues, $newValues, $request);
+    }
+
+    public function logAdminAvatarUpdate(
+        User $admin,
+        User $target,
+        ?string $oldPath,
+        ?string $newPath,
+        ?Request $request = null,
+    ): AuditLog {
+        return $this->log(
+            $admin,
+            'admin.user.avatar_updated',
+            $target,
+            ['avatar_path' => $oldPath],
+            ['avatar_path' => $newPath],
+            $request,
+        );
+    }
 }

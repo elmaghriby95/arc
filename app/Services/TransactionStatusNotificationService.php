@@ -164,9 +164,16 @@ class TransactionStatusNotificationService
             ->where('id', '!=', $exclude->id)
             ->get()
             ->filter(function (User $user) use ($transaction, $status) {
-                return $user->hasPermission('transactions.view')
-                    && $user->hasPermission($status->required_permission)
-                    && $user->canAccessDepartment($transaction->department_id);
+                if (! $user->hasPermission('transactions.view')
+                    || ! $user->hasPermission($status->required_permission)) {
+                    return false;
+                }
+
+                if ($status->isGlobalScope()) {
+                    return true;
+                }
+
+                return $user->canAccessDepartment($transaction->department_id);
             })
             ->each(fn (User $user) => $recipients->put($user->id, $user));
 

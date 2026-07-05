@@ -2,14 +2,14 @@
 
 @php
     $childDefaults = [
-        __('settings.org.unit_sector'),
-        __('settings.org.unit_administration'),
-        __('settings.org.unit_department'),
-        __('settings.org.unit_unit'),
-        __('settings.org.unit_office'),
-        __('settings.org.unit_branch'),
+        __('settings.org.sector'),
+        __('settings.org.administration'),
+        __('settings.org.department'),
+        __('settings.org.unit'),
+        __('settings.org.office'),
+        __('settings.org.branch'),
     ];
-    $defaultChildLabel = $childDefaults[min($depth + 1, count($childDefaults) - 1)] ?? __('settings.org.unit_unit');
+    $defaultChildLabel = $childDefaults[min($depth + 1, count($childDefaults) - 1)] ?? __('settings.org.unit');
     $hasChildren = $department->children->isNotEmpty();
 @endphp
 

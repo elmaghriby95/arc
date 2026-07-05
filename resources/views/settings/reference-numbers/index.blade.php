@@ -56,8 +56,8 @@
                         <label class="ref-settings-toggle">
                             <input type="checkbox" name="original_document_number_optional" value="1" @checked(old('original_document_number_optional', $settings->original_document_number_optional))>
                             <span class="ref-settings-toggle-body">
-                                <strong>{{ __('settings.ref_numbers.original_doc_optional') }}</strong>
-                                <small>{{ __('settings.ref_numbers.original_doc_optional_desc') }}</small>
+                                <strong>{{ __('settings.ref_numbers.original_optional') }}</strong>
+                                <small>{{ __('settings.ref_numbers.original_optional_desc') }}</small>
                             </span>
                         </label>
 
@@ -87,8 +87,8 @@
                         <label class="ref-settings-toggle ref-settings-toggle--block">
                             <input type="checkbox" name="operational_number_enabled" value="1" @checked(old('operational_number_enabled', $settings->operational_number_enabled))>
                             <span class="ref-settings-toggle-body">
-                                <strong>{{ __('settings.ref_numbers.operational_enabled') }}</strong>
-                                <small>{{ __('settings.ref_numbers.operational_enabled_desc') }}</small>
+                                <strong>{{ __('settings.ref_numbers.operational_enable') }}</strong>
+                                <small>{{ __('settings.ref_numbers.operational_enable_desc') }}</small>
                             </span>
                         </label>
 
@@ -101,7 +101,7 @@
                             <div class="form-group">
                                 <x-input-label for="operational_number_format" :value="__('settings.ref_numbers.format')" />
                                 <x-text-input id="operational_number_format" name="operational_number_format" type="text" :value="old('operational_number_format', $settings->operational_number_format)" required />
-                                <p class="form-hint">{{ __('settings.ref_numbers.format_hint') }}</p>
+                                <p class="form-hint">{{ __('settings.ref_numbers.format_vars') }}</p>
                             </div>
                         </div>
 
@@ -120,7 +120,7 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">{{ __('settings.ref_numbers.control_title') }}</h3>
+                        <h3 class="card-title">{{ __('settings.ref_numbers.audit_title') }}</h3>
                     </div>
                     <div class="card-body ref-settings-toggles">
                         <label class="ref-settings-toggle">
@@ -140,7 +140,7 @@
                         </label>
 
                         <div class="ref-settings-note">
-                            {!! __('settings.ref_numbers.duplicate_override_note') !!}
+                            {!! __('settings.ref_numbers.override_note') !!}
                         </div>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
             </div>
             @else
             <div class="ref-settings-note ref-settings-note--readonly">
-                {{ __('settings.ref_numbers.readonly_notice') }}
+                {{ __('settings.ref_numbers.readonly') }}
             </div>
             @endpermission
         </form>
