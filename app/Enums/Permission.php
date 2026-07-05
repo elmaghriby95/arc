@@ -73,6 +73,7 @@ enum Permission: string
     case TransactionsStatusReview = 'transactions.status.review';
     case TransactionsStatusApprove = 'transactions.status.approve';
     case TransactionsStatusArchive = 'transactions.status.archive';
+    case TransactionsReviewLogView = 'transactions.review-log.view';
 
     // شجرة المجلدات
     case SettingsFoldersView = 'settings.folders.view';
@@ -167,7 +168,8 @@ enum Permission: string
             self::TransactionsDelete,
             self::TransactionsStatusReview,
             self::TransactionsStatusApprove,
-            self::TransactionsStatusArchive => 'archive_management',
+            self::TransactionsStatusArchive,
+            self::TransactionsReviewLogView => 'archive_management',
 
             self::SettingsFoldersView,
             self::SettingsFoldersCreate,

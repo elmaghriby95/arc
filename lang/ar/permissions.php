@@ -45,6 +45,7 @@ return [
     'transactions_status_review' => 'الانتقال إلى قيد المراجعة',
     'transactions_status_approve' => 'اعتماد المعاملة',
     'transactions_status_archive' => 'أرشفة المعاملة',
+    'transactions_review-log_view' => 'عرض سجل المراجعة',
     'settings_folders_view' => 'عرض شجرة المجلدات',
     'settings_folders_create' => 'إضافة مجلد',
     'settings_folders_edit' => 'تعديل مجلد',

@@ -10,6 +10,7 @@ use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\ScanAgentProxyController;
 use App\Http\Controllers\TransactionAttachmentController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransactionReviewLogController;
 use App\Http\Controllers\Settings\DocumentTypeController;
 use App\Http\Controllers\Settings\FolderTreeController;
 use App\Http\Controllers\Settings\LanguageController;
@@ -100,6 +101,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    });
+
+    Route::middleware('permission:transactions.review-log.view')->group(function () {
+        Route::get('transactions/review-log', [TransactionReviewLogController::class, 'index'])->name('transactions.review-log');
     });
 
     Route::middleware('permission:transactions.create')->group(function () {

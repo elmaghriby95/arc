@@ -11,6 +11,11 @@
                     {{ __('transactions.new_button') }}
                 </a>
             @endpermission
+            @permission('transactions.review-log.view')
+                <a href="{{ route('transactions.review-log') }}" class="btn btn-secondary btn-lg">
+                    {{ __('transactions.review_log_title') }}
+                </a>
+            @endpermission
         </div>
     </x-slot>
 

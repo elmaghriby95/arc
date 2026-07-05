@@ -331,8 +331,16 @@ class TransactionController extends Controller
             default => __('messages.transaction.status_updated'),
         };
 
+        $user = $request->user();
+
+        if ($user->canAccessTransaction($transaction)) {
+            return redirect()
+                ->route('transactions.show', $transaction)
+                ->with('success', $message);
+        }
+
         return redirect()
-            ->route('transactions.show', $transaction)
+            ->route('transactions.index')
             ->with('success', $message);
     }
 
