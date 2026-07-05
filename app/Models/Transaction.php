@@ -78,4 +78,9 @@ class Transaction extends Model
         return (bool) $this->status?->is_initial;
     }
 
+    public function canBeEdited(): bool
+    {
+        return $this->isAtInitialStatus();
+    }
+
 }

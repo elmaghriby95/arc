@@ -12,9 +12,9 @@
                         </div>
                     </div>
                     @permission('transactions.edit')
-                        @unless ($transaction->isAtFinalStatus())
+                        @if ($transaction->canBeEdited())
                             <a href="{{ route('transactions.edit', $transaction) }}" class="btn btn-secondary">تعديل البيانات</a>
-                        @endunless
+                        @endif
                     @endpermission
                 </div>
             </div>

@@ -218,7 +218,7 @@ class TransactionController extends Controller
             'transaction' => $transaction,
             'workflow' => TransactionStatus::workflowSequence(),
             'workflowActions' => $workflow->availableActions($transaction, $user),
-            'canManageAttachments' => $user->hasPermission('transactions.edit') && ! $transaction->isAtFinalStatus(),
+            'canManageAttachments' => $user->hasPermission('transactions.edit') && $transaction->canBeEdited(),
         ]);
     }
 
@@ -226,10 +226,10 @@ class TransactionController extends Controller
     {
         $this->authorizeTransactionAccess($transaction);
 
-        if ($transaction->isAtFinalStatus()) {
+        if (! $transaction->canBeEdited()) {
             return redirect()
                 ->route('transactions.show', $transaction)
-                ->with('error', 'لا يمكن تعديل معاملة في حالة نهائية.');
+                ->with('error', 'لا يمكن تعديل المعاملة إلا وهي في حالة مسودة.');
         }
 
         $user = auth()->user();
@@ -246,8 +246,8 @@ class TransactionController extends Controller
     {
         $this->authorizeTransactionAccess($transaction);
 
-        if ($transaction->isAtFinalStatus()) {
-            return back()->with('error', 'لا يمكن تعديل معاملة في حالة نهائية.');
+        if (! $transaction->canBeEdited()) {
+            return back()->with('error', 'لا يمكن تعديل المعاملة إلا وهي في حالة مسودة.');
         }
 
         $validated = $request->validate([

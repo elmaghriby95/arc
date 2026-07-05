@@ -126,8 +126,8 @@ class TransactionAttachmentController extends Controller
             abort(403, 'لا تملك صلاحية إدارة مرفقات المعاملة.');
         }
 
-        if ($transaction->isAtFinalStatus()) {
-            abort(403, 'لا يمكن تعديل مرفقات معاملة في حالة نهائية.');
+        if (! $transaction->canBeEdited()) {
+            abort(403, 'لا يمكن إضافة أو تعديل المستندات إلا عندما تكون المعاملة في حالة مسودة.');
         }
     }
 
