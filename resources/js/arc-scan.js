@@ -75,7 +75,7 @@
                 body: JSON.stringify({
                     format: 'pdf',
                     resolution: options.resolution ?? 100,
-                    quality: options.quality ?? 42,
+                    quality: options.quality ?? 40,
                     mode: options.mode ?? 'Gray',
                     source: options.source ?? 'feeder',
                     profile: options.profile ?? 'fast',

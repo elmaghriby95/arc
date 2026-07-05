@@ -208,20 +208,13 @@ def optimize_jpeg(path: Path, quality: int, max_width: int) -> Path:
 
 FAST_BATCH_MIN_PAGES = 2
 PARALLEL_WORKERS = 6
-LARGE_JPEG_BYTES = 500_000
 
 
-def build_pdf_fast(jpeg_paths: list[Path], dpi: int) -> bytes:
-    import img2pdf
-
-    return img2pdf.convert(*[str(path) for path in jpeg_paths], dpi=dpi)
-
-
-def _shrink_jpeg_if_large(args: tuple[str, int, int, str]) -> str:
+def _shrink_jpeg_worker(args: tuple[str, int, int, str]) -> str:
     path_str, quality, max_width, script_dir = args
     path = Path(path_str)
 
-    if not path.is_file() or path.stat().st_size <= LARGE_JPEG_BYTES:
+    if not path.is_file():
         return path_str
 
     script = Path(script_dir) / "windows" / "resize-scan.ps1"
@@ -260,21 +253,30 @@ def _shrink_jpeg_if_large(args: tuple[str, int, int, str]) -> str:
     return path_str
 
 
-def parallel_light_compress(
+def parallel_batch_compress(
     pages: list[Path],
     quality: int,
     max_width: int,
 ) -> list[Path]:
-    if len(pages) < FAST_BATCH_MIN_PAGES:
+    if not pages:
         return pages
 
     script_dir = str(Path(__file__).resolve().parent)
     tasks = [(str(page), quality, max_width, script_dir) for page in pages]
 
+    if len(pages) == 1:
+        return [Path(_shrink_jpeg_worker(tasks[0]))]
+
     with ProcessPoolExecutor(max_workers=PARALLEL_WORKERS) as pool:
-        results = list(pool.map(_shrink_jpeg_if_large, tasks))
+        results = list(pool.map(_shrink_jpeg_worker, tasks))
 
     return [Path(result) for result in results]
+
+
+def build_pdf_fast(jpeg_paths: list[Path], dpi: int) -> bytes:
+    import img2pdf
+
+    return img2pdf.convert(*[str(path) for path in jpeg_paths], dpi=dpi)
 
 
 def build_pdf(jpeg_paths: list[Path], dpi: int, fast: bool = False) -> bytes:
@@ -464,8 +466,8 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     fast_mode = profile in {"fast", "batch", "speed"}
 
     if fast_mode:
-        resolution = max(100, min(150, int(payload.get("resolution", 100))))
-        quality = max(35, min(55, int(payload.get("quality", 42))))
+        resolution = max(100, min(120, int(payload.get("resolution", 100))))
+        quality = max(35, min(48, int(payload.get("quality", 40))))
     else:
         resolution = max(100, min(300, int(payload.get("resolution", 120))))
         quality = max(35, min(75, int(payload.get("quality", 48))))
@@ -502,8 +504,8 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     working_pages = list(raw_pages)
 
     if fast_mode and page_count >= FAST_BATCH_MIN_PAGES:
-        app.logger.info("Fast batch: embed JPEG pages directly into PDF")
-        working_pages = raw_pages
+        app.logger.info("Fast batch: parallel compress (%s workers) + PDF", PARALLEL_WORKERS)
+        working_pages = parallel_batch_compress(working_pages, quality, max_width)
     elif not fast_mode:
         optimized: list[Path] = []
 

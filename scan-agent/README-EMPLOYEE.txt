@@ -1,43 +1,29 @@
 ========================================
-  FOR ADMIN (run once per PC)
+  FOR EMPLOYEES
 ========================================
 
-Double-click:
+Your IT gave you: ARC-Scan-Agent.zip
 
-    >>>  INSTALL-ONCE.bat  <<<
+1. Extract to: C:\scan-agent
+2. Double-click: INSTALL-OFFLINE.bat
+3. Open: https://arc.fwit.ly
 
-- Installs Python (needs internet, first time only)
-- Starts agent in background (no window)
-- Auto-starts every time Windows opens
+Do NOT run online installers.
+Do NOT download anything.
 
-After that, employee only opens:
-    https://arc.fwit.ly
-
-To remove: UNINSTALL.bat
-Log file: agent.log
+Daily use: just open the website and scan.
 
 ========================================
-  للمسؤول (مرة واحدة على كل جهاز)
+  للموظفين
 ========================================
 
-اضغط:
+IT أعطاك: ARC-Scan-Agent.zip
 
-    >>>  INSTALL-ONCE.bat  <<<
+1. فك الضغط إلى: C:\scan-agent
+2. اضغط: INSTALL-OFFLINE.bat
+3. افتح: https://arc.fwit.ly
 
-- يثبت Python (اول مرة + انترنت)
-- يشغل الوكيل في الخلفية (بدون نافذة)
-- يشتغل تلقائيا مع كل تشغيل للويندوز
+لا تنزّل أي شيء من الانترنت.
+لا تشغّل START.bat إذا عندك INSTALL-OFFLINE.bat
 
-بعدها الموظف يفتح فقط:
-    https://arc.fwit.ly
-
-للازالة: UNINSTALL.bat
-سجل الاخطاء: agent.log
-
-========================================
-  EMPLOYEE - nothing to run daily
-========================================
-
-Just open https://arc.fwit.ly and scan.
-
-========================================
+الاستخدام اليومي: افتح الموقع وامسح فقط.

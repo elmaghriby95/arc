@@ -1,0 +1,69 @@
+========================================
+Kaspersky / IT - Read this first
+========================================
+
+PROBLEM
+-------
+Kaspersky blocks downloading Python from the internet on employee PCs.
+Employees cannot install online.
+
+SOLUTION (recommended)
+----------------------
+IT admin runs ONCE (with internet, on one PC):
+
+    PREPARE-PACKAGE.bat
+
+Then:
+1. Add folder to Kaspersky exclusions (see below)
+2. Zip the FULL scan-agent folder (with runtime\)
+3. Give ARC-Scan-Agent.zip to employees via USB
+
+Employee runs (NO internet):
+
+    INSTALL-OFFLINE.bat
+
+Kaspersky exclusions (admin PC when preparing)
+----------------------------------------------
+Add trusted application / exclusion for folder:
+
+    C:\scan-agent\
+
+Or the path where you prepare the package.
+
+Exclude from: file scan, script monitoring (optional)
+
+Why files were too large
+------------------------
+Fixed: scans now compress all pages in parallel before PDF.
+Expected: ~50 pages = about 2-8 MB PDF (not 50+ MB)
+
+========================================
+الكaspersky / IT
+========================================
+
+المشكلة
+-------
+كاسبرسكي يمنع تنزيل Python على أجهزة الموظفين.
+
+الحل
+----
+المسؤول يشغّل مرة واحدة (عنده انترنت):
+
+    PREPARE-PACKAGE.bat
+
+ثم:
+1. يضيف المجلد لاستثناءات Kaspersky
+2. يضغط مجلد scan-agent كامل (مع runtime)
+3. يوزّع ARC-Scan-Agent.zip على الموظفين (فلاش)
+
+الموظف يشغّل (بدون انترنت):
+
+    INSTALL-OFFLINE.bat
+
+استثناء Kaspersky
+-----------------
+أضف مجلد scan-agent كتطبيق/مجلد موثوق.
+
+حجم الملفات
+-----------
+تم إصلاح الضغط: 50 صفحة تقريباً 2-8 MB بدل عشرات MB.
