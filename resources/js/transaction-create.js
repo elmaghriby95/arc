@@ -240,7 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.ArcScan?.bindButton(scanBtn, {
         onSuccess: (file) => addFiles([file]),
         onError: (error) => {
-            alert(error?.message || 'تعذّر المسح. شغّل scan-agent/start-windows.bat ثم حاول مجدداً.');
+            alert(
+                error?.message
+                    || 'تعذّر المسح. شغّل ARC Scan Agent على جهازك (start-windows.bat أو install-ubuntu.sh).',
+            );
         },
     });
 

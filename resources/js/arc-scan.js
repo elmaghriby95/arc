@@ -49,7 +49,12 @@
         }
 
         if (error instanceof TypeError) {
-            return new Error('تعذّر الاتصال بخدمة المسح. تحقق من Agent على السيرفر أو start-windows.bat محلياً.');
+            return new Error(
+                'تعذّر الاتصال بـ ARC Scan Agent على جهازك.\n\n'
+                + '• Windows: شغّل scan-agent/start-windows.bat\n'
+                + '• Ubuntu: cd ~/scan-agent && ./install-ubuntu.sh (مع ARC_URL=https://arc.fwit.ly)\n'
+                + '• ثم: curl http://127.0.0.1:8765/health',
+            );
         }
 
         return error instanceof Error ? error : new Error('تعذّر المسح.');
