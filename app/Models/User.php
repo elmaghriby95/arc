@@ -110,6 +110,9 @@ class User extends Authenticatable
             return false;
         }
 
+        $departmentId = (int) $departmentId;
+        $scope = array_map(intval(...), $scope);
+
         return in_array($departmentId, $scope, true);
     }
 
@@ -133,6 +136,10 @@ class User extends Authenticatable
     public function canAccessTransaction(Transaction $transaction): bool
     {
         if ($this->hasPermission('transactions.view-all')) {
+            return true;
+        }
+
+        if ($transaction->created_by !== null && (int) $transaction->created_by === (int) $this->id) {
             return true;
         }
 

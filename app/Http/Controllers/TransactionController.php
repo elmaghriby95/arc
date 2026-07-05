@@ -64,7 +64,7 @@ class TransactionController extends Controller
         $departmentIds = $user->orgScopeDepartmentIds();
 
         return view('transactions.create', [
-            'orgUnits' => $this->scopedOrgUnitOptions($user),
+            'orgUnits' => $this->scopedOrgUnitOptions($user, forMutation: true),
             'folders' => $this->scopedFolders($user),
             'folderTree' => Folder::scopedTree($departmentIds, activeOnly: true),
             'departmentBreadcrumbs' => Department::breadcrumbMap(),
@@ -236,7 +236,7 @@ class TransactionController extends Controller
 
         return view('transactions.edit', [
             'transaction' => $transaction,
-            'orgUnits' => $this->scopedOrgUnitOptions($user),
+            'orgUnits' => $this->scopedOrgUnitOptions($user, forMutation: true),
             'folders' => $this->scopedFolders($user),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
         ]);
@@ -351,14 +351,19 @@ class TransactionController extends Controller
     }
 
     /** @return list<array{id: int, label: string, depth: int}> */
-    private function scopedOrgUnitOptions(User $user): array
+    private function scopedOrgUnitOptions(User $user, bool $forMutation = false): array
     {
         $options = Department::optionsForSelect();
 
-        if ($ids = $user->transactionOrgScopeDepartmentIds()) {
+        $ids = $forMutation
+            ? $user->orgScopeDepartmentIds()
+            : $user->transactionOrgScopeDepartmentIds();
+
+        if ($ids !== null) {
+            $ids = array_map(intval(...), $ids);
             $options = array_values(array_filter(
                 $options,
-                fn (array $option) => in_array($option['id'], $ids, true)
+                fn (array $option) => in_array((int) $option['id'], $ids, true)
             ));
         }
 

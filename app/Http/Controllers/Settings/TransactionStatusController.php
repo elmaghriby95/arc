@@ -103,8 +103,15 @@ class TransactionStatusController extends Controller
             ],
             'description' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'required_permission' => ['nullable', 'string', Rule::in(Permission::values())],
+            'required_permission' => [
+                Rule::requiredIf(fn () => ! $request->boolean('is_initial')),
+                'nullable',
+                'string',
+                Rule::in(Permission::values()),
+            ],
             'color' => ['nullable', 'string', 'max:20'],
+        ], [
+            'required_permission.required' => 'يجب اختيار صلاحية لكل مرحلة غير ابتدائية.',
         ]);
     }
 

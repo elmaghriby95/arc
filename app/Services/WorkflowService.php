@@ -127,11 +127,11 @@ class WorkflowService
             return $user->hasPermission(Permission::TransactionsCreate->value);
         }
 
-        if ($status->required_permission) {
-            return $user->hasPermission($status->required_permission);
+        if (! $status->required_permission) {
+            return false;
         }
 
-        return true;
+        return $user->hasPermission($status->required_permission);
     }
 
     private function applyTransition(
