@@ -5,6 +5,7 @@
 .env.production
 /scan-agent/agent.env
 /scan-agent/runtime/
+/scan-agent/agent.log
 .phpactor.json
 .phpunit.result.cache
 /.codex

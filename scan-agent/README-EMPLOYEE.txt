@@ -1,36 +1,43 @@
 ========================================
-  ARC Scan Agent - Windows
+  FOR ADMIN (run once per PC)
 ========================================
 
-IMPORTANT: Double-click ONLY this file:
+Double-click:
 
-    >>>  START.bat  <<<
+    >>>  INSTALL-ONCE.bat  <<<
 
-Do NOT use start-windows.bat (old file).
+- Installs Python (needs internet, first time only)
+- Starts agent in background (no window)
+- Auto-starts every time Windows opens
 
-Steps:
-  1. Extract ZIP to C:\scan-agent (not inside ZIP)
-  2. Double-click START.bat
-  3. First time: wait 5 min (needs internet)
-  4. Keep black window OPEN
-  5. Open https://arc.fwit.ly and click scan button
+After that, employee only opens:
+    https://arc.fwit.ly
 
-If START.bat fails, try START.vbs
-
-Version: 2 (auto-install Python, no PHP needed)
+To remove: UNINSTALL.bat
+Log file: agent.log
 
 ========================================
-  وكيل المسح - ويندوز
+  للمسؤول (مرة واحدة على كل جهاز)
 ========================================
 
-اضغط فقط على:
+اضغط:
 
-    >>>  START.bat  <<<
+    >>>  INSTALL-ONCE.bat  <<<
 
-لا تستخدم start-windows.bat
+- يثبت Python (اول مرة + انترنت)
+- يشغل الوكيل في الخلفية (بدون نافذة)
+- يشتغل تلقائيا مع كل تشغيل للويندوز
 
-  1. فك ZIP الى C:\scan-agent
-  2. اضغط START.bat
-  3. اول مرة: انتظر 5 دقائق (انترنت)
-  4. اترك النافذة السوداء مفتوحة
-  5. افتح https://arc.fwit.ly واضغط مسح مباشر
+بعدها الموظف يفتح فقط:
+    https://arc.fwit.ly
+
+للازالة: UNINSTALL.bat
+سجل الاخطاء: agent.log
+
+========================================
+  EMPLOYEE - nothing to run daily
+========================================
+
+Just open https://arc.fwit.ly and scan.
+
+========================================

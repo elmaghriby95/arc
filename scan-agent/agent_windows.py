@@ -6,6 +6,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+import traceback
 import uuid
 from pathlib import Path
 
@@ -43,6 +44,22 @@ def load_env_file() -> None:
 
 
 load_env_file()
+
+LOG_FILE = Path(__file__).resolve().parent / "agent.log"
+
+
+def setup_logging() -> None:
+    import logging
+
+    logging.basicConfig(
+        filename=LOG_FILE,
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        encoding="utf-8",
+    )
+
+
+setup_logging()
 
 
 def allowed_origins() -> list[str]:
@@ -95,13 +112,35 @@ def add_cors_headers(response: Response) -> Response:
     return response
 
 
+_com_initialized = False
+
+
+def ensure_com() -> None:
+    global _com_initialized
+
+    if _com_initialized:
+        return
+
+    import pythoncom
+
+    pythoncom.CoInitialize()
+    _com_initialized = True
+
+
 def wia_available() -> bool:
     try:
+        import pythoncom  # noqa: F401
         import win32com.client  # noqa: F401
 
         return True
     except ImportError:
         return False
+
+
+def release_com_objects() -> None:
+    import gc
+
+    gc.collect()
 
 
 def target_width(resolution: int) -> int:
@@ -183,17 +222,22 @@ def apply_properties(item, mode: str, resolution: int) -> None:
 def list_devices() -> list[dict[str, str]]:
     import win32com.client
 
+    ensure_com()
     manager = win32com.client.Dispatch("WIA.DeviceManager")
     devices: list[dict[str, str]] = []
 
-    for info in manager.DeviceInfos:
-        if int(info.Type) != 1:
-            continue
+    try:
+        for info in manager.DeviceInfos:
+            if int(info.Type) != 1:
+                continue
 
-        devices.append({
-            "id": str(info.DeviceID),
-            "name": str(info.Properties("Name").Value),
-        })
+            devices.append({
+                "id": str(info.DeviceID),
+                "name": str(info.Properties("Name").Value),
+            })
+    finally:
+        manager = None
+        release_com_objects()
 
     return devices
 
@@ -292,6 +336,7 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     if fmt not in {"pdf", "jpg", "png"}:
         raise RuntimeError("Unsupported format. Use pdf, png, or jpeg.")
 
+    ensure_com()
     manager = win32com.client.Dispatch("WIA.DeviceManager")
     device_info = resolve_device(manager, device_id)
 
@@ -301,7 +346,12 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     device = device_info.Connect()
     item = resolve_scan_item(device)
     wia_mode = "color" if mode == "color" else "gray"
-    raw_pages = acquire_pages(device, item, source, wia_mode, resolution)
+
+    try:
+        raw_pages = acquire_pages(device, item, source, wia_mode, resolution)
+    finally:
+        item = device = device_info = manager = None
+        release_com_objects()
 
     if not raw_pages:
         raise RuntimeError("لم تُمسح أي صفحة.")
@@ -376,11 +426,20 @@ def scan():
 
     try:
         data, mime = scan_document(payload)
+    except RuntimeError as exc:
+        print(f"[scan] {exc}", flush=True)
+        app.logger.warning("scan rejected: %s", exc)
+        return jsonify({"error": str(exc)}), 400
     except Exception as exc:
+        traceback.print_exc()
+        app.logger.exception("scan failed")
         return jsonify({"error": str(exc)}), 500
 
     return Response(data, mimetype=mime)
 
 
 if __name__ == "__main__":
-    app.run(host=HOST, port=PORT, threaded=True)
+    ensure_com()
+    app.logger.info("ARC Scan Agent starting on http://%s:%s", HOST, PORT)
+    print("ARC Scan Agent ready.", flush=True)
+    app.run(host=HOST, port=PORT, threaded=False)
