@@ -74,10 +74,11 @@
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     format: 'pdf',
-                    resolution: options.resolution ?? 120,
-                    quality: options.quality ?? 48,
+                    resolution: options.resolution ?? 100,
+                    quality: options.quality ?? 42,
                     mode: options.mode ?? 'Gray',
-                    source: options.source ?? 'auto',
+                    source: options.source ?? 'feeder',
+                    profile: options.profile ?? 'fast',
                     device: options.device ?? null,
                 }),
             });
@@ -111,7 +112,9 @@
         const idleLabel = button.dataset.scanIdleLabel || button.textContent.trim();
         const scanningLabel = button.dataset.scanningLabel || 'Scanning...';
         const processingLabel = button.dataset.scanProcessingLabel || scanningLabel;
+        const largeBatchLabel = button.dataset.scanLargeLabel || 'جاري مسح دفعة كبيرة... قد يستغرق عدة دقائق';
         let processingTimer = null;
+        let largeBatchTimer = null;
 
         button.addEventListener('click', async () => {
             button.disabled = true;
@@ -120,7 +123,11 @@
 
             processingTimer = window.setTimeout(() => {
                 button.textContent = processingLabel;
-            }, 4000);
+            }, 15000);
+
+            largeBatchTimer = window.setTimeout(() => {
+                button.textContent = largeBatchLabel;
+            }, 45000);
 
             try {
                 const agentUrl = resolveAgentUrl(button);
@@ -131,6 +138,7 @@
                 callbacks.onError?.(normalizeError(error));
             } finally {
                 window.clearTimeout(processingTimer);
+                window.clearTimeout(largeBatchTimer);
                 button.disabled = false;
                 button.textContent = idleLabel;
                 callbacks.onStateChange?.('idle');

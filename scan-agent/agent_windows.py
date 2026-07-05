@@ -5,9 +5,12 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import tempfile
 import traceback
 import uuid
+from concurrent.futures import ProcessPoolExecutor
+from io import BytesIO
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, request
@@ -152,6 +155,39 @@ def temp_path(suffix: str) -> Path:
 
 
 def optimize_jpeg(path: Path, quality: int, max_width: int) -> Path:
+    script = Path(__file__).resolve().parent / "windows" / "resize-scan.ps1"
+    target = temp_path("jpg")
+
+    if script.is_file():
+        result = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(script),
+                "-InputPath",
+                str(path),
+                "-OutputPath",
+                str(target),
+                "-MaxWidth",
+                str(max_width),
+                "-Quality",
+                str(quality),
+            ],
+            capture_output=True,
+            timeout=90,
+            check=False,
+        )
+
+        if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
+            path.unlink(missing_ok=True)
+            return target
+
+        target.unlink(missing_ok=True)
+        app.logger.warning("PowerShell resize failed, using Pillow fallback.")
+
     from PIL import Image
 
     with Image.open(path) as image:
@@ -160,10 +196,9 @@ def optimize_jpeg(path: Path, quality: int, max_width: int) -> Path:
 
         if width > max_width:
             new_height = max(1, int(round(height * (max_width / width))))
-            image = image.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            image = image.resize((max_width, new_height), Image.Resampling.BILINEAR)
 
-        target = temp_path("jpg")
-        image.save(target, format="JPEG", quality=max(35, min(75, quality)), optimize=True)
+        image.save(target, format="JPEG", quality=max(35, min(75, quality)))
 
     if target != path:
         path.unlink(missing_ok=True)
@@ -171,10 +206,107 @@ def optimize_jpeg(path: Path, quality: int, max_width: int) -> Path:
     return target
 
 
-def build_pdf(jpeg_paths: list[Path], dpi: int) -> bytes:
+FAST_BATCH_MIN_PAGES = 2
+PARALLEL_WORKERS = 6
+LARGE_JPEG_BYTES = 500_000
+
+
+def build_pdf_fast(jpeg_paths: list[Path], dpi: int) -> bytes:
     import img2pdf
 
     return img2pdf.convert(*[str(path) for path in jpeg_paths], dpi=dpi)
+
+
+def _shrink_jpeg_if_large(args: tuple[str, int, int, str]) -> str:
+    path_str, quality, max_width, script_dir = args
+    path = Path(path_str)
+
+    if not path.is_file() or path.stat().st_size <= LARGE_JPEG_BYTES:
+        return path_str
+
+    script = Path(script_dir) / "windows" / "resize-scan.ps1"
+    target = path.parent / f"{path.stem}-opt{path.suffix}"
+
+    if not script.is_file():
+        return path_str
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InputPath",
+            str(path),
+            "-OutputPath",
+            str(target),
+            "-MaxWidth",
+            str(max_width),
+            "-Quality",
+            str(quality),
+        ],
+        capture_output=True,
+        timeout=45,
+        check=False,
+    )
+
+    if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
+        path.unlink(missing_ok=True)
+        return str(target)
+
+    target.unlink(missing_ok=True)
+    return path_str
+
+
+def parallel_light_compress(
+    pages: list[Path],
+    quality: int,
+    max_width: int,
+) -> list[Path]:
+    if len(pages) < FAST_BATCH_MIN_PAGES:
+        return pages
+
+    script_dir = str(Path(__file__).resolve().parent)
+    tasks = [(str(page), quality, max_width, script_dir) for page in pages]
+
+    with ProcessPoolExecutor(max_workers=PARALLEL_WORKERS) as pool:
+        results = list(pool.map(_shrink_jpeg_if_large, tasks))
+
+    return [Path(result) for result in results]
+
+
+def build_pdf(jpeg_paths: list[Path], dpi: int, fast: bool = False) -> bytes:
+    if fast or len(jpeg_paths) >= FAST_BATCH_MIN_PAGES:
+        return build_pdf_fast(jpeg_paths, dpi)
+
+    from PIL import Image
+
+    images: list[Image.Image] = []
+
+    try:
+        for path in jpeg_paths:
+            img = Image.open(path)
+
+            if img.mode != "RGB":
+                img = img.convert("RGB")
+
+            images.append(img)
+
+        buffer = BytesIO()
+        images[0].save(
+            buffer,
+            format="PDF",
+            save_all=True,
+            append_images=images[1:],
+            resolution=float(dpi),
+        )
+
+        return buffer.getvalue()
+    finally:
+        for img in images:
+            img.close()
 
 
 def is_paper_empty_error(message: str) -> bool:
@@ -279,6 +411,7 @@ def scan_from_feeder(device, item, mode: str, resolution: int) -> list[Path]:
             path = temp_path("jpg")
             image.SaveFile(str(path))
             pages.append(path)
+            app.logger.info("Feeder page %s captured", len(pages))
         except Exception as exc:
             if index == 0 and is_paper_empty_error(str(exc)):
                 return []
@@ -323,12 +456,19 @@ def acquire_pages(device, item, source: str, mode: str, resolution: int) -> list
 def scan_document(payload: dict) -> tuple[bytes, str]:
     import win32com.client
 
-    resolution = max(100, min(300, int(payload.get("resolution", 120))))
-    quality = max(35, min(75, int(payload.get("quality", 48))))
+    profile = str(payload.get("profile", "fast")).lower()
+    source = str(payload.get("source", "feeder")).lower()
     mode = str(payload.get("mode", "Gray")).lower()
-    source = str(payload.get("source", "auto")).lower()
     fmt = str(payload.get("format", "pdf")).lower()
     device_id = payload.get("device")
+    fast_mode = profile in {"fast", "batch", "speed"}
+
+    if fast_mode:
+        resolution = max(100, min(150, int(payload.get("resolution", 100))))
+        quality = max(35, min(55, int(payload.get("quality", 42))))
+    else:
+        resolution = max(100, min(300, int(payload.get("resolution", 120))))
+        quality = max(35, min(75, int(payload.get("quality", 48))))
 
     if fmt == "jpeg":
         fmt = "jpg"
@@ -356,24 +496,40 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     if not raw_pages:
         raise RuntimeError("لم تُمسح أي صفحة.")
 
-    optimized = [
-        optimize_jpeg(page, quality, target_width(resolution))
-        for page in raw_pages
-    ]
+    page_count = len(raw_pages)
+    app.logger.info("Scanned %s page(s), profile=%s", page_count, profile)
+    max_width = target_width(resolution)
+    working_pages = list(raw_pages)
 
-    for page in raw_pages:
-        if page not in optimized:
-            page.unlink(missing_ok=True)
+    if fast_mode and page_count >= FAST_BATCH_MIN_PAGES:
+        app.logger.info("Fast batch: embed JPEG pages directly into PDF")
+        working_pages = raw_pages
+    elif not fast_mode:
+        optimized: list[Path] = []
+
+        for index, page in enumerate(working_pages, start=1):
+            app.logger.info("Optimizing page %s/%s", index, page_count)
+            optimized.append(optimize_jpeg(page, quality, max_width))
+            release_com_objects()
+
+        for page in working_pages:
+            if page not in optimized:
+                page.unlink(missing_ok=True)
+
+        working_pages = optimized
 
     try:
-        if fmt == "pdf" or len(optimized) > 1:
-            data = build_pdf(optimized, resolution)
+        if fmt == "pdf" or len(working_pages) > 1:
+            app.logger.info("Building PDF from %s page(s)...", len(working_pages))
+            data = build_pdf(working_pages, resolution, fast=fast_mode)
             mime = "application/pdf"
         else:
-            data = optimized[0].read_bytes()
+            data = working_pages[0].read_bytes()
             mime = "image/jpeg"
+
+        app.logger.info("Scan complete: %s bytes", len(data))
     finally:
-        for page in optimized:
+        for page in set(raw_pages + working_pages):
             page.unlink(missing_ok=True)
 
     return data, mime
@@ -439,6 +595,9 @@ def scan():
 
 
 if __name__ == "__main__":
+    import multiprocessing
+
+    multiprocessing.freeze_support()
     ensure_com()
     app.logger.info("ARC Scan Agent starting on http://%s:%s", HOST, PORT)
     print("ARC Scan Agent ready.", flush=True)
