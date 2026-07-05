@@ -13,17 +13,16 @@ Do NOT download anything.
 
 Daily use: just open the website and scan.
 
+If agent does not start after reboot:
+    REPAIR-AUTOSTART.bat
+
 ========================================
   للموظفين
 ========================================
 
-IT أعطاك: ARC-Scan-Agent.zip
+1. فك ZIP الى C:\scan-agent
+2. INSTALL-OFFLINE.bat
+3. https://arc.fwit.ly
 
-1. فك الضغط إلى: C:\scan-agent
-2. اضغط: INSTALL-OFFLINE.bat
-3. افتح: https://arc.fwit.ly
-
-لا تنزّل أي شيء من الانترنت.
-لا تشغّل START.bat إذا عندك INSTALL-OFFLINE.bat
-
-الاستخدام اليومي: افتح الموقع وامسح فقط.
+اذا لم يشتغل بعد اعادة التشغيل:
+    REPAIR-AUTOSTART.bat
