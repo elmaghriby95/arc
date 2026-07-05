@@ -96,7 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-        Route::post('transactions/{transaction}/advance-status', [TransactionController::class, 'advanceStatus'])->name('transactions.advance-status');
+        Route::post('transactions/{transaction}/transition', [TransactionController::class, 'transition'])->name('transactions.transition');
     });
 
     Route::middleware('permission:transactions.edit')->group(function () {

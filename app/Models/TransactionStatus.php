@@ -68,6 +68,21 @@ class TransactionStatus extends Model
             ->first();
     }
 
+    public function previousInWorkflow(): ?self
+    {
+        return static::where('is_active', true)
+            ->where(function ($query) {
+                $query->where('sort_order', '<', $this->sort_order)
+                    ->orWhere(function ($q) {
+                        $q->where('sort_order', $this->sort_order)
+                            ->where('id', '<', $this->id);
+                    });
+            })
+            ->orderByDesc('sort_order')
+            ->orderByDesc('id')
+            ->first();
+    }
+
     public function permissionLabel(): ?string
     {
         if (! $this->required_permission) {

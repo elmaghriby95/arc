@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\WorkflowAction;
 use App\Models\Department;
 use App\Models\Folder;
 use App\Models\ReferenceNumberSetting;
@@ -10,9 +11,11 @@ use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Models\User;
 use App\Services\ReferenceNumberService;
+use App\Services\WorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 use Illuminate\View\View;
 
@@ -141,6 +144,7 @@ class TransactionController extends Controller
             'from_status_id' => null,
             'to_status_id' => $initialStatus->id,
             'changed_by' => $request->user()->id,
+            'action' => WorkflowAction::Create->value,
             'notes' => 'إنشاء المعاملة',
         ]);
 
@@ -192,7 +196,7 @@ class TransactionController extends Controller
             ->with('success', 'تم إنشاء المعاملة بنجاح.');
     }
 
-    public function show(Transaction $transaction): View
+    public function show(Transaction $transaction, WorkflowService $workflow): View
     {
         $this->authorizeTransactionAccess($transaction);
 
@@ -210,13 +214,10 @@ class TransactionController extends Controller
 
         $user = auth()->user();
 
-        $workflow = TransactionStatus::workflowSequence();
-
         return view('transactions.show', [
             'transaction' => $transaction,
-            'workflow' => $workflow,
-            'nextStatus' => $transaction->nextStatus(),
-            'canAdvance' => $transaction->canUserAdvance($user),
+            'workflow' => TransactionStatus::workflowSequence(),
+            'workflowActions' => $workflow->availableActions($transaction, $user),
             'canManageAttachments' => $user->hasPermission('transactions.edit') && ! $transaction->isAtFinalStatus(),
         ]);
     }
@@ -297,21 +298,36 @@ class TransactionController extends Controller
             ->with('success', 'تم حذف المعاملة بنجاح.');
     }
 
-    public function advanceStatus(Request $request, Transaction $transaction): RedirectResponse
+    public function transition(Request $request, Transaction $transaction, WorkflowService $workflow): RedirectResponse
     {
         $this->authorizeTransactionAccess($transaction);
 
         $validated = $request->validate([
+            'action' => ['required', Rule::enum(WorkflowAction::class)],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if (! $transaction->advanceStatus($request->user(), $validated['notes'] ?? null)) {
-            return back()->with('error', 'لا تملك صلاحية الانتقال إلى الحالة التالية أو أن المعاملة في آخر مرحلة.');
+        $action = WorkflowAction::from($validated['action']);
+
+        if ($action === WorkflowAction::Reject && blank($validated['notes'] ?? null)) {
+            return back()
+                ->withInput()
+                ->withErrors(['notes' => 'يجب إدخال سبب الرفض.']);
         }
+
+        if (! $workflow->transition($transaction, $action, $request->user(), $validated['notes'] ?? null)) {
+            return back()->with('error', 'لا تملك صلاحية تنفيذ هذا الإجراء أو أن المعاملة في حالة لا تسمح بذلك.');
+        }
+
+        $message = match ($action) {
+            WorkflowAction::Reject => 'تم رفض المعاملة وإعادتها للمرحلة السابقة.',
+            WorkflowAction::Submit => 'تم إرسال المعاملة للمرحلة التالية.',
+            default => 'تم تحديث حالة المعاملة بنجاح.',
+        };
 
         return redirect()
             ->route('transactions.show', $transaction)
-            ->with('success', 'تم تحديث حالة المعاملة بنجاح.');
+            ->with('success', $message);
     }
 
     private function generateReferenceNumber(): string
@@ -327,7 +343,7 @@ class TransactionController extends Controller
     {
         $query = Transaction::query();
 
-        if ($ids = $user->orgScopeDepartmentIds()) {
+        if ($ids = $user->transactionOrgScopeDepartmentIds()) {
             $query->whereIn('department_id', $ids);
         }
 
@@ -339,7 +355,7 @@ class TransactionController extends Controller
     {
         $options = Department::optionsForSelect();
 
-        if ($ids = $user->orgScopeDepartmentIds()) {
+        if ($ids = $user->transactionOrgScopeDepartmentIds()) {
             $options = array_values(array_filter(
                 $options,
                 fn (array $option) => in_array($option['id'], $ids, true)

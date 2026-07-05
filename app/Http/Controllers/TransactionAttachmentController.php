@@ -55,8 +55,17 @@ class TransactionAttachmentController extends Controller
     public function destroy(Transaction $transaction, TransactionAttachment $attachment): RedirectResponse
     {
         $this->authorizeAccess($transaction);
-        $this->authorizeMutation($transaction);
         $this->ensureAttachmentBelongsToTransaction($transaction, $attachment);
+
+        if (! auth()->user()?->hasPermission('transactions.edit')) {
+            abort(403, 'لا تملك صلاحية إدارة مرفقات المعاملة.');
+        }
+
+        if (! $attachment->canBeDeletedBy(auth()->user())) {
+            return redirect()
+                ->route('transactions.show', $transaction)
+                ->with('error', 'لا يمكن حذف المستند إلا عندما تكون المعاملة في حالة مسودة، ومن قبل الشخص الذي أضاف المستند.');
+        }
 
         if ($attachment->file_path && Storage::disk('local')->exists($attachment->file_path)) {
             Storage::disk('local')->delete($attachment->file_path);

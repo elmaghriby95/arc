@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\WorkflowAction;
 use App\Models\Transaction;
 use App\Models\TransactionStatus;
 use App\Models\TransactionStatusHistory;
@@ -28,11 +29,22 @@ class TransactionStatusNotificationService
             return;
         }
 
+        $action = $history->action
+            ? WorkflowAction::tryFrom($history->action)
+            : null;
+
+        if ($action === WorkflowAction::Reject) {
+            $this->notifyReject($transaction, $changedBy, $history->fromStatus, $toStatus);
+
+            return;
+        }
+
         $this->notify(
             $transaction,
             $changedBy,
             $history->fromStatus,
             $toStatus,
+            $action,
         );
     }
 
@@ -41,8 +53,9 @@ class TransactionStatusNotificationService
         User $changedBy,
         ?TransactionStatus $fromStatus,
         TransactionStatus $toStatus,
+        ?WorkflowAction $action = null,
     ): void {
-        $recipients = $this->resolveRecipients($transaction, $changedBy, $toStatus);
+        $recipients = $this->resolveForwardRecipients($transaction, $changedBy, $toStatus);
 
         if ($recipients->isEmpty()) {
             return;
@@ -53,6 +66,32 @@ class TransactionStatusNotificationService
             $changedBy,
             $fromStatus,
             $toStatus,
+            $action,
+        );
+
+        foreach ($recipients as $recipient) {
+            $recipient->notify($notification);
+        }
+    }
+
+    private function notifyReject(
+        Transaction $transaction,
+        User $changedBy,
+        ?TransactionStatus $fromStatus,
+        TransactionStatus $toStatus,
+    ): void {
+        $recipients = $this->resolveStatusResponsibleUsers($transaction, $toStatus, $changedBy);
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $notification = new TransactionStatusChanged(
+            $transaction,
+            $changedBy,
+            $fromStatus,
+            $toStatus,
+            WorkflowAction::Reject,
         );
 
         foreach ($recipients as $recipient) {
@@ -61,7 +100,7 @@ class TransactionStatusNotificationService
     }
 
     /** @return Collection<int, User> */
-    private function resolveRecipients(
+    private function resolveForwardRecipients(
         Transaction $transaction,
         User $changedBy,
         TransactionStatus $toStatus,
@@ -79,15 +118,7 @@ class TransactionStatusNotificationService
         $nextStatus = $toStatus->nextInWorkflow();
 
         if ($nextStatus?->required_permission) {
-            User::query()
-                ->with('role')
-                ->where('id', '!=', $changedBy->id)
-                ->get()
-                ->filter(function (User $user) use ($transaction, $nextStatus) {
-                    return $user->hasPermission('transactions.view')
-                        && $user->hasPermission($nextStatus->required_permission)
-                        && $user->canAccessDepartment($transaction->department_id);
-                })
+            $this->resolveStatusResponsibleUsers($transaction, $nextStatus, $changedBy)
                 ->each(fn (User $user) => $recipients->put($user->id, $user));
         }
 
@@ -102,6 +133,42 @@ class TransactionStatusNotificationService
                 $recipients->put($head->id, $head);
             }
         }
+
+        return $recipients->values();
+    }
+
+    /** @return Collection<int, User> */
+    private function resolveStatusResponsibleUsers(
+        Transaction $transaction,
+        TransactionStatus $status,
+        User $exclude,
+    ): Collection {
+        $recipients = collect();
+
+        if ($status->is_initial || ! $status->required_permission) {
+            $creator = $transaction->creator;
+
+            if ($creator
+                && $creator->id !== $exclude->id
+                && $creator->hasPermission('transactions.view')
+                && $creator->canAccessDepartment($transaction->department_id)
+            ) {
+                $recipients->put($creator->id, $creator);
+            }
+
+            return $recipients->values();
+        }
+
+        User::query()
+            ->with('role')
+            ->where('id', '!=', $exclude->id)
+            ->get()
+            ->filter(function (User $user) use ($transaction, $status) {
+                return $user->hasPermission('transactions.view')
+                    && $user->hasPermission($status->required_permission)
+                    && $user->canAccessDepartment($transaction->department_id);
+            })
+            ->each(fn (User $user) => $recipients->put($user->id, $user));
 
         return $recipients->values();
     }

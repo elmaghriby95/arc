@@ -112,40 +112,51 @@
 
                     <section class="card txn-panel txn-panel--action">
                         <div class="card-header">
-                            <h3 class="card-title">تغيير الحالة</h3>
+                            <h3 class="card-title">إجراءات سير العمل</h3>
                         </div>
                         <div class="card-body">
-                            @if ($nextStatus && $canAdvance)
+                            @if ($workflowActions->isNotEmpty())
                                 <div class="txn-advance-box">
-                                    <p class="txn-advance-next">الحالة التالية</p>
-                                    <x-transaction-status-badge :status="$nextStatus" />
-                                    @if ($nextStatus->required_permission)
-                                        <p class="form-hint">مطلوب: {{ $nextStatus->permissionLabel() }}</p>
+                                    <p class="txn-advance-next">الحالة الحالية</p>
+                                    <x-transaction-status-badge :status="$transaction->status" />
+                                    @if ($transaction->status?->required_permission)
+                                        <p class="form-hint">صلاحية هذه المرحلة: {{ $transaction->status->permissionLabel() }}</p>
                                     @endif
-                                    <form method="POST" action="{{ route('transactions.advance-status', $transaction) }}" class="txn-advance-form">
-                                        @csrf
-                                        <div class="form-group">
-                                            <x-input-label for="advance_notes" value="ملاحظة (اختياري)" />
-                                            <textarea id="advance_notes" name="notes" rows="2" class="form-control" placeholder="سبب الانتقال...">{{ old('notes') }}</textarea>
-                                        </div>
-                                        <x-primary-button>الانتقال إلى {{ $nextStatus->name }}</x-primary-button>
-                                    </form>
+
+                                    @foreach ($workflowActions as $workflowAction)
+                                        <form method="POST" action="{{ route('transactions.transition', $transaction) }}" class="txn-advance-form">
+                                            @csrf
+                                            <input type="hidden" name="action" value="{{ $workflowAction['action']->value }}">
+                                            <div class="form-group">
+                                                <x-input-label for="notes_{{ $workflowAction['action']->value }}" value="ملاحظة ({{ $workflowAction['action'] === \App\Enums\WorkflowAction::Reject ? 'مطلوبة للرفض' : 'اختياري' }})" />
+                                                <textarea
+                                                    id="notes_{{ $workflowAction['action']->value }}"
+                                                    name="notes"
+                                                    rows="2"
+                                                    class="form-control"
+                                                    placeholder="{{ $workflowAction['action'] === \App\Enums\WorkflowAction::Reject ? 'سبب الرفض...' : 'ملاحظة...' }}"
+                                                    @if ($workflowAction['action'] === \App\Enums\WorkflowAction::Reject) required @endif
+                                                >{{ old('action') === $workflowAction['action']->value ? old('notes') : '' }}</textarea>
+                                            </div>
+                                            <button type="submit" class="btn {{ $workflowAction['button_class'] }}">
+                                                {{ $workflowAction['label'] }}
+                                            </button>
+                                        </form>
+                                    @endforeach
                                 </div>
                             @elseif ($transaction->isAtFinalStatus())
                                 <div class="txn-state-message txn-state-message--success">
                                     <strong>معاملة مكتملة</strong>
                                     <p>المعاملة في الحالة النهائية.</p>
                                 </div>
-                            @elseif ($nextStatus)
+                            @else
                                 <div class="txn-state-message txn-state-message--warning">
                                     <strong>بانتظار صلاحية</strong>
-                                    <p>لا تملك صلاحية الانتقال إلى: {{ $nextStatus->name }}</p>
-                                    @if ($nextStatus->required_permission)
-                                        <p class="form-hint">مطلوب: {{ $nextStatus->permissionLabel() }}</p>
+                                    <p>لا تملك صلاحية تنفيذ إجراء على المرحلة الحالية: {{ $transaction->status?->name }}</p>
+                                    @if ($transaction->status?->required_permission)
+                                        <p class="form-hint">مطلوب: {{ $transaction->status->permissionLabel() }}</p>
                                     @endif
                                 </div>
-                            @else
-                                <p class="text-muted">لا توجد حالة تالية.</p>
                             @endif
                         </div>
                     </section>
@@ -161,6 +172,7 @@
                                 <table class="table table-modern">
                                     <thead>
                                         <tr>
+                                            <th>الإجراء</th>
                                             <th>من</th>
                                             <th>إلى</th>
                                             <th>بواسطة</th>
@@ -171,6 +183,16 @@
                                     <tbody>
                                         @foreach ($transaction->statusHistories as $history)
                                             <tr>
+                                                <td>
+                                                    @if ($history->action)
+                                                        @php $historyAction = \App\Enums\WorkflowAction::tryFrom($history->action); @endphp
+                                                        <span class="txn-history-action txn-history-action--{{ $history->action }}">
+                                                            {{ $historyAction?->label() ?? $history->action }}
+                                                        </span>
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
                                                 <td>{{ $history->fromStatus?->name ?? '—' }}</td>
                                                 <td><x-transaction-status-badge :status="$history->toStatus" /></td>
                                                 <td>{{ $history->changedBy?->name ?? '—' }}</td>

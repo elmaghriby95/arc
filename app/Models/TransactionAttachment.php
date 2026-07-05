@@ -134,4 +134,14 @@ class TransactionAttachment extends Model
 
         return $path !== null && Storage::disk('local')->exists($path);
     }
+
+    public function canBeDeletedBy(?User $user): bool
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        return $this->transaction->isAtInitialStatus()
+            && (int) $this->uploaded_by === (int) $user->id;
+    }
 }

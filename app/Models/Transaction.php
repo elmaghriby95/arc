@@ -73,40 +73,9 @@ class Transaction extends Model
         return (bool) $this->status?->is_final;
     }
 
-    public function canUserAdvance(User $user): bool
+    public function isAtInitialStatus(): bool
     {
-        $next = $this->nextStatus();
-
-        if (! $next) {
-            return false;
-        }
-
-        if (! $next->required_permission) {
-            return true;
-        }
-
-        return $user->hasPermission($next->required_permission);
+        return (bool) $this->status?->is_initial;
     }
 
-    public function advanceStatus(User $user, ?string $notes = null): bool
-    {
-        $next = $this->nextStatus();
-
-        if (! $next || ! $this->canUserAdvance($user)) {
-            return false;
-        }
-
-        $fromStatusId = $this->transaction_status_id;
-
-        $this->update(['transaction_status_id' => $next->id]);
-
-        $this->statusHistories()->create([
-            'from_status_id' => $fromStatusId,
-            'to_status_id' => $next->id,
-            'changed_by' => $user->id,
-            'notes' => $notes,
-        ]);
-
-        return true;
-    }
 }

@@ -7,6 +7,12 @@
             </div>
         </div>
 
+        @permission('transactions.edit')
+            <p class="form-hint txn-attachment-delete-note">
+                ملاحظة: يمكن حذف المستند فقط عندما تكون المعاملة في حالة «مسودة»، ومن قبل الشخص الذي أضاف المستند.
+            </p>
+        @endpermission
+
         @if ($canManageAttachments)
             <form method="POST"
                   action="{{ route('transactions.attachments.upload', $transaction) }}"
@@ -79,7 +85,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
                                 </a>
                             @endpermission
-                            @if ($canManageAttachments)
+                            @if ($attachment->canBeDeletedBy(auth()->user()))
                                 <form method="POST" action="{{ route('transactions.attachments.destroy', [$transaction, $attachment]) }}" onsubmit="return confirm('حذف هذا المرفق؟')">
                                     @csrf
                                     @method('DELETE')

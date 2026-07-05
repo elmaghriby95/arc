@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\WorkflowAction;
 use App\Models\Transaction;
 use App\Models\TransactionStatus;
 use App\Models\User;
@@ -17,6 +18,7 @@ class TransactionStatusChanged extends Notification
         public User $changedBy,
         public ?TransactionStatus $fromStatus,
         public TransactionStatus $toStatus,
+        public ?WorkflowAction $action = null,
     ) {}
 
     /** @return list<string> */
@@ -31,7 +33,15 @@ class TransactionStatusChanged extends Notification
         $fromName = $this->fromStatus?->name;
         $toName = $this->toStatus->name;
 
-        if ($fromName === null) {
+        if ($this->action === WorkflowAction::Reject && $fromName !== null) {
+            $message = sprintf(
+                'تم رفض المعاملة «%s» وإعادتها من %s إلى %s بواسطة %s',
+                $this->transaction->title,
+                $fromName,
+                $toName,
+                $this->changedBy->name,
+            );
+        } elseif ($fromName === null) {
             $message = sprintf(
                 'تم إنشاء معاملة جديدة «%s» بحالة %s',
                 $this->transaction->title,
@@ -55,6 +65,7 @@ class TransactionStatusChanged extends Notification
             'from_status' => $fromName,
             'to_status' => $toName,
             'to_status_color' => $this->toStatus->color,
+            'action' => $this->action?->value,
             'changed_by' => $this->changedBy->name,
             'url' => route('transactions.show', $this->transaction, absolute: false),
         ];

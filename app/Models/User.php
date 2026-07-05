@@ -130,8 +130,33 @@ class User extends Authenticatable
         return $this->canAccessDepartment($folder->department_id);
     }
 
+    public function canViewAllTransactions(): bool
+    {
+        return $this->isAdmin() || $this->hasPermission('transactions.view-all');
+    }
+
+    /** @return list<int>|null null = unrestricted (admin or transactions.view-all) */
+    public function transactionOrgScopeDepartmentIds(): ?array
+    {
+        if ($this->canViewAllTransactions()) {
+            return null;
+        }
+
+        return $this->orgScopeDepartmentIds();
+    }
+
     public function canAccessTransaction(Transaction $transaction): bool
     {
-        return $this->canAccessDepartment($transaction->department_id);
+        $scope = $this->transactionOrgScopeDepartmentIds();
+
+        if ($scope === null) {
+            return true;
+        }
+
+        if ($transaction->department_id === null) {
+            return false;
+        }
+
+        return in_array($transaction->department_id, $scope, true);
     }
 }

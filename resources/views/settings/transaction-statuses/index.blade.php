@@ -71,7 +71,7 @@
                         <textarea id="description" name="description" rows="2" class="form-control">{{ old('description') }}</textarea>
                     </div>
                     <div class="form-group">
-                        <x-input-label for="required_permission" value="صلاحية الانتقال إلى هذه الحالة" />
+                        <x-input-label for="required_permission" value="صلاحية المعالجة في هذه المرحلة (اعتماد / رفض)" />
                         <select id="required_permission" name="required_permission" class="form-select">
                             <option value="">— بدون (للحالة الابتدائية) —</option>
                             @foreach ($permissions as $group => $groupPermissions)

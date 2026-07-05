@@ -14,6 +14,7 @@ class TransactionStatusHistory extends Model
         'from_status_id',
         'to_status_id',
         'changed_by',
+        'action',
         'notes',
     ];
 

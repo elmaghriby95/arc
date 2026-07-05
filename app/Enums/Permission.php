@@ -63,6 +63,7 @@ enum Permission: string
 
     // إدارة الأرشفة — المعاملات
     case TransactionsView = 'transactions.view';
+    case TransactionsViewAll = 'transactions.view-all';
     case TransactionsCreate = 'transactions.create';
     case TransactionsEdit = 'transactions.edit';
     case TransactionsDelete = 'transactions.delete';
@@ -144,6 +145,7 @@ enum Permission: string
             self::SettingsTransactionStatusesDelete => 'حذف حالة معاملة',
 
             self::TransactionsView => 'عرض المعاملات',
+            self::TransactionsViewAll => 'عرض كل المعاملات',
             self::TransactionsCreate => 'إنشاء معاملة',
             self::TransactionsEdit => 'تعديل معاملة',
             self::TransactionsDelete => 'حذف معاملة',
@@ -222,6 +224,7 @@ enum Permission: string
             self::SettingsTransactionStatusesDelete => 'حالات المعاملات',
 
             self::TransactionsView,
+            self::TransactionsViewAll,
             self::TransactionsCreate,
             self::TransactionsEdit,
             self::TransactionsDelete,
