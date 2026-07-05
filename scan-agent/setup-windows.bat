@@ -12,7 +12,7 @@ set "PY_URL=https://www.python.org/ftp/python/%PY_VER%/%PY_ZIP%"
 if exist "%PYTHON%" goto :install_packages
 
 echo.
-echo ==^> تثبيت Python المحمول (مرة واحدة، يحتاج انترنت)...
+echo Downloading portable Python (one-time setup)...
 echo.
 
 if not exist "%~dp0runtime" mkdir "%~dp0runtime"
@@ -21,7 +21,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '%PY_URL%' -OutFile '%~dp0runtime\%PY_ZIP%'"
 
 if errorlevel 1 (
-    echo [ERROR] فشل تحميل Python. تحقق من الاتصال بالانترنت.
+    echo [ERROR] Download failed. Check internet connection.
     pause
     exit /b 1
 )
@@ -43,11 +43,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 del "%RUNTIME%\get-pip.py" 2>nul
 
 :install_packages
-echo ==^> تثبيت مكتبات المسح...
+echo Installing scan libraries...
 "%PYTHON%" -m pip install -q --disable-pip-version-check -r "%~dp0requirements-windows.txt"
 
 if errorlevel 1 (
-    echo [ERROR] فشل تثبيت المكتبات.
+    echo [ERROR] Failed to install libraries.
     pause
     exit /b 1
 )
@@ -61,5 +61,5 @@ if not exist "%~dp0agent.env" (
 )
 
 echo.
-echo تم التثبيت.
+echo Setup complete.
 echo.

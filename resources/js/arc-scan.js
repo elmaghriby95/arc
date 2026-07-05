@@ -51,8 +51,8 @@
         if (error instanceof TypeError) {
             return new Error(
                 'تعذّر الاتصال بـ ARC Scan Agent على جهازك.\n\n'
-                + '• Windows: شغّل scan-agent/شغّل-الماسح.bat\n'
-                + '• (أول مرة) يثبت Python تلقائياً — يحتاج انترنت\n'
+                + '• Windows: double-click scan-agent/START.bat\n'
+                + '• First run installs Python automatically (needs internet)\n'
                 + '• Ubuntu: curl -fsSL https://arc.fwit.ly/scan-agent/install.sh | bash\n'
                 + '• ثم: curl http://127.0.0.1:8765/health',
             );
