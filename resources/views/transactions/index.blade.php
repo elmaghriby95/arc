@@ -12,9 +12,11 @@
                 </a>
             @endpermission
             @permission('transactions.review-log.view')
-                <a href="{{ route('transactions.review-log') }}" class="btn btn-secondary btn-lg">
-                    {{ __('transactions.review_log_title') }}
-                </a>
+                @if (Route::has('transactions.review-log'))
+                    <a href="{{ route('transactions.review-log') }}" class="btn btn-secondary btn-lg">
+                        {{ __('transactions.review_log_title') }}
+                    </a>
+                @endif
             @endpermission
         </div>
     </x-slot>
