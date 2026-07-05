@@ -9,23 +9,33 @@ use Illuminate\Support\Facades\DB;
 
 class ReferenceNumbersReportService
 {
+    private const ATTACHMENTS = 'transaction_attachments';
+
     public function __construct(
         private readonly ReportScopeService $scope,
     ) {}
 
+    /** @return \Illuminate\Database\Eloquent\Builder<TransactionAttachment> */
+    private function attachmentRefQuery(ReportFilter $filter)
+    {
+        return $this->scope->applyAttachmentFilters(
+            TransactionAttachment::query()
+                ->whereNotNull(self::ATTACHMENTS.'.reference_number')
+                ->where(self::ATTACHMENTS.'.reference_number', '!=', ''),
+            $filter
+        );
+    }
+
     /** @return array<string, mixed> */
     public function generate(ReportFilter $filter): array
     {
-        $attachmentQuery = $this->scope->applyAttachmentFilters(
-            TransactionAttachment::query()->whereNotNull('reference_number')->where('reference_number', '!=', ''),
-            $filter
-        );
+        $attachmentQuery = $this->attachmentRefQuery($filter);
 
         $totalWithRef = (clone $attachmentQuery)->count();
 
         $duplicateNumbers = (clone $attachmentQuery)
-            ->select('reference_number', DB::raw('COUNT(*) as total'))
-            ->groupBy('reference_number')
+            ->select(self::ATTACHMENTS.'.reference_number', DB::raw('COUNT(*) as total'))
+            ->groupBy(self::ATTACHMENTS.'.reference_number')
             ->having('total', '>', 1)
             ->orderByDesc('total')
             ->get()
@@ -37,9 +47,9 @@ class ReferenceNumbersReportService
         $duplicateRefNumbers = $duplicateNumbers->pluck('reference_number')->all();
 
         $byYear = (clone $attachmentQuery)
-            ->select('reference_year', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('reference_year')
-            ->groupBy('reference_year')
+            ->select(self::ATTACHMENTS.'.reference_year', DB::raw('COUNT(*) as total'))
+            ->whereNotNull(self::ATTACHMENTS.'.reference_year')
+            ->groupBy(self::ATTACHMENTS.'.reference_year')
             ->orderByDesc('reference_year')
             ->get()
             ->map(fn ($row) => [

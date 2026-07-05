@@ -60,7 +60,10 @@ class ReportController extends Controller
         $scope = $this->runner->scope($user);
         $data = $this->runner->run($reportType, $user, $filter);
 
-        $pdf = $domPdf->loadView($reportType->pdfView(), [
+        $pdf = $domPdf->setOption('enable_remote', true)
+            ->setOption('default_font', 'cairo')
+            ->setOption('enable_font_subsetting', true)
+            ->loadView($reportType->pdfView(), [
             'reportType' => $reportType,
             'filter' => $filter,
             'data' => $data,

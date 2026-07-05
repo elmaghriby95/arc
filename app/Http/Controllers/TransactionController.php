@@ -339,6 +339,15 @@ class TransactionController extends Controller
                 ->with('success', $message);
         }
 
+        if (
+            in_array($action, [WorkflowAction::Approve, WorkflowAction::Reject], true)
+            && $user->hasPermission('transactions.review-log.view')
+        ) {
+            return redirect()
+                ->route('transactions.review-log')
+                ->with('success', $message);
+        }
+
         return redirect()
             ->route('transactions.index')
             ->with('success', $message);
