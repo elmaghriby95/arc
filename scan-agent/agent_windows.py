@@ -155,69 +155,68 @@ def release_com_objects() -> None:
 
 
 def target_width(resolution: int) -> int:
-    # Archive documents: ~7" usable width at scan DPI, capped for small PDFs.
-    return max(720, min(900, int(round(7.0 * resolution))))
+    return min(850, max(560, int(round(6.2 * resolution))))
 
 
 def target_height(resolution: int) -> int:
-    return max(1000, min(1300, int(round(9.8 * resolution))))
+    return min(1100, max(780, int(round(8.8 * resolution))))
 
 
 def temp_path(suffix: str) -> Path:
     return Path(tempfile.gettempdir()) / f"arc-scan-{uuid.uuid4().hex}.{suffix}"
 
 
-def optimize_jpeg(path: Path, quality: int, max_width: int) -> Path:
-    script = Path(__file__).resolve().parent / "windows" / "resize-scan.ps1"
-    target = temp_path("jpg")
-
-    if script.is_file():
-        result = subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                str(script),
-                "-InputPath",
-                str(path),
-                "-OutputPath",
-                str(target),
-                "-MaxWidth",
-                str(max_width),
-                "-Quality",
-                str(quality),
-            ],
-            capture_output=True,
-            timeout=90,
-            check=False,
-            **subprocess_kwargs(),
-        )
-
-        if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
-            path.unlink(missing_ok=True)
-            return target
-
-        target.unlink(missing_ok=True)
-        app.logger.warning("PowerShell resize failed, using Pillow fallback.")
-
+def compress_jpeg(path: Path, quality: int, max_width: int, max_height: int) -> Path:
     from PIL import Image
+
+    target = temp_path("jpg")
+    clamped_quality = max(28, min(50, quality))
+    before = path.stat().st_size
 
     with Image.open(path) as image:
         image = image.convert("L")
         width, height = image.size
+        scale = min(max_width / width, max_height / height, 1.0)
 
-        if width > max_width:
-            new_height = max(1, int(round(height * (max_width / width))))
-            image = image.resize((max_width, new_height), Image.Resampling.BILINEAR)
+        if scale < 1.0:
+            new_width = max(1, int(round(width * scale)))
+            new_height = max(1, int(round(height * scale)))
+            image = image.resize((new_width, new_height), Image.Resampling.BILINEAR)
 
-        image.save(target, format="JPEG", quality=max(35, min(75, quality)))
+        image.save(
+            target,
+            format="JPEG",
+            quality=clamped_quality,
+            optimize=True,
+            progressive=True,
+        )
 
-    if target != path:
-        path.unlink(missing_ok=True)
+    after = target.stat().st_size
+
+    if after > 180_000:
+        with Image.open(target) as image:
+            smaller = (
+                max(1, int(image.width * 0.82)),
+                max(1, int(image.height * 0.82)),
+            )
+            image = image.resize(smaller, Image.Resampling.BILINEAR)
+            image.save(
+                target,
+                format="JPEG",
+                quality=max(26, clamped_quality - 4),
+                optimize=True,
+                progressive=True,
+            )
+        after = target.stat().st_size
+
+    app.logger.info("Compressed %s: %s -> %s bytes", path.name, before, after)
+    path.unlink(missing_ok=True)
 
     return target
+
+
+def optimize_jpeg(path: Path, quality: int, max_width: int, max_height: int | None = None) -> Path:
+    return compress_jpeg(path, quality, max_width, max_height or target_height(100))
 
 
 FAST_BATCH_MIN_PAGES = 2
@@ -225,52 +224,17 @@ PARALLEL_WORKERS = 6
 
 
 def _shrink_jpeg_worker(args: tuple[str, int, int, int, str]) -> str:
-    path_str, quality, max_width, max_height, script_dir = args
+    path_str, quality, max_width, max_height, _script_dir = args
     path = Path(path_str)
 
     if not path.is_file():
         return path_str
 
-    script = Path(script_dir) / "windows" / "resize-scan.ps1"
-    target = path.parent / f"{path.stem}-opt{path.suffix}"
-
-    if not script.is_file():
+    try:
+        return str(compress_jpeg(path, quality, max_width, max_height))
+    except Exception as exc:
+        app.logger.warning("Compress failed for %s: %s", path.name, exc)
         return path_str
-
-    result = subprocess.run(
-        [
-            "powershell",
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-File",
-            str(script),
-            "-InputPath",
-            str(path),
-            "-OutputPath",
-            str(target),
-            "-MaxWidth",
-            str(max_width),
-            "-MaxHeight",
-            str(max_height),
-            "-Quality",
-            str(quality),
-        ],
-        capture_output=True,
-        timeout=45,
-        check=False,
-        **subprocess_kwargs(),
-    )
-
-    if result.returncode != 0:
-        app.logger.warning("Shrink failed for %s: %s", path.name, result.stderr.decode("utf-8", errors="replace")[:200])
-
-    if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
-        path.unlink(missing_ok=True)
-        return str(target)
-
-    target.unlink(missing_ok=True)
-    return path_str
 
 
 def parallel_batch_compress(
@@ -493,8 +457,8 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     fast_mode = profile in {"fast", "batch", "speed"}
 
     if fast_mode:
-        resolution = max(96, min(120, int(payload.get("resolution", 96))))
-        quality = max(32, min(42, int(payload.get("quality", 35))))
+        resolution = max(75, min(120, int(payload.get("resolution", 85))))
+        quality = max(28, min(40, int(payload.get("quality", 30))))
     else:
         resolution = max(100, min(300, int(payload.get("resolution", 120))))
         quality = max(35, min(75, int(payload.get("quality", 48))))
@@ -546,7 +510,7 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
 
         for index, page in enumerate(working_pages, start=1):
             app.logger.info("Optimizing page %s/%s", index, page_count)
-            optimized.append(optimize_jpeg(page, quality, max_width))
+            optimized.append(optimize_jpeg(page, quality, max_width, max_height))
             release_com_objects()
 
         for page in working_pages:
@@ -564,7 +528,7 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
             data = working_pages[0].read_bytes()
             mime = "image/jpeg"
 
-        app.logger.info("Scan complete: %s bytes", len(data))
+        app.logger.info("Scan complete: %s bytes (%s pages)", len(data), page_count)
     finally:
         for page in set(raw_pages + working_pages):
             page.unlink(missing_ok=True)
