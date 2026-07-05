@@ -257,8 +257,14 @@ enum Permission: string
     public static function grouped(): array
     {
         $groups = [];
+        $seen = [];
 
         foreach (self::cases() as $permission) {
+            if (isset($seen[$permission->value])) {
+                continue;
+            }
+
+            $seen[$permission->value] = true;
             $groups[$permission->group()][] = $permission;
         }
 

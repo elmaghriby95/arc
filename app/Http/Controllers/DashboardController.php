@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $attachmentsQuery = TransactionAttachment::query()->whereHas('transaction', function ($query) use ($user) {
-            if ($ids = $user->transactionOrgScopeDepartmentIds()) {
+            if ($ids = $user->orgScopeDepartmentIds()) {
                 $query->whereIn('department_id', $ids);
             }
         });

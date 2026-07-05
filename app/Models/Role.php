@@ -54,9 +54,12 @@ class Role extends Model
     /** @param  list<string>|null  $permissions */
     public static function normalizePermissions(?array $permissions): array
     {
+        $valid = Permission::values();
+        $filtered = array_values(array_intersect($permissions ?? [], $valid));
+
         return array_values(array_unique(array_merge(
             self::baselinePermissions(),
-            $permissions ?? [],
+            $filtered,
         )));
     }
 }
