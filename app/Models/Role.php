@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Permission;
+use App\Support\PermissionRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -54,7 +55,7 @@ class Role extends Model
     /** @param  list<string>|null  $permissions */
     public static function normalizePermissions(?array $permissions): array
     {
-        $valid = Permission::values();
+        $valid = PermissionRegistry::allValues();
         $filtered = array_values(array_intersect($permissions ?? [], $valid));
 
         return array_values(array_unique(array_merge(

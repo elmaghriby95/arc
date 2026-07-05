@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Enums\Permission;
 use App\Http\Controllers\Controller;
 use App\Models\TransactionStatus;
+use App\Services\WorkflowPermissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,12 +16,10 @@ class TransactionStatusController extends Controller
     {
         return view('settings.transaction-statuses.index', [
             'statuses' => TransactionStatus::orderBy('sort_order')->orderBy('id')->get(),
-            'permissions' => Permission::grouped(),
-            'permissionValues' => Permission::values(),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, WorkflowPermissionService $workflowPermissions): RedirectResponse
     {
         $validated = $this->validateStatus($request);
 
@@ -31,25 +29,28 @@ class TransactionStatusController extends Controller
             TransactionStatus::where('is_initial', true)->update(['is_initial' => false]);
         }
 
-        TransactionStatus::create([
+        $status = TransactionStatus::create([
             ...$validated,
             'sort_order' => $validated['sort_order'] ?? $this->nextSortOrder(),
             'is_initial' => $isInitial,
             'is_final' => $request->boolean('is_final'),
             'is_active' => $request->boolean('is_active', true),
-            'required_permission' => $isInitial ? null : ($validated['required_permission'] ?? null),
+            'required_permission' => null,
         ]);
+
+        $workflowPermissions->sync($status);
 
         return redirect()
             ->route('settings.transaction-statuses.index')
             ->with('success', 'تم إضافة حالة المعاملة بنجاح.');
     }
 
-    public function update(Request $request, TransactionStatus $transactionStatus): RedirectResponse
+    public function update(Request $request, TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions): RedirectResponse
     {
         $validated = $this->validateStatus($request, $transactionStatus);
 
         $isInitial = $request->boolean('is_initial');
+        $previousPermissionKey = $transactionStatus->required_permission;
 
         if ($isInitial && ! $transactionStatus->is_initial) {
             TransactionStatus::where('is_initial', true)->update(['is_initial' => false]);
@@ -61,15 +62,16 @@ class TransactionStatusController extends Controller
             'is_initial' => $isInitial,
             'is_final' => $request->boolean('is_final'),
             'is_active' => $request->boolean('is_active'),
-            'required_permission' => $isInitial ? null : ($validated['required_permission'] ?? null),
         ]);
+
+        $workflowPermissions->sync($transactionStatus->fresh(), $previousPermissionKey);
 
         return redirect()
             ->route('settings.transaction-statuses.index')
             ->with('success', 'تم تحديث حالة المعاملة بنجاح.');
     }
 
-    public function destroy(TransactionStatus $transactionStatus): RedirectResponse
+    public function destroy(TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions): RedirectResponse
     {
         if ($transactionStatus->transactions()->exists()) {
             return redirect()
@@ -83,7 +85,12 @@ class TransactionStatusController extends Controller
                 ->with('error', 'لا يمكن حذف الحالة الابتدائية. عيّن حالة أخرى كابتدائية أولاً.');
         }
 
+        $permissionKey = $transactionStatus->required_permission;
         $transactionStatus->delete();
+
+        if ($permissionKey) {
+            $workflowPermissions->stripPermissionFromAllRoles($permissionKey);
+        }
 
         return redirect()
             ->route('settings.transaction-statuses.index')
@@ -103,15 +110,7 @@ class TransactionStatusController extends Controller
             ],
             'description' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'required_permission' => [
-                Rule::requiredIf(fn () => ! $request->boolean('is_initial')),
-                'nullable',
-                'string',
-                Rule::in(Permission::values()),
-            ],
             'color' => ['nullable', 'string', 'max:20'],
-        ], [
-            'required_permission.required' => 'يجب اختيار صلاحية لكل مرحلة غير ابتدائية.',
         ]);
     }
 

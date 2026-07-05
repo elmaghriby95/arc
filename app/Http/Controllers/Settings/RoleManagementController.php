@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Enums\Permission;
+use App\Support\PermissionRegistry;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreRoleRequest;
 use App\Http\Requests\Settings\UpdateRoleRequest;
@@ -23,7 +23,7 @@ class RoleManagementController extends Controller
     public function create(): View
     {
         return view('settings.roles.create', [
-            'permissionGroups' => Permission::grouped(),
+            'permissionGroups' => PermissionRegistry::grouped(),
         ]);
     }
 
@@ -48,7 +48,7 @@ class RoleManagementController extends Controller
     {
         return view('settings.roles.edit', [
             'role' => $role,
-            'permissionGroups' => Permission::grouped(),
+            'permissionGroups' => PermissionRegistry::grouped(),
         ]);
     }
 

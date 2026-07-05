@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Support\PermissionRegistry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class TransactionStatus extends Model
 {
@@ -83,18 +85,66 @@ class TransactionStatus extends Model
             ->first();
     }
 
+    public function workflowPermissionKey(): string
+    {
+        return 'transactions.workflow.'.Str::lower($this->code);
+    }
+
+    public function workflowPermissionLabel(): string
+    {
+        return 'انتقال — '.$this->name;
+    }
+
+    /** @return list<PermissionOption> */
+    public static function workflowPermissionOptions(): array
+    {
+        return static::query()
+            ->where('is_initial', false)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (self $status) => new \App\Support\PermissionOption(
+                $status->workflowPermissionKey(),
+                $status->workflowPermissionLabel(),
+            ))
+            ->all();
+    }
+
+    /** @return list<string> */
+    public static function workflowPermissionKeys(): array
+    {
+        return static::query()
+            ->where('is_initial', false)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (self $status) => $status->workflowPermissionKey())
+            ->all();
+    }
+
+    public static function findByWorkflowPermission(string $permissionKey): ?self
+    {
+        $status = static::query()->where('required_permission', $permissionKey)->first();
+
+        if ($status) {
+            return $status;
+        }
+
+        return static::query()
+            ->get()
+            ->first(fn (self $candidate) => $candidate->workflowPermissionKey() === $permissionKey);
+    }
+
     public function permissionLabel(): ?string
     {
+        if ($this->is_initial) {
+            return null;
+        }
+
         if (! $this->required_permission) {
             return null;
         }
 
-        foreach (\App\Enums\Permission::cases() as $permission) {
-            if ($permission->value === $this->required_permission) {
-                return $permission->label();
-            }
-        }
-
-        return $this->required_permission;
+        return PermissionRegistry::labelFor($this->required_permission);
     }
 }

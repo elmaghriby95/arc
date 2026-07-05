@@ -54,14 +54,11 @@
                         <h4 class="role-card-permissions-title">الصلاحيات ({{ count($role->permissions ?? []) }})</h4>
                         <ul class="role-permissions-list">
                             @foreach (collect($role->permissions ?? [])->take(8) as $permissionKey)
-                                @php
-                                    $permission = \App\Enums\Permission::tryFrom($permissionKey);
-                                @endphp
                                 <li>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                     </svg>
-                                    {{ $permission?->label() ?? $permissionKey }}
+                                    {{ \App\Support\PermissionRegistry::labelFor($permissionKey) }}
                                 </li>
                             @endforeach
                             @if (count($role->permissions ?? []) > 8)

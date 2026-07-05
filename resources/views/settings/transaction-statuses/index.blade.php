@@ -71,20 +71,19 @@
                         <textarea id="description" name="description" rows="2" class="form-control">{{ old('description') }}</textarea>
                     </div>
                     <div class="form-group" data-status-permission-field>
-                        <x-input-label for="required_permission" value="صلاحية المعالجة في هذه المرحلة (اعتماد / رفض)" />
-                        <select id="required_permission" name="required_permission" class="form-select" @required(! old('is_initial'))>
-                            <option value="" @selected(! old('required_permission')) disabled hidden>— اختر صلاحية —</option>
-                            @foreach ($permissions as $group => $groupPermissions)
-                                <optgroup label="{{ $group }}">
-                                    @foreach ($groupPermissions as $permission)
-                                        <option value="{{ $permission->value }}" @selected(old('required_permission') === $permission->value)>{{ $permission->label() }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                        @error('required_permission')<p class="form-error">{{ $message }}</p>@enderror
-                        <small class="form-hint" data-status-permission-hint-required>مطلوبة لكل مرحلة غير ابتدائية — يتحقق النظام منها قبل أي اعتماد أو رفض.</small>
-                        <small class="form-hint" data-status-permission-hint-initial hidden>الحالة الابتدائية تعتمد على صلاحية «إنشاء معاملة» ولا تحتاج صلاحية هنا.</small>
+                        <x-input-label value="صلاحية الانتقال" />
+                        <p class="form-hint" data-workflow-permission-preview>
+                            @unless (old('is_initial'))
+                                @if (old('name') || old('code'))
+                                    انتقال — {{ old('name', '…') }}
+                                    <span class="permission-checkbox-key">transactions.workflow.{{ Str::lower(old('code', '')) }}</span>
+                                @else
+                                    تُنشأ تلقائياً من اسم المرحلة والرمز عند الحفظ.
+                                @endif
+                            @endunless
+                        </p>
+                        <small class="form-hint" data-status-permission-hint-required>تُضاف تلقائياً إلى مجموعة «سير عمل المعاملات (مراحل)» في إدارة الأدوار.</small>
+                        <small class="form-hint" data-status-permission-hint-initial hidden>الحالة الابتدائية تعتمد على صلاحية «إنشاء معاملة».</small>
                     </div>
                     <div class="form-grid form-grid--checks">
                         <div class="form-check">
@@ -167,18 +166,11 @@
                             </div>
                             <div class="form-group" data-status-permission-field @if ($status->is_initial) hidden @endif>
                                 <x-input-label value="صلاحية الانتقال" />
-                                <select name="required_permission" class="form-select" @required(! $status->is_initial) @disabled($status->is_initial)>
-                                    <option value="" @selected(! old('required_permission', $status->required_permission)) disabled hidden>— اختر صلاحية —</option>
-                                    @foreach ($permissions as $group => $groupPermissions)
-                                        <optgroup label="{{ $group }}">
-                                            @foreach ($groupPermissions as $permission)
-                                                <option value="{{ $permission->value }}" @selected(old('required_permission', $status->required_permission) === $permission->value)>{{ $permission->label() }}</option>
-                                            @endforeach
-                                        </optgroup>
-                                    @endforeach
-                                </select>
-                                @error('required_permission')<p class="form-error">{{ $message }}</p>@enderror
-                                <small class="form-hint" data-status-permission-hint-required @if ($status->is_initial) hidden @endif>مطلوبة لكل مرحلة غير ابتدائية.</small>
+                                @unless ($status->is_initial)
+                                    <p class="form-hint">{{ $status->workflowPermissionLabel() }}</p>
+                                    <span class="permission-checkbox-key">{{ $status->workflowPermissionKey() }}</span>
+                                @endunless
+                                <small class="form-hint" data-status-permission-hint-required @if ($status->is_initial) hidden @endif>تُدار من إدارة الأدوار ضمن «سير عمل المعاملات (مراحل)».</small>
                                 <small class="form-hint" data-status-permission-hint-initial @unless ($status->is_initial) hidden @endunless>الحالة الابتدائية تعتمد على صلاحية «إنشاء معاملة».</small>
                             </div>
                             <div class="form-check form-group">
@@ -220,22 +212,14 @@
             document.querySelectorAll('[data-status-initial-toggle]').forEach((checkbox) => {
                 const form = checkbox.closest('form');
                 const permissionField = form?.querySelector('[data-status-permission-field]');
-                const permissionSelect = form?.querySelector('[name="required_permission"]');
                 const hintRequired = form?.querySelector('[data-status-permission-hint-required]');
                 const hintInitial = form?.querySelector('[data-status-permission-hint-initial]');
-
-                if (! permissionSelect) {
-                    return;
-                }
+                const nameInput = form?.querySelector('[name="name"]');
+                const codeInput = form?.querySelector('[name="code"]');
+                const preview = form?.querySelector('[data-workflow-permission-preview]');
 
                 const sync = () => {
                     const isInitial = checkbox.checked;
-                    permissionSelect.disabled = isInitial;
-                    permissionSelect.required = ! isInitial;
-
-                    if (isInitial) {
-                        permissionSelect.value = '';
-                    }
 
                     if (hintRequired) {
                         hintRequired.hidden = isInitial;
@@ -248,9 +232,24 @@
                     if (permissionField) {
                         permissionField.hidden = isInitial;
                     }
+
+                    if (preview && nameInput && codeInput) {
+                        const name = nameInput.value.trim();
+                        const code = codeInput.value.trim().toLowerCase();
+
+                        if (isInitial) {
+                            preview.textContent = '';
+                        } else if (name || code) {
+                            preview.innerHTML = `انتقال — ${name || '…'} <span class="permission-checkbox-key">transactions.workflow.${code || '…'}</span>`;
+                        } else {
+                            preview.textContent = 'تُنشأ تلقائياً من اسم المرحلة والرمز عند الحفظ.';
+                        }
+                    }
                 };
 
                 checkbox.addEventListener('change', sync);
+                nameInput?.addEventListener('input', sync);
+                codeInput?.addEventListener('input', sync);
                 sync();
             });
         </script>
