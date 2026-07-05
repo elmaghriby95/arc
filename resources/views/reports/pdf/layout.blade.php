@@ -93,12 +93,12 @@
 <body>
     <div class="pdf-header">
         <h1>{{ $reportType->label() }}</h1>
-        <p>{{ config('app.name') }} — تقرير تفصيلي</p>
+        <p>{{ config('app.name') }} — {{ __('reports.pdf_subtitle') }}</p>
     </div>
 
     <div class="pdf-meta">
-        <span>تاريخ الإنشاء: {{ $generatedAt }}</span>
-        <span>بواسطة: {{ $generatedBy }}</span>
+        <span>{{ __('reports.generated_at') }}: {{ $generatedAt }}</span>
+        <span>{{ __('reports.generated_by') }}: {{ $generatedBy }}</span>
         @foreach ($filterSummary as $line)
             <span>{{ $line }}</span>
         @endforeach

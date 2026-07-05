@@ -84,7 +84,7 @@ class TransactionController extends Controller
         if (! $initialStatus) {
             return back()
                 ->withInput()
-                ->with('error', 'يجب إعداد حالات المعاملات في الإعدادات قبل إنشاء معاملة.');
+                ->with('error', __('messages.transaction.statuses_required'));
         }
 
         $validated = $request->validate([
@@ -118,7 +118,7 @@ class TransactionController extends Controller
         if (! $request->user()->canAccessDepartment($validated['department_id'])) {
             return back()
                 ->withInput()
-                ->withErrors(['department_id' => 'لا يمكنك إنشاء معاملة في هذه الوحدة التنظيمية.']);
+                ->withErrors(['department_id' => __('messages.transaction.department_create_denied')]);
         }
 
         if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user())) {
@@ -145,7 +145,7 @@ class TransactionController extends Controller
             'to_status_id' => $initialStatus->id,
             'changed_by' => $request->user()->id,
             'action' => WorkflowAction::Create->value,
-            'notes' => 'إنشاء المعاملة',
+            'notes' => __('messages.transaction.created_note'),
         ]);
 
         $department = Department::findOrFail($validated['department_id']);
@@ -193,7 +193,7 @@ class TransactionController extends Controller
 
         return redirect()
             ->route('transactions.show', $transaction)
-            ->with('success', 'تم إنشاء المعاملة بنجاح.');
+            ->with('success', __('messages.transaction.created'));
     }
 
     public function show(Transaction $transaction, WorkflowService $workflow): View
@@ -229,7 +229,7 @@ class TransactionController extends Controller
         if (! $transaction->canBeEdited()) {
             return redirect()
                 ->route('transactions.show', $transaction)
-                ->with('error', 'لا يمكن تعديل المعاملة إلا وهي في حالة مسودة.');
+                ->with('error', __('messages.transaction.edit_draft_only'));
         }
 
         $user = auth()->user();
@@ -247,7 +247,7 @@ class TransactionController extends Controller
         $this->authorizeTransactionAccess($transaction);
 
         if (! $transaction->canBeEdited()) {
-            return back()->with('error', 'لا يمكن تعديل المعاملة إلا وهي في حالة مسودة.');
+            return back()->with('error', __('messages.transaction.edit_draft_only'));
         }
 
         $validated = $request->validate([
@@ -263,7 +263,7 @@ class TransactionController extends Controller
         if (! $request->user()->canAccessDepartment($validated['department_id'])) {
             return back()
                 ->withInput()
-                ->withErrors(['department_id' => 'لا يمكنك نقل المعاملة إلى هذه الوحدة التنظيمية.']);
+                ->withErrors(['department_id' => __('messages.transaction.department_move_denied')]);
         }
 
         if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user())) {
@@ -284,7 +284,7 @@ class TransactionController extends Controller
 
         return redirect()
             ->route('transactions.show', $transaction)
-            ->with('success', 'تم تحديث المعاملة بنجاح.');
+            ->with('success', __('messages.transaction.updated'));
     }
 
     public function destroy(Transaction $transaction): RedirectResponse
@@ -295,7 +295,7 @@ class TransactionController extends Controller
 
         return redirect()
             ->route('transactions.index')
-            ->with('success', 'تم حذف المعاملة بنجاح.');
+            ->with('success', __('messages.transaction.deleted'));
     }
 
     public function transition(Request $request, Transaction $transaction, WorkflowService $workflow): RedirectResponse
@@ -312,17 +312,17 @@ class TransactionController extends Controller
         if ($action === WorkflowAction::Reject && blank($validated['notes'] ?? null)) {
             return back()
                 ->withInput()
-                ->withErrors(['notes' => 'يجب إدخال سبب الرفض.']);
+                ->withErrors(['notes' => __('messages.transaction.reject_notes_required')]);
         }
 
         if (! $workflow->transition($transaction, $action, $request->user(), $validated['notes'] ?? null)) {
-            return back()->with('error', 'لا تملك صلاحية تنفيذ هذا الإجراء أو أن المعاملة في حالة لا تسمح بذلك.');
+            return back()->with('error', __('messages.transaction.action_denied'));
         }
 
         $message = match ($action) {
-            WorkflowAction::Reject => 'تم رفض المعاملة وإعادتها للمرحلة السابقة.',
-            WorkflowAction::Submit => 'تم إرسال المعاملة للمرحلة التالية.',
-            default => 'تم تحديث حالة المعاملة بنجاح.',
+            WorkflowAction::Reject => __('messages.transaction.rejected'),
+            WorkflowAction::Submit => __('messages.transaction.submitted'),
+            default => __('messages.transaction.status_updated'),
         };
 
         return redirect()
@@ -385,15 +385,15 @@ class TransactionController extends Controller
         $folder = Folder::find($folderId);
 
         if (! $folder || ! $folder->is_active) {
-            return 'المجلد المحدد غير متاح.';
+            return __('messages.folder.unavailable');
         }
 
         if (! $user->canAccessFolder($folder)) {
-            return 'المجلد المحدد غير متاح ضمن نطاقك التنظيمي.';
+            return __('messages.folder.out_of_scope');
         }
 
         if ((int) $folder->department_id !== (int) $departmentId) {
-            return 'المجلد المحدد لا ينتمي للوحدة التنظيمية المختارة.';
+            return __('messages.folder.wrong_department');
         }
 
         return null;
@@ -402,7 +402,7 @@ class TransactionController extends Controller
     private function authorizeTransactionAccess(Transaction $transaction): void
     {
         if (! auth()->user()?->canAccessTransaction($transaction)) {
-            abort(403, 'لا يمكنك الوصول إلى هذه المعاملة ضمن نطاقك التنظيمي.');
+            abort(403, __('messages.transaction.access_denied'));
         }
     }
 }

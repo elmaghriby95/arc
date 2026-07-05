@@ -1,4 +1,8 @@
 <x-app-layout>
+    @push('styles')
+        <x-inline-css file="profile.css" />
+    @endpush
+
     <x-slot name="header">
         <div class="page-header">
             <div>
@@ -128,7 +132,7 @@
                             </div>
                             <div class="profile-info-item">
                                 <dt>{{ __('profile.account_created') }}</dt>
-                                <dd>{{ $user->created_at->translatedFormat('l، d F Y — H:i') }}</dd>
+                                <dd>{{ $user->created_at->translatedFormat('l, d F Y — H:i') }}</dd>
                             </div>
                             <div class="profile-info-item">
                                 <dt>{{ __('profile.last_updated') }}</dt>

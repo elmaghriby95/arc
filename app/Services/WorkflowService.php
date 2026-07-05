@@ -32,8 +32,8 @@ class WorkflowService
                 'action' => $workflowAction,
                 'target' => $next,
                 'label' => $status->is_initial
-                    ? "إرسال إلى {$next->name}"
-                    : "اعتماد → {$next->name}",
+                    ? __('workflow.label.submit_to', ['status' => $next->name])
+                    : __('workflow.label.approve_to', ['status' => $next->name]),
                 'button_class' => 'btn-primary',
             ]);
         }
@@ -42,7 +42,7 @@ class WorkflowService
             $actions->push([
                 'action' => WorkflowAction::Reject,
                 'target' => $previous,
-                'label' => "رفض والعودة إلى {$previous->name}",
+                'label' => __('workflow.label.reject_to', ['status' => $previous->name]),
                 'button_class' => 'btn-danger',
             ]);
         }

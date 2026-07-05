@@ -41,7 +41,7 @@ class CategoryController extends Controller
 
         return redirect()
             ->route('categories.index')
-            ->with('success', 'تم إضافة التصنيف بنجاح.');
+            ->with('success', __('messages.category.created'));
     }
 
     public function edit(Category $category): View
@@ -70,7 +70,7 @@ class CategoryController extends Controller
 
         return redirect()
             ->route('categories.index')
-            ->with('success', 'تم تحديث التصنيف بنجاح.');
+            ->with('success', __('messages.category.updated'));
     }
 
     public function destroy(Category $category): RedirectResponse
@@ -79,6 +79,6 @@ class CategoryController extends Controller
 
         return redirect()
             ->route('categories.index')
-            ->with('success', 'تم حذف التصنيف بنجاح.');
+            ->with('success', __('messages.category.deleted'));
     }
 }

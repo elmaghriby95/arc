@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropzone = form.querySelector('[data-txn-create-dropzone]');
     const fileInput = dropzone?.querySelector('[data-txn-file-input]');
     const browseBtn = dropzone?.querySelector('[data-txn-browse]');
+    const scanBtn = dropzone?.querySelector('[data-txn-scan]');
     const content = dropzone?.querySelector('[data-txn-dropzone-content]');
     const queue = dropzone?.querySelector('[data-txn-queue]');
     const fileList = dropzone?.querySelector('[data-txn-file-list]');
@@ -234,6 +235,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     browseBtn?.addEventListener('click', () => fileInput?.click());
     fileInput?.addEventListener('change', () => fileInput.files?.length && addFiles(fileInput.files));
+
+    window.ArcScan?.bindButton(scanBtn, {
+        onSuccess: (file) => addFiles([file]),
+        onError: (error) => {
+            const detailTemplate = form.dataset.scanFailedDetail || '';
+            const fallback = form.dataset.scanFailed || 'Scan failed.';
+
+            alert(
+                error?.message && detailTemplate
+                    ? detailTemplate.replace(':message', error.message)
+                    : fallback,
+            );
+        },
+    });
 
     ['dragenter', 'dragover'].forEach((e) => dropzone?.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add('is-dragover'); }));
     ['dragleave', 'drop'].forEach((e) => dropzone?.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove('is-dragover'); }));

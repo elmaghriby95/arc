@@ -42,7 +42,7 @@ class TransactionStatusController extends Controller
 
         return redirect()
             ->route('settings.transaction-statuses.index')
-            ->with('success', 'تم إضافة حالة المعاملة بنجاح.');
+            ->with('success', __('messages.transaction_status.created'));
     }
 
     public function update(Request $request, TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions): RedirectResponse
@@ -68,7 +68,7 @@ class TransactionStatusController extends Controller
 
         return redirect()
             ->route('settings.transaction-statuses.index')
-            ->with('success', 'تم تحديث حالة المعاملة بنجاح.');
+            ->with('success', __('messages.transaction_status.updated'));
     }
 
     public function destroy(TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions): RedirectResponse
@@ -76,13 +76,13 @@ class TransactionStatusController extends Controller
         if ($transactionStatus->transactions()->exists()) {
             return redirect()
                 ->route('settings.transaction-statuses.index')
-                ->with('error', 'لا يمكن حذف حالة مرتبطة بمعاملات.');
+                ->with('error', __('messages.transaction_status.cannot_delete_in_use'));
         }
 
         if ($transactionStatus->is_initial) {
             return redirect()
                 ->route('settings.transaction-statuses.index')
-                ->with('error', 'لا يمكن حذف الحالة الابتدائية. عيّن حالة أخرى كابتدائية أولاً.');
+                ->with('error', __('messages.transaction_status.cannot_delete_initial'));
         }
 
         $permissionKey = $transactionStatus->required_permission;
@@ -94,7 +94,7 @@ class TransactionStatusController extends Controller
 
         return redirect()
             ->route('settings.transaction-statuses.index')
-            ->with('success', 'تم حذف حالة المعاملة بنجاح.');
+            ->with('success', __('messages.transaction_status.deleted'));
     }
 
     /** @return array<string, mixed> */

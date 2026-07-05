@@ -28,7 +28,7 @@
                 <div class="org-tree-card-top">
                     <strong class="org-tree-card-name">{{ $folder->name }}</strong>
                     @if ($folder->children->isNotEmpty())
-                        <span class="settings-badge settings-badge--muted">{{ $folder->children->count() }} مجلد فرعي</span>
+                        <span class="settings-badge settings-badge--muted">{{ __('settings.folders.sub_folders_count', ['count' => $folder->children->count()]) }}</span>
                     @endif
                 </div>
                 @if ($folder->description)
@@ -38,14 +38,14 @@
                     @if ($folder->department_id && isset($breadcrumbs[$folder->department_id]))
                         <span class="settings-badge settings-badge--muted">{{ $breadcrumbs[$folder->department_id] }}</span>
                     @endif
-                    <span class="settings-badge">ترتيب {{ $folder->sort_order }}</span>
+                    <span class="settings-badge">{{ __('settings.folders.sort_order_badge', ['order' => $folder->sort_order]) }}</span>
                     @unless ($folder->is_active)
-                        <span class="settings-badge settings-badge--danger">غير نشط</span>
+                        <span class="settings-badge settings-badge--danger">{{ __('common.inactive') }}</span>
                     @endunless
                 </div>
             </div>
             <details class="folder-tree-edit">
-                <summary class="org-tree-edit" title="تعديل">
+                <summary class="org-tree-edit" title="{{ __('common.edit') }}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                     </svg>
@@ -54,45 +54,45 @@
                     @csrf
                     @method('PUT')
                     <div class="form-group">
-                        <x-input-label value="الاسم" />
+                        <x-input-label :value="__('common.name')" />
                         <x-text-input name="name" type="text" :value="$folder->name" required />
                     </div>
                     <div class="form-group">
-                        <x-input-label value="الوصف" />
+                        <x-input-label :value="__('common.description')" />
                         <textarea name="description" rows="2" class="form-control">{{ $folder->description }}</textarea>
                     </div>
                     <div class="form-group">
-                        <x-input-label value="الوحدة التنظيمية" />
+                        <x-input-label :value="__('common.org_unit')" />
                         @include('settings.partials.org-unit-select', [
                             'name' => 'department_id',
                             'id' => 'department_id_'.$folder->id,
                             'orgUnits' => $orgUnits,
                             'selected' => $folder->department_id,
-                            'placeholder' => '— اختر الوحدة التنظيمية —',
+                            'placeholder' => __('common.choose_org_unit'),
                             'showHint' => false,
                             'required' => true,
                         ])
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <x-input-label value="اللون" />
+                            <x-input-label :value="__('settings.folders.color')" />
                             <x-text-input name="color" type="text" :value="$folder->color" placeholder="#4338ca" />
                         </div>
                         <div class="form-group">
-                            <x-input-label value="الترتيب" />
+                            <x-input-label :value="__('settings.folders.sort_order')" />
                             <x-text-input name="sort_order" type="number" :value="$folder->sort_order" min="0" />
                         </div>
                     </div>
                     <div class="form-check form-group">
                         <input name="is_active" type="checkbox" value="1" @checked($folder->is_active)>
-                        <x-input-label value="نشط" />
+                        <x-input-label :value="__('common.active')" />
                     </div>
                     <div class="form-actions">
-                        <x-primary-button>حفظ</x-primary-button>
-                        <button type="submit" formaction="{{ route('settings.folders.destroy', $folder) }}" formmethod="POST" class="btn btn-danger" onclick="this.form.querySelector('[name=_method]').value='DELETE'; return confirm('هل أنت متأكد؟')">
+                        <x-primary-button>{{ __('common.save') }}</x-primary-button>
+                        <button type="submit" formaction="{{ route('settings.folders.destroy', $folder) }}" formmethod="POST" class="btn btn-danger" onclick="this.form.querySelector('[name=_method]').value='DELETE'; return confirm(@json(__('common.confirm_delete')))">
                             @csrf
                             @method('DELETE')
-                            حذف
+                            {{ __('common.delete') }}
                         </button>
                     </div>
                 </form>

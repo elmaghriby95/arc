@@ -12,6 +12,25 @@ return [
     'integer' => 'حقل :attribute يجب أن يكون رقماً صحيحاً.',
     'array' => 'حقل :attribute يجب أن يكون قائمة.',
 
+    'role' => [
+        'name_required' => 'اسم الدور مطلوب.',
+        'permissions_required' => 'يجب تحديد صلاحية واحدة على الأقل.',
+        'permissions_min' => 'يجب تحديد صلاحية واحدة على الأقل.',
+    ],
+
+    'user' => [
+        'name_required' => 'اسم المستخدم مطلوب.',
+        'email_required' => 'البريد الإلكتروني مطلوب.',
+        'email_format' => 'صيغة البريد الإلكتروني غير صحيحة.',
+        'email_unique' => 'هذا البريد الإلكتروني مستخدم بالفعل.',
+        'password_required' => 'كلمة المرور مطلوبة.',
+        'password_confirmed' => 'تأكيد كلمة المرور غير متطابق.',
+        'role_required' => 'يجب اختيار دور للمستخدم.',
+        'department_exists' => 'الوحدة التنظيمية المحددة غير موجودة.',
+        'cannot_assign_admin' => 'لا يمكنك تعيين دور مدير النظام.',
+        'cannot_demote_self' => 'لا يمكنك تغيير دورك إلى دور أقل من مدير النظام.',
+    ],
+
     'attributes' => [
         'title' => 'عنوان المعاملة',
         'description' => 'الوصف',

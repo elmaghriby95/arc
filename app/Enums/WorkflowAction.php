@@ -12,12 +12,6 @@ enum WorkflowAction: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Create => 'إنشاء',
-            self::Submit => 'إرسال',
-            self::Approve => 'اعتماد',
-            self::Reject => 'رفض',
-            self::Auto => 'تلقائي',
-        };
+        return __('workflow.action.'.$this->value);
     }
 }

@@ -10,14 +10,14 @@
     <div class="guest-layout">
         <div class="guest-card" style="text-align:center;">
             <h1 class="page-title">{{ config('app.name') }}</h1>
-            <p class="text-muted">منظومة الأرشفة الإلكترونية</p>
+            <p class="text-muted">{{ __('welcome.tagline') }}</p>
             <div class="form-actions" style="justify-content:center; margin-top:1.5rem;">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="btn btn-primary">لوحة التحكم</a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-primary">{{ __('nav.dashboard') }}</a>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-primary">تسجيل الدخول</a>
+                    <a href="{{ route('login') }}" class="btn btn-primary">{{ __('auth.login') }}</a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn-secondary">إنشاء حساب</a>
+                        <a href="{{ route('register') }}" class="btn btn-secondary">{{ __('auth.register') }}</a>
                     @endif
                 @endauth
             </div>

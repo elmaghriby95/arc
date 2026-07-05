@@ -14,7 +14,7 @@ class EnsureUserHasPermission
         $user = $request->user();
 
         if (! $user) {
-            abort(403, 'غير مصرح لك بتنفيذ هذا الإجراء.');
+            abort(403, __('messages.unauthorized_action'));
         }
 
         foreach ($permissions as $permission) {
@@ -23,6 +23,6 @@ class EnsureUserHasPermission
             }
         }
 
-        abort(403, 'غير مصرح لك بتنفيذ هذا الإجراء.');
+        abort(403, __('messages.unauthorized_action'));
     }
 }

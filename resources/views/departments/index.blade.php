@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="page-header">
-            <h2 class="page-title">الأقسام</h2>
+            <h2 class="page-title">{{ __('departments.title') }}</h2>
             @permission('departments.create')
-                <a href="{{ route('departments.create') }}" class="btn btn-primary">إضافة قسم</a>
+                <a href="{{ route('departments.create') }}" class="btn btn-primary">{{ __('departments.add_button') }}</a>
             @endpermission
         </div>
     </x-slot>
@@ -17,11 +17,11 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>الاسم</th>
-                                <th>الرمز</th>
-                                <th>عدد الوثائق</th>
-                                <th>الحالة</th>
-                                <th>الإجراءات</th>
+                                <th>{{ __('common.name') }}</th>
+                                <th>{{ __('departments.code') }}</th>
+                                <th>{{ __('departments.documents_count') }}</th>
+                                <th>{{ __('common.status') }}</th>
+                                <th>{{ __('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -30,15 +30,15 @@
                                     <td>{{ $department->name }}</td>
                                     <td>{{ $department->code }}</td>
                                     <td>{{ $department->documents_count }}</td>
-                                    <td>{{ $department->is_active ? 'نشط' : 'غير نشط' }}</td>
+                                    <td>{{ $department->is_active ? __('common.active') : __('common.inactive') }}</td>
                                     <td>
                                         @permission('departments.edit')
-                                            <a href="{{ route('departments.edit', $department) }}">تعديل</a>
+                                            <a href="{{ route('departments.edit', $department) }}">{{ __('common.edit') }}</a>
                                         @endpermission
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-muted">لا توجد أقسام.</td></tr>
+                                <tr><td colspan="5" class="text-muted">{{ __('departments.empty') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

@@ -50,7 +50,7 @@ class FolderTreeController extends Controller
         if (! $user->canAccessDepartment($departmentId)) {
             return back()
                 ->withInput()
-                ->withErrors(['department_id' => 'لا يمكنك ربط المجلد بهذه الوحدة التنظيمية.']);
+                ->withErrors(['department_id' => __('messages.folder.department_denied')]);
         }
 
         Folder::create([
@@ -62,7 +62,7 @@ class FolderTreeController extends Controller
 
         return redirect()
             ->route('settings.folders.index')
-            ->with('success', 'تم إضافة المجلد بنجاح.');
+            ->with('success', __('messages.folder.created'));
     }
 
     public function update(Request $request, Folder $folder): RedirectResponse
@@ -89,7 +89,7 @@ class FolderTreeController extends Controller
         if (! $user->canAccessDepartment($departmentId)) {
             return back()
                 ->withInput()
-                ->withErrors(['department_id' => 'لا يمكنك ربط المجلد بهذه الوحدة التنظيمية.']);
+                ->withErrors(['department_id' => __('messages.folder.department_denied')]);
         }
 
         $folder->update([
@@ -101,7 +101,7 @@ class FolderTreeController extends Controller
 
         return redirect()
             ->route('settings.folders.index')
-            ->with('success', 'تم تحديث المجلد بنجاح.');
+            ->with('success', __('messages.folder.updated'));
     }
 
     public function destroy(Request $request, Folder $folder): RedirectResponse
@@ -112,13 +112,13 @@ class FolderTreeController extends Controller
 
         return redirect()
             ->route('settings.folders.index')
-            ->with('success', 'تم حذف المجلد بنجاح.');
+            ->with('success', __('messages.folder.deleted'));
     }
 
     private function authorizeFolderAccess(User $user, Folder $folder): void
     {
         if (! $user->canAccessFolder($folder)) {
-            abort(403, 'لا يمكنك الوصول إلى هذا المجلد ضمن نطاقك التنظيمي.');
+            abort(403, __('messages.folder.access_denied'));
         }
     }
 

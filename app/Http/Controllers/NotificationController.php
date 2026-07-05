@@ -25,6 +25,6 @@ class NotificationController extends Controller
     {
         $request->user()->unreadNotifications->markAsRead();
 
-        return back()->with('success', 'تم تعليم جميع الإشعارات كمقروءة.');
+        return back()->with('success', __('messages.notification.all_read'));
     }
 }

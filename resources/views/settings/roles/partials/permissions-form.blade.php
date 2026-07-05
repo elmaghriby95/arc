@@ -2,10 +2,10 @@
 
 <div class="permissions-form">
     <div class="permissions-form-toolbar">
-        <p class="permissions-form-hint">حدّد كل الصلاحيات التي يمتلكها هذا الدور — القائمة، الأزرار، والإجراءات.</p>
+        <p class="permissions-form-hint">{{ __('settings.roles.permissions_hint') }}</p>
         <div class="permissions-form-actions">
-            <button type="button" class="btn btn-secondary btn-sm" data-permissions-select-all>تحديد الكل</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-permissions-clear-all>إلغاء الكل</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-permissions-select-all>{{ __('settings.roles.select_all') }}</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-permissions-clear-all>{{ __('settings.roles.clear_all') }}</button>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
             <div class="permissions-group" data-permission-group>
                 <div class="permissions-group-header">
                     <h4 class="permissions-group-title">{{ $group }}</h4>
-                    <button type="button" class="btn btn-link btn-sm" data-permission-group-toggle>تحديد المجموعة</button>
+                    <button type="button" class="btn btn-link btn-sm" data-permission-group-toggle>{{ __('settings.roles.select_group') }}</button>
                 </div>
                 <div class="permissions-group-items">
                     @foreach ($permissions as $permission)

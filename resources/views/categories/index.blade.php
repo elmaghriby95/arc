@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="page-header">
-            <h2 class="page-title">التصنيفات</h2>
+            <h2 class="page-title">{{ __('categories.title') }}</h2>
             @permission('categories.create')
-                <a href="{{ route('categories.create') }}" class="btn btn-primary">إضافة تصنيف</a>
+                <a href="{{ route('categories.create') }}" class="btn btn-primary">{{ __('categories.add_button') }}</a>
             @endpermission
         </div>
     </x-slot>
@@ -17,11 +17,11 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>الاسم</th>
-                                <th>التصنيف الأب</th>
-                                <th>عدد الوثائق</th>
-                                <th>الترتيب</th>
-                                <th>الإجراءات</th>
+                                <th>{{ __('common.name') }}</th>
+                                <th>{{ __('categories.parent') }}</th>
+                                <th>{{ __('categories.documents_count') }}</th>
+                                <th>{{ __('categories.sort_order') }}</th>
+                                <th>{{ __('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -33,12 +33,12 @@
                                     <td>{{ $category->sort_order }}</td>
                                     <td>
                                         @permission('categories.edit')
-                                            <a href="{{ route('categories.edit', $category) }}">تعديل</a>
+                                            <a href="{{ route('categories.edit', $category) }}">{{ __('common.edit') }}</a>
                                         @endpermission
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-muted">لا توجد تصنيفات.</td></tr>
+                                <tr><td colspan="5" class="text-muted">{{ __('categories.empty') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

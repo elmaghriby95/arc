@@ -10,7 +10,7 @@
                 </td>
             @endforeach
             <td>
-                <span class="label">الإجمالي</span>
+                <span class="label">{{ __('common.total') }}</span>
                 <span class="value">{{ $data['total'] }}</span>
             </td>
         </tr>
@@ -18,15 +18,15 @@
 
     @if (! empty($data['by_department']))
         <div class="pdf-section">
-            <h2>توزيع حسب القسم</h2>
+            <h2>{{ __('reports.by_department') }}</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>القسم</th>
+                        <th>{{ __('common.department') }}</th>
                         @foreach ($data['statuses'] as $status)
                             <th>{{ $status->name }}</th>
                         @endforeach
-                        <th>المجموع</th>
+                        <th>{{ __('reports.sum') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,17 +45,17 @@
     @endif
 
     <div class="pdf-section">
-        <h2>التفاصيل ({{ $data['details']->count() }})</h2>
+        <h2>{{ __('reports.details') }} ({{ $data['details']->count() }})</h2>
         <table>
             <thead>
                 <tr>
-                    <th>الرقم المرجعي</th>
-                    <th>العنوان</th>
-                    <th>القسم</th>
-                    <th>النوع</th>
-                    <th>الحالة</th>
-                    <th>المنشئ</th>
-                    <th>التاريخ</th>
+                    <th>{{ __('common.reference_number') }}</th>
+                    <th>{{ __('common.title') }}</th>
+                    <th>{{ __('common.department') }}</th>
+                    <th>{{ __('common.transaction_type') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('reports.creator') }}</th>
+                    <th>{{ __('common.date') }}</th>
                 </tr>
             </thead>
             <tbody>

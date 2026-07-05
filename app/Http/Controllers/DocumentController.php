@@ -100,7 +100,7 @@ class DocumentController extends Controller
         $name = $attachment->effectiveFileName() ?? $attachment->displayName();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
-            return back()->with('error', 'الملف غير موجود.');
+            return back()->with('error', __('messages.file_not_found'));
         }
 
         return Storage::disk('local')->download($path, $name);
@@ -145,7 +145,7 @@ class DocumentController extends Controller
     private function authorizeAttachmentAccess(TransactionAttachment $attachment): void
     {
         if (! auth()->user()?->canAccessAttachment($attachment)) {
-            abort(403, 'لا يمكنك الوصول إلى هذه الوثيقة ضمن نطاقك التنظيمي.');
+            abort(403, __('messages.document.access_denied'));
         }
     }
 }

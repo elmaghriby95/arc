@@ -35,7 +35,7 @@ class TransactionTypeController extends Controller
 
         return redirect()
             ->route('settings.transaction-types.index')
-            ->with('success', 'تم إضافة نوع المعاملة بنجاح.');
+            ->with('success', __('messages.transaction_type.created'));
     }
 
     public function update(Request $request, TransactionType $transactionType): RedirectResponse
@@ -56,7 +56,7 @@ class TransactionTypeController extends Controller
 
         return redirect()
             ->route('settings.transaction-types.index')
-            ->with('success', 'تم تحديث نوع المعاملة بنجاح.');
+            ->with('success', __('messages.transaction_type.updated'));
     }
 
     public function destroy(TransactionType $transactionType): RedirectResponse
@@ -65,6 +65,6 @@ class TransactionTypeController extends Controller
 
         return redirect()
             ->route('settings.transaction-types.index')
-            ->with('success', 'تم حذف نوع المعاملة بنجاح.');
+            ->with('success', __('messages.transaction_type.deleted'));
     }
 }

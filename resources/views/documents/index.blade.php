@@ -2,13 +2,13 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <h1 class="page-title">الوثائق</h1>
-                <p class="page-subtitle">المستندات المرفقة بالمعاملات في نطاقك التنظيمي</p>
+                <h1 class="page-title">{{ __('documents.title') }}</h1>
+                <p class="page-subtitle">{{ __('documents.subtitle') }}</p>
             </div>
             @permission('transactions.create')
                 <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                    إنشاء معاملة
+                    {{ __('documents.create_transaction') }}
                 </a>
             @endpermission
         </div>
@@ -17,27 +17,27 @@
     <div class="card card-elevated">
         <div class="card-header">
             <div>
-                <h3 class="card-title">تصفية البحث</h3>
-                <p class="card-subtitle">ابحث في المستندات أو المعاملات المرتبطة بها</p>
+                <h3 class="card-title">{{ __('documents.filters_title') }}</h3>
+                <p class="card-subtitle">{{ __('documents.filters_subtitle') }}</p>
             </div>
         </div>
         <div class="card-body">
             <form method="GET" class="form-grid">
                 <div class="form-group">
-                    <x-input-label for="search" value="بحث" />
-                    <x-text-input id="search" name="search" type="text" :value="request('search')" placeholder="اسم المستند أو عنوان المعاملة أو الرقم الإشاري" />
+                    <x-input-label for="search" :value="__('common.search')" />
+                    <x-text-input id="search" name="search" type="text" :value="request('search')" :placeholder="__('documents.search_placeholder')" />
                 </div>
                 <div class="form-group">
-                    <x-input-label for="department_id" value="الوحدة التنظيمية" />
+                    <x-input-label for="department_id" :value="__('common.org_unit')" />
                     @include('settings.partials.org-unit-select', [
                         'orgUnits' => $orgUnits,
                         'selected' => request('department_id'),
-                        'placeholder' => '— الكل —',
+                        'placeholder' => __('common.all_dash'),
                         'showHint' => false,
                     ])
                 </div>
                 <div class="form-group" style="display:flex; align-items:flex-end;">
-                    <x-primary-button>تصفية</x-primary-button>
+                    <x-primary-button>{{ __('common.filter') }}</x-primary-button>
                 </div>
             </form>
         </div>
@@ -46,8 +46,8 @@
     <div class="card card-elevated">
         <div class="card-header">
             <div>
-                <h3 class="card-title">قائمة الوثائق</h3>
-                <p class="card-subtitle">{{ $attachments->total() }} مستند مرفق بمعاملات</p>
+                <h3 class="card-title">{{ __('documents.list_title') }}</h3>
+                <p class="card-subtitle">{{ __('documents.list_count', ['count' => $attachments->total()]) }}</p>
             </div>
         </div>
         <div class="card-body card-body-flush">
@@ -55,13 +55,13 @@
                 <table class="table table-modern">
                     <thead>
                         <tr>
-                            <th>المستند</th>
-                            <th>المعاملة</th>
-                            <th>القسم</th>
-                            <th>نوع الملف</th>
-                            <th>رفع بواسطة</th>
-                            <th>التاريخ</th>
-                            <th>الإجراءات</th>
+                            <th>{{ __('documents.document') }}</th>
+                            <th>{{ __('documents.transaction') }}</th>
+                            <th>{{ __('common.department') }}</th>
+                            <th>{{ __('documents.file_kind') }}</th>
+                            <th>{{ __('documents.uploaded_by') }}</th>
+                            <th>{{ __('common.date') }}</th>
+                            <th>{{ __('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,9 +76,9 @@
                                 <td>{{ $attachment->uploader?->name ?? '—' }}</td>
                                 <td class="text-muted">{{ $attachment->created_at->format('Y-m-d') }}</td>
                                 <td class="table-actions">
-                                    <a href="{{ route('documents.show', $attachment) }}">عرض</a>
+                                    <a href="{{ route('documents.show', $attachment) }}">{{ __('common.view') }}</a>
                                     @permission('documents.download')
-                                        <a href="{{ route('documents.download', $attachment) }}">تحميل</a>
+                                        <a href="{{ route('documents.download', $attachment) }}">{{ __('common.download') }}</a>
                                     @endpermission
                                 </td>
                             </tr>
@@ -86,9 +86,9 @@
                             <tr>
                                 <td colspan="7">
                                     <div class="empty-state" style="padding:2rem;">
-                                        <p class="text-muted">لا توجد مستندات مرفقة بمعاملات بعد.</p>
+                                        <p class="text-muted">{{ __('documents.empty') }}</p>
                                         @permission('transactions.create')
-                                            <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-sm">إنشاء معاملة ورفع مستندات</a>
+                                            <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-sm">{{ __('documents.empty_action') }}</a>
                                         @endpermission
                                     </div>
                                 </td>

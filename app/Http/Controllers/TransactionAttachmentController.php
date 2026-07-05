@@ -49,7 +49,7 @@ class TransactionAttachmentController extends Controller
 
         return redirect()
             ->route('transactions.show', $transaction)
-            ->with('success', 'تم رفع المستندات بنجاح.');
+            ->with('success', __('messages.transaction_attachment.uploaded'));
     }
 
     public function destroy(Transaction $transaction, TransactionAttachment $attachment): RedirectResponse
@@ -58,13 +58,13 @@ class TransactionAttachmentController extends Controller
         $this->ensureAttachmentBelongsToTransaction($transaction, $attachment);
 
         if (! auth()->user()?->hasPermission('transactions.edit')) {
-            abort(403, 'لا تملك صلاحية إدارة مرفقات المعاملة.');
+            abort(403, __('messages.transaction_attachment.no_permission'));
         }
 
         if (! $attachment->canBeDeletedBy(auth()->user())) {
             return redirect()
                 ->route('transactions.show', $transaction)
-                ->with('error', 'لا يمكن حذف المستند إلا عندما تكون المعاملة في حالة مسودة، ومن قبل الشخص الذي أضاف المستند.');
+                ->with('error', __('messages.transaction_attachment.delete_draft_only'));
         }
 
         if ($attachment->file_path && Storage::disk('local')->exists($attachment->file_path)) {
@@ -75,7 +75,7 @@ class TransactionAttachmentController extends Controller
 
         return redirect()
             ->route('transactions.show', $transaction)
-            ->with('success', 'تم حذف المرفق بنجاح.');
+            ->with('success', __('messages.transaction_attachment.deleted'));
     }
 
     public function download(Transaction $transaction, TransactionAttachment $attachment): StreamedResponse|RedirectResponse
@@ -87,7 +87,7 @@ class TransactionAttachmentController extends Controller
         $name = $attachment->effectiveFileName() ?? $attachment->displayName();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
-            return back()->with('error', 'الملف غير موجود.');
+            return back()->with('error', __('messages.file_not_found'));
         }
 
         return Storage::disk('local')->download($path, $name);
@@ -116,18 +116,18 @@ class TransactionAttachmentController extends Controller
     private function authorizeAccess(Transaction $transaction): void
     {
         if (! auth()->user()?->canAccessTransaction($transaction)) {
-            abort(403, 'لا يمكنك الوصول إلى هذه المعاملة.');
+            abort(403, __('messages.transaction.access_denied'));
         }
     }
 
     private function authorizeMutation(Transaction $transaction): void
     {
         if (! auth()->user()?->hasPermission('transactions.edit')) {
-            abort(403, 'لا تملك صلاحية إدارة مرفقات المعاملة.');
+            abort(403, __('messages.transaction_attachment.no_permission'));
         }
 
         if (! $transaction->canBeEdited()) {
-            abort(403, 'لا يمكن إضافة أو تعديل المستندات إلا عندما تكون المعاملة في حالة مسودة.');
+            abort(403, __('messages.transaction_attachment.draft_only_mutation'));
         }
     }
 

@@ -29,9 +29,9 @@ class UpdateRoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'اسم الدور مطلوب.',
-            'permissions.required' => 'يجب تحديد صلاحية واحدة على الأقل.',
-            'permissions.min' => 'يجب تحديد صلاحية واحدة على الأقل.',
+            'name.required' => __('validation.role.name_required'),
+            'permissions.required' => __('validation.role.permissions_required'),
+            'permissions.min' => __('validation.role.permissions_min'),
         ];
     }
 }

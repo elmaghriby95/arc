@@ -1,8 +1,15 @@
 @props(['department', 'depth' => 0, 'users' => collect(), 'unitLabelSuggestions' => []])
 
 @php
-    $childDefaults = ['قطاع', 'إدارة', 'قسم', 'وحدة', 'مكتب', 'فرع'];
-    $defaultChildLabel = $childDefaults[min($depth + 1, count($childDefaults) - 1)] ?? 'وحدة';
+    $childDefaults = [
+        __('settings.org.unit_sector'),
+        __('settings.org.unit_administration'),
+        __('settings.org.unit_department'),
+        __('settings.org.unit_unit'),
+        __('settings.org.unit_office'),
+        __('settings.org.unit_branch'),
+    ];
+    $defaultChildLabel = $childDefaults[min($depth + 1, count($childDefaults) - 1)] ?? __('settings.org.unit_unit');
     $hasChildren = $department->children->isNotEmpty();
 @endphp
 
@@ -44,22 +51,22 @@
                 <div class="org-tree-card-meta">
                     @if ($department->head)
                         <span class="settings-badge settings-badge--primary">
-                            {{ $department->unit_label ? 'رئيس '.$department->unit_label : 'المدير' }}: {{ $department->head->name }}
+                            {{ $department->unit_label ? __('settings.org.head_of', ['unit' => $department->unit_label]) : __('settings.org.manager') }}: {{ $department->head->name }}
                         </span>
                     @endif
-                    <span class="settings-badge">{{ $department->users_count }} موظف</span>
+                    <span class="settings-badge">{{ __('settings.org.employees_count', ['count' => $department->users_count]) }}</span>
                     @if ($hasChildren)
-                        <span class="settings-badge settings-badge--muted">{{ $department->children->count() }} وحدة فرعية</span>
+                        <span class="settings-badge settings-badge--muted">{{ __('settings.org.sub_units_count', ['count' => $department->children->count()]) }}</span>
                     @endif
                     @unless ($department->is_active)
-                        <span class="settings-badge settings-badge--danger">غير نشط</span>
+                        <span class="settings-badge settings-badge--danger">{{ __('common.inactive') }}</span>
                     @endunless
                 </div>
             </div>
 
             @permission('departments.edit')
                 <details class="org-tree-edit-panel">
-                    <summary class="org-tree-edit" title="تعديل">
+                    <summary class="org-tree-edit" title="{{ __('common.edit') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                         </svg>
@@ -68,7 +75,7 @@
                         @csrf
                         @method('PUT')
                         <div class="form-group">
-                            <x-input-label value="المسمى (نوع الوحدة)" />
+                            <x-input-label :value="__('settings.org.unit_label')" />
                             <input
                                 name="unit_label"
                                 type="text"
@@ -79,31 +86,31 @@
                             >
                         </div>
                         <div class="form-group">
-                            <x-input-label value="الاسم" />
+                            <x-input-label :value="__('common.name')" />
                             <x-text-input name="name" type="text" :value="old('name', $department->name)" required />
                         </div>
                         <div class="form-group">
-                            <x-input-label value="المدير / الرئيس" />
+                            <x-input-label :value="__('settings.org.head')" />
                             <select name="head_id" class="form-select">
-                                <option value="">— بدون تعيين —</option>
+                                <option value="">{{ __('settings.org.no_head') }}</option>
                                 @foreach ($users as $user)
                                     <option value="{{ $user->id }}" @selected(old('head_id', $department->head_id) == $user->id)>{{ $user->name }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="form-group">
-                            <x-input-label value="الوصف" />
+                            <x-input-label :value="__('common.description')" />
                             <textarea name="description" rows="2" class="form-control">{{ old('description', $department->description) }}</textarea>
                         </div>
                         <div class="form-check form-group">
                             <input name="is_active" type="checkbox" value="1" @checked(old('is_active', $department->is_active))>
-                            <x-input-label value="نشط" />
+                            <x-input-label :value="__('common.active')" />
                         </div>
                         <div class="form-actions">
-                            <x-primary-button>حفظ</x-primary-button>
+                            <x-primary-button>{{ __('common.save') }}</x-primary-button>
                             @permission('departments.delete')
-                                <button type="submit" formaction="{{ route('settings.organization.destroy', $department) }}" formmethod="POST" class="btn btn-danger" onclick="this.form.querySelector('[name=_method]').value='DELETE'; return confirm('هل أنت متأكد من حذف هذه الوحدة وجميع الوحدات الفرعية؟')">
-                                    حذف
+                                <button type="submit" formaction="{{ route('settings.organization.destroy', $department) }}" formmethod="POST" class="btn btn-danger" onclick="this.form.querySelector('[name=_method]').value='DELETE'; return confirm(@json(__('settings.org.confirm_delete')))">
+                                    {{ __('common.delete') }}
                                 </button>
                             @endpermission
                         </div>
@@ -130,7 +137,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                        إضافة وحدة فرعية
+                        {{ __('settings.org.add_sub_unit') }}
                     </summary>
                     @include('settings.partials.org-add-form', [
                         'parentId' => $department->id,

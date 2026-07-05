@@ -3,7 +3,7 @@
         <div class="page-header">
             <div>
                 <nav class="reports-breadcrumb">
-                    <a href="{{ route('reports.index') }}">التقارير</a>
+                    <a href="{{ route('reports.index') }}">{{ __('reports.title') }}</a>
                     <span>/</span>
                     <span>{{ $reportType->label() }}</span>
                 </nav>
@@ -14,7 +14,7 @@
     </x-slot>
 
     <div class="card card-elevated">
-        <div class="card-header"><h3 class="card-title">فلاتر التقرير</h3></div>
+        <div class="card-header"><h3 class="card-title">{{ __('reports.filters_title') }}</h3></div>
         <div class="card-body">
             @include('reports.partials.filters', ['showStatusFilter' => false])
         </div>
@@ -25,13 +25,13 @@
     <div class="stats-grid reports-stats-grid">
         <div class="stat-card stat-card--violet">
             <div class="stat-card-body">
-                <span class="stat-label">إجمالي المرفقات</span>
+                <span class="stat-label">{{ __('reports.total_attachments') }}</span>
                 <span class="stat-value">{{ $data['total_count'] }}</span>
             </div>
         </div>
         <div class="stat-card stat-card--indigo">
             <div class="stat-card-body">
-                <span class="stat-label">حجم التخزين</span>
+                <span class="stat-label">{{ __('reports.storage_size') }}</span>
                 <span class="stat-value reports-stat-compact">{{ $data['total_size_formatted'] }}</span>
             </div>
         </div>
@@ -39,10 +39,10 @@
 
     <div class="reports-split-grid">
         <div class="card card-elevated">
-            <div class="card-header"><h3 class="card-title">حسب نوع الملف</h3></div>
+            <div class="card-header"><h3 class="card-title">{{ __('reports.by_file_kind') }}</h3></div>
             <div class="card-body card-body-flush">
                 <table class="table table-modern">
-                    <thead><tr><th>النوع</th><th>العدد</th><th>الحجم</th></tr></thead>
+                    <thead><tr><th>{{ __('reports.kind') }}</th><th>{{ __('reports.count') }}</th><th>{{ __('reports.size') }}</th></tr></thead>
                     <tbody>
                         @foreach ($data['by_kind'] as $row)
                             <tr>
@@ -56,10 +56,10 @@
             </div>
         </div>
         <div class="card card-elevated">
-            <div class="card-header"><h3 class="card-title">حسب القسم</h3></div>
+            <div class="card-header"><h3 class="card-title">{{ __('reports.by_department') }}</h3></div>
             <div class="card-body card-body-flush">
                 <table class="table table-modern">
-                    <thead><tr><th>القسم</th><th>العدد</th><th>الحجم</th></tr></thead>
+                    <thead><tr><th>{{ __('common.department') }}</th><th>{{ __('reports.count') }}</th><th>{{ __('reports.size') }}</th></tr></thead>
                     <tbody>
                         @forelse ($data['by_department'] as $row)
                             <tr>
@@ -78,20 +78,20 @@
 
     <div class="card card-elevated">
         <div class="card-header">
-            <h3 class="card-title">التفاصيل</h3>
-            <p class="card-subtitle">{{ $data['details']->count() }} مرفق</p>
+            <h3 class="card-title">{{ __('reports.details') }}</h3>
+            <p class="card-subtitle">{{ __('reports.attachment_count', ['count' => $data['details']->count()]) }}</p>
         </div>
         <div class="card-body card-body-flush">
             <table class="table table-modern">
                 <thead>
                     <tr>
-                        <th>العنوان</th>
-                        <th>المعاملة</th>
-                        <th>القسم</th>
-                        <th>نوع الملف</th>
-                        <th>الحجم</th>
-                        <th>الرافع</th>
-                        <th>التاريخ</th>
+                        <th>{{ __('common.title') }}</th>
+                        <th>{{ __('documents.transaction') }}</th>
+                        <th>{{ __('common.department') }}</th>
+                        <th>{{ __('documents.file_kind') }}</th>
+                        <th>{{ __('reports.size') }}</th>
+                        <th>{{ __('documents.uploaded_by') }}</th>
+                        <th>{{ __('common.date') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,7 +106,7 @@
                             <td class="text-muted">{{ $row['date'] }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="table-empty">لا توجد مرفقات.</td></tr>
+                        <tr><td colspan="7" class="table-empty">{{ __('reports.no_attachments') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

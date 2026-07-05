@@ -34,27 +34,24 @@ class TransactionStatusChanged extends Notification
         $toName = $this->toStatus->name;
 
         if ($this->action === WorkflowAction::Reject && $fromName !== null) {
-            $message = sprintf(
-                'تم رفض المعاملة «%s» وإعادتها من %s إلى %s بواسطة %s',
-                $this->transaction->title,
-                $fromName,
-                $toName,
-                $this->changedBy->name,
-            );
+            $message = __('notifications.transaction.rejected', [
+                'title' => $this->transaction->title,
+                'from' => $fromName,
+                'to' => $toName,
+                'by' => $this->changedBy->name,
+            ]);
         } elseif ($fromName === null) {
-            $message = sprintf(
-                'تم إنشاء معاملة جديدة «%s» بحالة %s',
-                $this->transaction->title,
-                $toName,
-            );
+            $message = __('notifications.transaction.created', [
+                'title' => $this->transaction->title,
+                'status' => $toName,
+            ]);
         } else {
-            $message = sprintf(
-                'تم تحديث حالة المعاملة «%s» من %s إلى %s بواسطة %s',
-                $this->transaction->title,
-                $fromName,
-                $toName,
-                $this->changedBy->name,
-            );
+            $message = __('notifications.transaction.status_updated', [
+                'title' => $this->transaction->title,
+                'from' => $fromName,
+                'to' => $toName,
+                'by' => $this->changedBy->name,
+            ]);
         }
 
         return [

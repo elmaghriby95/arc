@@ -40,7 +40,7 @@ class DepartmentController extends Controller
 
         return redirect()
             ->route('departments.index')
-            ->with('success', 'تم إضافة القسم بنجاح.');
+            ->with('success', __('messages.department.created'));
     }
 
     public function edit(Department $department): View
@@ -68,7 +68,7 @@ class DepartmentController extends Controller
 
         return redirect()
             ->route('departments.index')
-            ->with('success', 'تم تحديث القسم بنجاح.');
+            ->with('success', __('messages.department.updated'));
     }
 
     public function destroy(Department $department): RedirectResponse
@@ -77,6 +77,6 @@ class DepartmentController extends Controller
 
         return redirect()
             ->route('departments.index')
-            ->with('success', 'تم حذف القسم بنجاح.');
+            ->with('success', __('messages.department.deleted'));
     }
 }

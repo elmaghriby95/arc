@@ -4,15 +4,14 @@
 ])
 
 <div class="form-group">
-    <x-input-label for="folder_id" value="المجلد" />
+    <x-input-label for="folder_id" :value="__('common.folder')" />
     @if ($folders->isEmpty())
         <p class="form-hint alert alert-warning" style="margin-top:0.5rem;">
-            لا توجد مجلدات متاحة لوحدتك التنظيمية. أنشئ مجلداً من
-            <a href="{{ route('settings.folders.index') }}">شجرة المجلدات</a> أولاً.
+            {!! __('transactions.no_folders_select_html', ['url' => route('settings.folders.index')]) !!}
         </p>
     @else
         <select id="folder_id" name="folder_id" class="form-select" required>
-            <option value="" disabled @selected(! old('folder_id', $selected))>— اختر مجلداً —</option>
+            <option value="" disabled @selected(! old('folder_id', $selected))>{{ __('common.choose_folder') }}</option>
             @foreach ($folders as $folder)
                 <option
                     value="{{ $folder->id }}"
@@ -21,7 +20,7 @@
                 >{{ $folder->name }}</option>
             @endforeach
         </select>
-        <p class="form-hint">يجب حفظ المعاملة في مجلد من المجلدات المتاحة لوحدتك التنظيمية حسب الهيكل الوظيفي.</p>
+        <p class="form-hint">{{ __('transactions.folder_hint') }}</p>
     @endif
 </div>
 

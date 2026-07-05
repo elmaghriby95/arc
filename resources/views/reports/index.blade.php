@@ -2,20 +2,20 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <h1 class="page-title">التقارير</h1>
-                <p class="page-subtitle">تقارير تفصيلية لمعاملات الأرشفة والوثائق مع تصدير PDF و Excel</p>
+                <h1 class="page-title">{{ __('reports.title') }}</h1>
+                <p class="page-subtitle">{{ __('reports.subtitle') }}</p>
             </div>
         </div>
     </x-slot>
 
     <div class="reports-hero">
         <div class="reports-hero-content">
-            <h2>مركز التقارير</h2>
-            <p>اختر التقرير المناسب، طبّق الفلاتر، ثم صدّر النتائج بصيغة PDF أو Excel.</p>
+            <h2>{{ __('reports.hero_title') }}</h2>
+            <p>{{ __('reports.hero_desc') }}</p>
         </div>
         <div class="reports-hero-badge">
             <span>{{ count($reports) }}</span>
-            <small>تقرير متاح</small>
+            <small>{{ __('reports.available_count') }}</small>
         </div>
     </div>
 

@@ -3,15 +3,15 @@
 @section('content')
     <table class="pdf-stats">
         <tr>
-            <td><span class="label">المرفقات</span><span class="value">{{ $data['total_count'] }}</span></td>
-            <td><span class="label">حجم التخزين</span><span class="value">{{ $data['total_size_formatted'] }}</span></td>
+            <td><span class="label">{{ __('reports.total_attachments') }}</span><span class="value">{{ $data['total_count'] }}</span></td>
+            <td><span class="label">{{ __('reports.storage_size') }}</span><span class="value">{{ $data['total_size_formatted'] }}</span></td>
         </tr>
     </table>
 
     <div class="pdf-section">
-        <h2>حسب نوع الملف</h2>
+        <h2>{{ __('reports.by_file_kind') }}</h2>
         <table>
-            <thead><tr><th>النوع</th><th>العدد</th><th>الحجم</th></tr></thead>
+            <thead><tr><th>{{ __('reports.kind') }}</th><th>{{ __('reports.count') }}</th><th>{{ __('reports.size') }}</th></tr></thead>
             <tbody>
                 @foreach ($data['by_kind'] as $row)
                     <tr><td>{{ $row['label'] }}</td><td>{{ $row['count'] }}</td><td>{{ $row['size_formatted'] }}</td></tr>
@@ -21,17 +21,17 @@
     </div>
 
     <div class="pdf-section">
-        <h2>التفاصيل ({{ $data['details']->count() }})</h2>
+        <h2>{{ __('reports.details') }} ({{ $data['details']->count() }})</h2>
         <table>
             <thead>
                 <tr>
-                    <th>العنوان</th>
-                    <th>المعاملة</th>
-                    <th>القسم</th>
-                    <th>نوع الملف</th>
-                    <th>الحجم</th>
-                    <th>الرافع</th>
-                    <th>التاريخ</th>
+                    <th>{{ __('common.title') }}</th>
+                    <th>{{ __('documents.transaction') }}</th>
+                    <th>{{ __('common.department') }}</th>
+                    <th>{{ __('documents.file_kind') }}</th>
+                    <th>{{ __('reports.size') }}</th>
+                    <th>{{ __('documents.uploaded_by') }}</th>
+                    <th>{{ __('common.date') }}</th>
                 </tr>
             </thead>
             <tbody>

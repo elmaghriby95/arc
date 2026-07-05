@@ -92,7 +92,7 @@ class TransactionStatus extends Model
 
     public function workflowPermissionLabel(): string
     {
-        return 'انتقال — '.$this->name;
+        return __('messages.transaction_status.workflow_permission_label', ['name' => $this->name]);
     }
 
     /** @return list<PermissionOption> */

@@ -3,7 +3,7 @@
         <div class="page-header">
             <div>
                 <nav class="reports-breadcrumb">
-                    <a href="{{ route('reports.index') }}">التقارير</a>
+                    <a href="{{ route('reports.index') }}">{{ __('reports.title') }}</a>
                     <span>/</span>
                     <span>{{ $reportType->label() }}</span>
                 </nav>
@@ -16,8 +16,8 @@
     <div class="card card-elevated">
         <div class="card-header">
             <div>
-                <h3 class="card-title">فلاتر التقرير</h3>
-                <p class="card-subtitle">حدّد الفترة والقسم ومعايير أخرى</p>
+                <h3 class="card-title">{{ __('reports.filters_title') }}</h3>
+                <p class="card-subtitle">{{ __('reports.filters_subtitle') }}</p>
             </div>
         </div>
         <div class="card-body">
@@ -41,7 +41,7 @@
         @endforeach
         <div class="stat-card stat-card--violet">
             <div class="stat-card-body">
-                <span class="stat-label">الإجمالي</span>
+                <span class="stat-label">{{ __('common.total') }}</span>
                 <span class="stat-value">{{ $data['total'] }}</span>
             </div>
         </div>
@@ -50,18 +50,18 @@
     @if (! empty($data['by_department']))
         <div class="card card-elevated">
             <div class="card-header">
-                <h3 class="card-title">توزيع حسب القسم</h3>
+                <h3 class="card-title">{{ __('reports.by_department') }}</h3>
             </div>
             <div class="card-body card-body-flush">
                 <div class="table-wrapper">
                     <table class="table table-modern reports-matrix-table">
                         <thead>
                             <tr>
-                                <th>القسم</th>
+                                <th>{{ __('common.department') }}</th>
                                 @foreach ($data['statuses'] as $status)
                                     <th>{{ $status->name }}</th>
                                 @endforeach
-                                <th>المجموع</th>
+                                <th>{{ __('reports.sum') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,18 +91,18 @@
     @if (! empty($data['by_type']))
         <div class="card card-elevated">
             <div class="card-header">
-                <h3 class="card-title">توزيع حسب نوع المعاملة</h3>
+                <h3 class="card-title">{{ __('reports.by_type') }}</h3>
             </div>
             <div class="card-body card-body-flush">
                 <div class="table-wrapper">
                     <table class="table table-modern reports-matrix-table">
                         <thead>
                             <tr>
-                                <th>النوع</th>
+                                <th>{{ __('common.transaction_type') }}</th>
                                 @foreach ($data['statuses'] as $status)
                                     <th>{{ $status->name }}</th>
                                 @endforeach
-                                <th>المجموع</th>
+                                <th>{{ __('reports.sum') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,8 +132,8 @@
     <div class="card card-elevated">
         <div class="card-header">
             <div>
-                <h3 class="card-title">التفاصيل</h3>
-                <p class="card-subtitle">{{ $data['details']->count() }} معاملة</p>
+                <h3 class="card-title">{{ __('reports.details') }}</h3>
+                <p class="card-subtitle">{{ __('reports.transaction_count', ['count' => $data['details']->count()]) }}</p>
             </div>
         </div>
         <div class="card-body card-body-flush">
@@ -141,13 +141,13 @@
                 <table class="table table-modern">
                     <thead>
                         <tr>
-                            <th>الرقم المرجعي</th>
-                            <th>العنوان</th>
-                            <th>القسم</th>
-                            <th>النوع</th>
-                            <th>الحالة</th>
-                            <th>المنشئ</th>
-                            <th>التاريخ</th>
+                            <th>{{ __('common.reference_number') }}</th>
+                            <th>{{ __('common.title') }}</th>
+                            <th>{{ __('common.department') }}</th>
+                            <th>{{ __('common.transaction_type') }}</th>
+                            <th>{{ __('common.status') }}</th>
+                            <th>{{ __('reports.creator') }}</th>
+                            <th>{{ __('common.date') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -164,7 +164,7 @@
                                 <td class="text-muted">{{ $row['date'] }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="7" class="table-empty">لا توجد بيانات مطابقة للفلاتر.</td></tr>
+                            <tr><td colspan="7" class="table-empty">{{ __('reports.no_data') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

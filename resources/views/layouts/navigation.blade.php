@@ -4,15 +4,15 @@
             <a href="{{ route('dashboard') }}" class="navbar-brand">{{ config('app.name') }}</a>
 
             <div class="navbar-menu">
-                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">{{ __('Dashboard') }}</a>
+                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">{{ __('nav.dashboard') }}</a>
                 @permission('documents.view')
-                    <a href="{{ route('documents.index') }}" class="nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}">الوثائق</a>
+                    <a href="{{ route('documents.index') }}" class="nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}">{{ __('nav.documents') }}</a>
                 @endpermission
                 @permission('departments.view')
-                    <a href="{{ route('departments.index') }}" class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">الأقسام</a>
+                    <a href="{{ route('departments.index') }}" class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">{{ __('nav.departments') }}</a>
                 @endpermission
                 @permission('settings.view')
-                    <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">الإعدادات</a>
+                    <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">{{ __('nav.settings') }}</a>
                 @endpermission
             </div>
         </div>
@@ -23,10 +23,10 @@
                     {{ Auth::user()->name }} ▾
                 </button>
                 <div class="dropdown-menu">
-                    <a href="{{ route('profile.edit') }}" class="dropdown-item">{{ __('Profile') }}</a>
+                    <a href="{{ route('profile.edit') }}" class="dropdown-item">{{ __('nav.profile') }}</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="dropdown-item">{{ __('Log Out') }}</button>
+                        <button type="submit" class="dropdown-item">{{ __('nav.logout') }}</button>
                     </form>
                 </div>
             </div>
@@ -36,23 +36,23 @@
     </div>
 
     <div class="mobile-menu" data-mobile-menu>
-        <a href="{{ route('dashboard') }}" class="mobile-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">{{ __('Dashboard') }}</a>
+        <a href="{{ route('dashboard') }}" class="mobile-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">{{ __('nav.dashboard') }}</a>
         @permission('documents.view')
-            <a href="{{ route('documents.index') }}" class="mobile-nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}">الوثائق</a>
+            <a href="{{ route('documents.index') }}" class="mobile-nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}">{{ __('nav.documents') }}</a>
         @endpermission
         @permission('departments.view')
-            <a href="{{ route('departments.index') }}" class="mobile-nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">الأقسام</a>
+            <a href="{{ route('departments.index') }}" class="mobile-nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">{{ __('nav.departments') }}</a>
         @endpermission
         @permission('categories.view')
-            <a href="{{ route('categories.index') }}" class="mobile-nav-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">التصنيفات</a>
+            <a href="{{ route('categories.index') }}" class="mobile-nav-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">{{ __('nav.categories') }}</a>
         @endpermission
         @permission('settings.view')
-            <a href="{{ route('settings.index') }}" class="mobile-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">الإعدادات</a>
+            <a href="{{ route('settings.index') }}" class="mobile-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">{{ __('nav.settings') }}</a>
         @endpermission
-        <a href="{{ route('profile.edit') }}" class="mobile-nav-link">{{ __('Profile') }}</a>
+        <a href="{{ route('profile.edit') }}" class="mobile-nav-link">{{ __('nav.profile') }}</a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="btn btn-link">{{ __('Log Out') }}</button>
+            <button type="submit" class="btn btn-link">{{ __('nav.logout') }}</button>
         </form>
     </div>
 </nav>

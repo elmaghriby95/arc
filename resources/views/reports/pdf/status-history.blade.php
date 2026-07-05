@@ -3,24 +3,24 @@
 @section('content')
     <table class="pdf-stats">
         <tr>
-            <td><span class="label">إجمالي الحركات</span><span class="value">{{ $data['total'] }}</span></td>
+            <td><span class="label">{{ __('reports.total_movements') }}</span><span class="value">{{ $data['total'] }}</span></td>
         </tr>
     </table>
 
     <div class="pdf-section">
-        <h2>سجل الحركات ({{ $data['details']->count() }})</h2>
+        <h2>{{ __('reports.movement_log') }} ({{ $data['details']->count() }})</h2>
         <table>
             <thead>
                 <tr>
-                    <th>التاريخ</th>
-                    <th>الرقم المرجعي</th>
-                    <th>العنوان</th>
-                    <th>القسم</th>
-                    <th>من</th>
-                    <th>إلى</th>
-                    <th>الإجراء</th>
-                    <th>بواسطة</th>
-                    <th>ملاحظات</th>
+                    <th>{{ __('common.date') }}</th>
+                    <th>{{ __('common.reference_number') }}</th>
+                    <th>{{ __('common.title') }}</th>
+                    <th>{{ __('common.department') }}</th>
+                    <th>{{ __('transactions.from_status') }}</th>
+                    <th>{{ __('transactions.to_status') }}</th>
+                    <th>{{ __('transactions.action') }}</th>
+                    <th>{{ __('transactions.changed_by') }}</th>
+                    <th>{{ __('common.notes') }}</th>
                 </tr>
             </thead>
             <tbody>

@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <a href="{{ route('settings.index') }}" class="settings-back-link">← العودة للإعدادات</a>
-                <h2 class="page-title">حالات المعاملات</h2>
-                <p class="page-subtitle">تسلسل سير عمل المعاملات من الإنشاء حتى الأرشفة</p>
+                <a href="{{ route('settings.index') }}" class="settings-back-link">{{ __('common.back') }}</a>
+                <h2 class="page-title">{{ __('settings.txn_statuses.title') }}</h2>
+                <p class="page-subtitle">{{ __('settings.txn_statuses.subtitle') }}</p>
             </div>
         </div>
     </x-slot>
@@ -15,8 +15,8 @@
         @if ($statuses->isNotEmpty())
             <div class="card txn-workflow-preview">
                 <div class="card-header">
-                    <h3 class="card-title">مسار سير العمل</h3>
-                    <p class="card-subtitle">تتبع المعاملات هذا التسلسل بالترتيب</p>
+                    <h3 class="card-title">{{ __('settings.txn_statuses.workflow_title') }}</h3>
+                    <p class="card-subtitle">{{ __('settings.txn_statuses.workflow_subtitle') }}</p>
                 </div>
                 <div class="card-body">
                     <div class="txn-workflow-steps">
@@ -25,10 +25,10 @@
                                 <span class="txn-workflow-step-num">{{ $index + 1 }}</span>
                                 <span class="txn-status-badge" style="--txn-status-color: {{ $status->color ?? '#64748b' }}">{{ $status->name }}</span>
                                 @if ($status->is_initial)
-                                    <span class="settings-badge">ابتدائية</span>
+                                    <span class="settings-badge">{{ __('settings.txn_statuses.initial_badge') }}</span>
                                 @endif
                                 @if ($status->is_final)
-                                    <span class="settings-badge settings-badge--success">نهائية</span>
+                                    <span class="settings-badge settings-badge--success">{{ __('settings.txn_statuses.final_badge') }}</span>
                                 @endif
                             </div>
                             @if (! $loop->last)
@@ -43,63 +43,62 @@
         @permission('settings.transaction-statuses.create')
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">إضافة حالة</h3>
+                <h3 class="card-title">{{ __('settings.txn_statuses.add_title') }}</h3>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('settings.transaction-statuses.store') }}" class="ref-form">
                     @csrf
                     <div class="form-grid">
                         <div class="form-group">
-                            <x-input-label for="name" value="الاسم" />
+                            <x-input-label for="name" :value="__('common.name')" />
                             <x-text-input id="name" name="name" type="text" :value="old('name')" required />
                         </div>
                         <div class="form-group">
-                            <x-input-label for="code" value="الرمز" />
+                            <x-input-label for="code" :value="__('settings.txn_statuses.code')" />
                             <x-text-input id="code" name="code" type="text" :value="old('code')" required />
                         </div>
                         <div class="form-group">
-                            <x-input-label for="sort_order" value="الترتيب في التسلسل" />
+                            <x-input-label for="sort_order" :value="__('settings.txn_statuses.sequence_order')" />
                             <x-text-input id="sort_order" name="sort_order" type="number" :value="old('sort_order', ($statuses->max('sort_order') ?? 0) + 1)" min="0" />
                         </div>
                         <div class="form-group">
-                            <x-input-label for="color" value="اللون" />
+                            <x-input-label for="color" :value="__('settings.txn_statuses.color')" />
                             <x-text-input id="color" name="color" type="text" :value="old('color', '#64748b')" placeholder="#64748b" />
                         </div>
                     </div>
                     <div class="form-group">
-                        <x-input-label for="description" value="الوصف" />
+                        <x-input-label for="description" :value="__('common.description')" />
                         <textarea id="description" name="description" rows="2" class="form-control">{{ old('description') }}</textarea>
                     </div>
                     <div class="form-group" data-status-permission-field>
-                        <x-input-label value="صلاحية الانتقال" />
+                        <x-input-label :value="__('settings.txn_statuses.transition_permission')" />
                         <p class="form-hint" data-workflow-permission-preview>
                             @unless (old('is_initial'))
                                 @if (old('name') || old('code'))
-                                    انتقال — {{ old('name', '…') }}
-                                    <span class="permission-checkbox-key">transactions.workflow.{{ Str::lower(old('code', '')) }}</span>
+                                    {{ __('settings.txn_statuses.transition_preview', ['name' => old('name', '…'), 'code' => Str::lower(old('code', ''))]) }}
                                 @else
-                                    تُنشأ تلقائياً من اسم المرحلة والرمز عند الحفظ.
+                                    {{ __('settings.txn_statuses.auto_permission_hint') }}
                                 @endif
                             @endunless
                         </p>
-                        <small class="form-hint" data-status-permission-hint-required>تُضاف تلقائياً إلى مجموعة «سير عمل المعاملات (مراحل)» في إدارة الأدوار.</small>
-                        <small class="form-hint" data-status-permission-hint-initial hidden>الحالة الابتدائية تعتمد على صلاحية «إنشاء معاملة».</small>
+                        <small class="form-hint" data-status-permission-hint-required>{{ __('settings.txn_statuses.permission_roles_hint') }}</small>
+                        <small class="form-hint" data-status-permission-hint-initial hidden>{{ __('settings.txn_statuses.initial_permission_hint') }}</small>
                     </div>
                     <div class="form-grid form-grid--checks">
                         <div class="form-check">
                             <input id="is_initial" name="is_initial" type="checkbox" value="1" @checked(old('is_initial')) data-status-initial-toggle>
-                            <x-input-label for="is_initial" value="حالة ابتدائية (مسودة)" />
+                            <x-input-label for="is_initial" :value="__('settings.txn_statuses.initial_draft')" />
                         </div>
                         <div class="form-check">
                             <input id="is_final" name="is_final" type="checkbox" value="1" @checked(old('is_final'))>
-                            <x-input-label for="is_final" value="حالة نهائية" />
+                            <x-input-label for="is_final" :value="__('settings.txn_statuses.final_status')" />
                         </div>
                         <div class="form-check">
                             <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', true))>
-                            <x-input-label for="is_active" value="نشط" />
+                            <x-input-label for="is_active" :value="__('common.active')" />
                         </div>
                     </div>
-                    <x-primary-button>إضافة</x-primary-button>
+                    <x-primary-button>{{ __('common.add') }}</x-primary-button>
                 </form>
             </div>
         </div>
@@ -121,79 +120,79 @@
                         @endif
                         <div class="ref-type-card-meta">
                             @if ($status->is_initial)
-                                <span class="settings-badge">ابتدائية</span>
+                                <span class="settings-badge">{{ __('settings.txn_statuses.initial_badge') }}</span>
                             @endif
                             @if ($status->is_final)
-                                <span class="settings-badge settings-badge--success">نهائية</span>
+                                <span class="settings-badge settings-badge--success">{{ __('settings.txn_statuses.final_badge') }}</span>
                             @endif
                             @if ($status->is_initial)
-                                <span class="settings-badge settings-badge--muted">إنشاء معاملة</span>
+                                <span class="settings-badge settings-badge--muted">{{ __('settings.txn_statuses.create_transaction') }}</span>
                             @elseif ($status->required_permission)
                                 <span class="settings-badge settings-badge--muted" title="{{ $status->required_permission }}">{{ $status->permissionLabel() }}</span>
                             @else
-                                <span class="settings-badge settings-badge--danger">بدون صلاحية — عدّل المرحلة</span>
+                                <span class="settings-badge settings-badge--danger">{{ __('settings.txn_statuses.no_permission') }}</span>
                             @endif
                             @unless ($status->is_active)
-                                <span class="settings-badge settings-badge--danger">غير نشط</span>
+                                <span class="settings-badge settings-badge--danger">{{ __('common.inactive') }}</span>
                             @endunless
                         </div>
                     </div>
                     @permission('settings.transaction-statuses.edit')
                     <details class="ref-type-edit">
-                        <summary class="ref-type-edit-toggle">تعديل</summary>
+                        <summary class="ref-type-edit-toggle">{{ __('common.edit') }}</summary>
                         <form method="POST" action="{{ route('settings.transaction-statuses.update', $status) }}" class="ref-type-edit-form">
                             @csrf
                             @method('PUT')
                             <div class="form-group">
-                                <x-input-label value="الاسم" />
+                                <x-input-label :value="__('common.name')" />
                                 <x-text-input name="name" type="text" :value="old('name', $status->name)" required />
                             </div>
                             <div class="form-group">
-                                <x-input-label value="الرمز" />
+                                <x-input-label :value="__('settings.txn_statuses.code')" />
                                 <x-text-input name="code" type="text" :value="old('code', $status->code)" required />
                             </div>
                             <div class="form-group">
-                                <x-input-label value="الترتيب" />
+                                <x-input-label :value="__('settings.txn_statuses.sort_order')" />
                                 <x-text-input name="sort_order" type="number" :value="old('sort_order', $status->sort_order)" min="0" />
                             </div>
                             <div class="form-group">
-                                <x-input-label value="اللون" />
+                                <x-input-label :value="__('settings.txn_statuses.color')" />
                                 <x-text-input name="color" type="text" :value="old('color', $status->color)" />
                             </div>
                             <div class="form-group">
-                                <x-input-label value="الوصف" />
+                                <x-input-label :value="__('common.description')" />
                                 <textarea name="description" rows="2" class="form-control">{{ old('description', $status->description) }}</textarea>
                             </div>
                             <div class="form-group" data-status-permission-field @if ($status->is_initial) hidden @endif>
-                                <x-input-label value="صلاحية الانتقال" />
+                                <x-input-label :value="__('settings.txn_statuses.transition_permission')" />
                                 @unless ($status->is_initial)
                                     <p class="form-hint">{{ $status->workflowPermissionLabel() }}</p>
                                     <span class="permission-checkbox-key">{{ $status->workflowPermissionKey() }}</span>
                                 @endunless
-                                <small class="form-hint" data-status-permission-hint-required @if ($status->is_initial) hidden @endif>تُدار من إدارة الأدوار ضمن «سير عمل المعاملات (مراحل)».</small>
-                                <small class="form-hint" data-status-permission-hint-initial @unless ($status->is_initial) hidden @endunless>الحالة الابتدائية تعتمد على صلاحية «إنشاء معاملة».</small>
+                                <small class="form-hint" data-status-permission-hint-required @if ($status->is_initial) hidden @endif>{{ __('settings.txn_statuses.manage_in_roles') }}</small>
+                                <small class="form-hint" data-status-permission-hint-initial @unless ($status->is_initial) hidden @endunless>{{ __('settings.txn_statuses.initial_permission_hint') }}</small>
                             </div>
                             <div class="form-check form-group">
                                 <input name="is_initial" type="checkbox" value="1" @checked(old('is_initial', $status->is_initial)) data-status-initial-toggle>
-                                <x-input-label value="حالة ابتدائية" />
+                                <x-input-label :value="__('settings.txn_statuses.initial_status')" />
                             </div>
                             <div class="form-check form-group">
                                 <input name="is_final" type="checkbox" value="1" @checked(old('is_final', $status->is_final))>
-                                <x-input-label value="حالة نهائية" />
+                                <x-input-label :value="__('settings.txn_statuses.final_status')" />
                             </div>
                             <div class="form-check form-group">
                                 <input name="is_active" type="checkbox" value="1" @checked(old('is_active', $status->is_active))>
-                                <x-input-label value="نشط" />
+                                <x-input-label :value="__('common.active')" />
                             </div>
                             <div class="form-actions">
-                                <x-primary-button>حفظ</x-primary-button>
+                                <x-primary-button>{{ __('common.save') }}</x-primary-button>
                             </div>
                         </form>
                         @permission('settings.transaction-statuses.delete')
-                        <form method="POST" action="{{ route('settings.transaction-statuses.destroy', $status) }}" class="ref-type-delete-form" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                        <form method="POST" action="{{ route('settings.transaction-statuses.destroy', $status) }}" class="ref-type-delete-form" onsubmit="return confirm(@json(__('common.confirm_delete')))">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger">حذف</button>
+                            <button type="submit" class="btn btn-danger">{{ __('common.delete') }}</button>
                         </form>
                         @endpermission
                     </details>
@@ -201,7 +200,7 @@
                 </div>
             @empty
                 <div class="settings-empty" style="grid-column:1/-1;">
-                    <p>لا توجد حالات معاملات. أضف الحالة الابتدائية (مسودة) أولاً.</p>
+                    <p>{{ __('settings.txn_statuses.empty') }}</p>
                 </div>
             @endforelse
         </div>
@@ -209,6 +208,11 @@
 
     @push('scripts')
         <script>
+            const txnStatusI18n = @json([
+                'transitionPrefix' => __('settings.txn_statuses.transition_prefix'),
+                'autoPermissionHint' => __('settings.txn_statuses.auto_permission_hint'),
+            ]);
+
             document.querySelectorAll('[data-status-initial-toggle]').forEach((checkbox) => {
                 const form = checkbox.closest('form');
                 const permissionField = form?.querySelector('[data-status-permission-field]');
@@ -240,9 +244,9 @@
                         if (isInitial) {
                             preview.textContent = '';
                         } else if (name || code) {
-                            preview.innerHTML = `انتقال — ${name || '…'} <span class="permission-checkbox-key">transactions.workflow.${code || '…'}</span>`;
+                            preview.innerHTML = `${txnStatusI18n.transitionPrefix} — ${name || '…'} <span class="permission-checkbox-key">transactions.workflow.${code || '…'}</span>`;
                         } else {
-                            preview.textContent = 'تُنشأ تلقائياً من اسم المرحلة والرمز عند الحفظ.';
+                            preview.textContent = txnStatusI18n.autoPermissionHint;
                         }
                     }
                 };

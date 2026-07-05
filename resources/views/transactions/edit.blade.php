@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <a href="{{ route('transactions.show', $transaction) }}" class="settings-back-link">← العودة للمعاملة</a>
-                <h2 class="page-title">تعديل المعاملة</h2>
+                <a href="{{ route('transactions.show', $transaction) }}" class="settings-back-link">{{ __('common.back_to_transaction') }}</a>
+                <h2 class="page-title">{{ __('transactions.edit_title') }}</h2>
             </div>
         </div>
     </x-slot>
@@ -18,18 +18,18 @@
                     @method('PUT')
 
                     <div class="form-group">
-                        <x-input-label for="title" value="عنوان المعاملة" />
+                        <x-input-label for="title" :value="__('transactions.title_label')" />
                         <x-text-input id="title" name="title" type="text" :value="old('title', $transaction->title)" required />
                     </div>
 
                     <div class="form-group">
-                        <x-input-label for="description" value="الوصف" />
+                        <x-input-label for="description" :value="__('common.description')" />
                         <textarea id="description" name="description" rows="4" class="form-control">{{ old('description', $transaction->description) }}</textarea>
                     </div>
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <x-input-label for="department_id" value="الوحدة التنظيمية" />
+                            <x-input-label for="department_id" :value="__('common.org_unit')" />
                             @include('settings.partials.org-unit-select', [
                                 'orgUnits' => $orgUnits,
                                 'selected' => old('department_id', $transaction->department_id),
@@ -43,7 +43,7 @@
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <x-input-label for="transaction_type_id" value="نوع المعاملة" />
+                            <x-input-label for="transaction_type_id" :value="__('common.transaction_type')" />
                             <select id="transaction_type_id" name="transaction_type_id" class="form-select">
                                 <option value="">—</option>
                                 @foreach ($transactionTypes as $type)
@@ -52,19 +52,19 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <x-input-label for="transaction_date" value="تاريخ المعاملة" />
+                            <x-input-label for="transaction_date" :value="__('transactions.date')" />
                             <x-text-input id="transaction_date" name="transaction_date" type="date" :value="old('transaction_date', $transaction->transaction_date?->format('Y-m-d'))" />
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <x-input-label for="notes" value="ملاحظات" />
+                        <x-input-label for="notes" :value="__('common.notes')" />
                         <textarea id="notes" name="notes" rows="3" class="form-control">{{ old('notes', $transaction->notes) }}</textarea>
                     </div>
 
                     <div class="form-actions">
-                        <x-primary-button>حفظ التعديلات</x-primary-button>
-                        <a href="{{ route('transactions.show', $transaction) }}" class="btn btn-secondary">إلغاء</a>
+                        <x-primary-button>{{ __('transactions.save_changes') }}</x-primary-button>
+                        <a href="{{ route('transactions.show', $transaction) }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
                     </div>
                 </form>
             </div>

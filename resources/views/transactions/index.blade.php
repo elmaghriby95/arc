@@ -2,13 +2,13 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <h1 class="page-title">إدارة الأرشفة</h1>
-                <p class="page-subtitle">قائمة المعاملات ضمن نطاقك التنظيمي</p>
+                <h1 class="page-title">{{ __('transactions.title') }}</h1>
+                <p class="page-subtitle">{{ __('transactions.subtitle') }}</p>
             </div>
             @permission('transactions.create')
                 <a href="{{ route('transactions.create') }}" class="btn btn-primary btn-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                    معاملة جديدة
+                    {{ __('transactions.new_button') }}
                 </a>
             @endpermission
         </div>
@@ -17,54 +17,54 @@
     <div class="card card-elevated">
         <div class="card-header">
             <div>
-                <h3 class="card-title">تصفية البحث</h3>
-                <p class="card-subtitle">ابحث وفلتر المعاملات حسب الوحدة والمجلد والحالة</p>
+                <h3 class="card-title">{{ __('transactions.filters_title') }}</h3>
+                <p class="card-subtitle">{{ __('transactions.filters_subtitle') }}</p>
             </div>
         </div>
         <div class="card-body">
             <form method="GET" class="form-grid">
                 <div class="form-group">
-                    <x-input-label for="search" value="بحث" />
-                    <x-text-input id="search" name="search" type="text" :value="request('search')" placeholder="العنوان أو الرقم المرجعي" />
+                    <x-input-label for="search" :value="__('common.search')" />
+                    <x-text-input id="search" name="search" type="text" :value="request('search')" :placeholder="__('transactions.search_placeholder')" />
                 </div>
                 <div class="form-group">
-                    <x-input-label for="department_id" value="الوحدة التنظيمية" />
+                    <x-input-label for="department_id" :value="__('common.org_unit')" />
                     @include('settings.partials.org-unit-select', [
                         'orgUnits' => $orgUnits,
                         'selected' => request('department_id'),
-                        'placeholder' => '— الكل —',
+                        'placeholder' => __('common.all_dash'),
                         'showHint' => false,
                     ])
                 </div>
                 <div class="form-group">
-                    <x-input-label for="folder_id" value="المجلد" />
+                    <x-input-label for="folder_id" :value="__('common.folder')" />
                     <select id="folder_id" name="folder_id" class="form-select">
-                        <option value="">الكل</option>
+                        <option value="">{{ __('common.all') }}</option>
                         @foreach ($folders as $folder)
                             <option value="{{ $folder->id }}" @selected(request('folder_id') == $folder->id)>{{ $folder->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group">
-                    <x-input-label for="transaction_type_id" value="نوع المعاملة" />
+                    <x-input-label for="transaction_type_id" :value="__('common.transaction_type')" />
                     <select id="transaction_type_id" name="transaction_type_id" class="form-select">
-                        <option value="">الكل</option>
+                        <option value="">{{ __('common.all') }}</option>
                         @foreach ($transactionTypes as $type)
                             <option value="{{ $type->id }}" @selected(request('transaction_type_id') == $type->id)>{{ $type->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group">
-                    <x-input-label for="transaction_status_id" value="الحالة" />
+                    <x-input-label for="transaction_status_id" :value="__('common.status')" />
                     <select id="transaction_status_id" name="transaction_status_id" class="form-select">
-                        <option value="">الكل</option>
+                        <option value="">{{ __('common.all') }}</option>
                         @foreach ($statuses as $status)
                             <option value="{{ $status->id }}" @selected(request('transaction_status_id') == $status->id)>{{ $status->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group" style="display:flex; align-items:flex-end;">
-                    <x-primary-button>تصفية</x-primary-button>
+                    <x-primary-button>{{ __('common.filter') }}</x-primary-button>
                 </div>
             </form>
         </div>
@@ -73,8 +73,8 @@
     <div class="card card-elevated">
         <div class="card-header">
             <div>
-                <h3 class="card-title">قائمة المعاملات</h3>
-                <p class="card-subtitle">{{ $transactions->total() }} معاملة</p>
+                <h3 class="card-title">{{ __('transactions.list_title') }}</h3>
+                <p class="card-subtitle">{{ __('transactions.list_count', ['count' => $transactions->total()]) }}</p>
             </div>
         </div>
         <div class="card-body card-body-flush">
@@ -82,13 +82,13 @@
                 <table class="table table-modern">
                     <thead>
                         <tr>
-                            <th>الرقم المرجعي</th>
-                            <th>العنوان</th>
-                            <th>النوع</th>
-                            <th>الوحدة</th>
-                            <th>المجلد</th>
-                            <th>الحالة</th>
-                            <th>التاريخ</th>
+                            <th>{{ __('common.reference_number') }}</th>
+                            <th>{{ __('common.title') }}</th>
+                            <th>{{ __('common.transaction_type') }}</th>
+                            <th>{{ __('common.org_unit') }}</th>
+                            <th>{{ __('common.folder') }}</th>
+                            <th>{{ __('common.status') }}</th>
+                            <th>{{ __('common.date') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -103,12 +103,12 @@
                                 <td><x-transaction-status-badge :status="$transaction->status" /></td>
                                 <td>{{ $transaction->transaction_date?->format('Y-m-d') ?? $transaction->created_at->format('Y-m-d') }}</td>
                                 <td>
-                                    <a href="{{ route('transactions.show', $transaction) }}" class="btn btn-secondary btn-sm">عرض</a>
+                                    <a href="{{ route('transactions.show', $transaction) }}" class="btn btn-secondary btn-sm">{{ __('common.view') }}</a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="table-empty">لا توجد معاملات في نطاقك التنظيمي.</td>
+                                <td colspan="8" class="table-empty">{{ __('transactions.empty') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

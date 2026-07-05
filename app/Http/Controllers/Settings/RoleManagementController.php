@@ -41,7 +41,7 @@ class RoleManagementController extends Controller
 
         return redirect()
             ->route('settings.roles.index')
-            ->with('success', 'تم إنشاء الدور بنجاح.');
+            ->with('success', __('messages.role.created'));
     }
 
     public function edit(Role $role): View
@@ -62,24 +62,24 @@ class RoleManagementController extends Controller
 
         return redirect()
             ->route('settings.roles.index')
-            ->with('success', 'تم تحديث الدور بنجاح.');
+            ->with('success', __('messages.role.updated'));
     }
 
     public function destroy(Role $role): RedirectResponse
     {
         if ($role->is_system) {
-            return back()->with('error', 'لا يمكن حذف الأدوار الأساسية للنظام.');
+            return back()->with('error', __('messages.role.cannot_delete_system'));
         }
 
         if ($role->users()->exists()) {
-            return back()->with('error', 'لا يمكن حذف دور مرتبط بمستخدمين. انقل المستخدمين إلى دور آخر أولاً.');
+            return back()->with('error', __('messages.role.cannot_delete_in_use'));
         }
 
         $role->delete();
 
         return redirect()
             ->route('settings.roles.index')
-            ->with('success', 'تم حذف الدور بنجاح.');
+            ->with('success', __('messages.role.deleted'));
     }
 
     private function generateUniqueSlug(string $name): string

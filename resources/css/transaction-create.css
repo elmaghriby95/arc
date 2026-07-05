@@ -527,6 +527,20 @@ select.txnw-input {
     color: #94a3b8;
 }
 
+.txnw-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+}
+
+.txnw-upload-actions .txnw-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
 .txnw-upload-empty small {
     font-size: 0.75rem;
     color: #94a3b8;

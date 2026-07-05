@@ -19,7 +19,15 @@ class OrganizationController extends Controller
             'totalDepartments' => Department::count(),
             'totalUsers' => User::count(),
             'users' => User::orderBy('name')->get(['id', 'name']),
-            'unitLabelSuggestions' => ['قطاع', 'إدارة', 'قسم', 'وحدة', 'مكتب', 'فرع', 'مديرية'],
+            'unitLabelSuggestions' => [
+                __('organization.unit_label.sector'),
+                __('organization.unit_label.administration'),
+                __('organization.unit_label.department'),
+                __('organization.unit_label.unit'),
+                __('organization.unit_label.office'),
+                __('organization.unit_label.branch'),
+                __('organization.unit_label.directorate'),
+            ],
         ]);
     }
 
@@ -42,7 +50,7 @@ class OrganizationController extends Controller
 
         return redirect()
             ->route('settings.organization.index')
-            ->with('success', 'تم إضافة الوحدة التنظيمية بنجاح.');
+            ->with('success', __('messages.organization.created'));
     }
 
     public function update(Request $request, Department $department): RedirectResponse
@@ -62,7 +70,7 @@ class OrganizationController extends Controller
 
         return redirect()
             ->route('settings.organization.index')
-            ->with('success', 'تم تحديث الوحدة التنظيمية بنجاح.');
+            ->with('success', __('messages.organization.updated'));
     }
 
     public function destroy(Department $department): RedirectResponse
@@ -71,7 +79,7 @@ class OrganizationController extends Controller
 
         return redirect()
             ->route('settings.organization.index')
-            ->with('success', 'تم حذف الوحدة التنظيمية بنجاح.');
+            ->with('success', __('messages.organization.deleted'));
     }
 
     private function generateUniqueCode(string $name): string

@@ -32,14 +32,14 @@ class StoreUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'اسم المستخدم مطلوب.',
-            'email.required' => 'البريد الإلكتروني مطلوب.',
-            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
-            'email.unique' => 'هذا البريد الإلكتروني مستخدم بالفعل.',
-            'password.required' => 'كلمة المرور مطلوبة.',
-            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
-            'role_id.required' => 'يجب اختيار دور للمستخدم.',
-            'department_id.exists' => 'الوحدة التنظيمية المحددة غير موجودة.',
+            'name.required' => __('validation.user.name_required'),
+            'email.required' => __('validation.user.email_required'),
+            'email.email' => __('validation.user.email_format'),
+            'email.unique' => __('validation.user.email_unique'),
+            'password.required' => __('validation.user.password_required'),
+            'password.confirmed' => __('validation.user.password_confirmed'),
+            'role_id.required' => __('validation.user.role_required'),
+            'department_id.exists' => __('validation.user.department_exists'),
         ];
     }
 
@@ -49,7 +49,7 @@ class StoreUserRequest extends FormRequest
             $role = Role::find($this->input('role_id'));
 
             if ($role && $role->slug === 'admin' && ! $this->user()?->isAdmin()) {
-                $validator->errors()->add('role_id', 'لا يمكنك تعيين دور مدير النظام.');
+                $validator->errors()->add('role_id', __('validation.user.cannot_assign_admin'));
             }
         });
     }

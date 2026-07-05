@@ -2,14 +2,14 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <a href="{{ route('settings.index') }}" class="settings-back-link">← العودة للإعدادات</a>
-                <h2 class="page-title">إدارة الأدوار</h2>
-                <p class="page-subtitle">إنشاء أدوار مخصصة وتحديد صلاحيات كل دور في النظام</p>
+                <a href="{{ route('settings.index') }}" class="settings-back-link">{{ __('common.back') }}</a>
+                <h2 class="page-title">{{ __('settings.roles.title') }}</h2>
+                <p class="page-subtitle">{{ __('settings.roles.subtitle') }}</p>
             </div>
             @permission('settings.roles.create')
                 <a href="{{ route('settings.roles.create') }}" class="btn btn-primary btn-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                    إنشاء دور جديد
+                    {{ __('settings.roles.create_button') }}
                 </a>
             @endpermission
         </div>
@@ -39,9 +39,9 @@
                         </div>
                         <div class="role-card-meta">
                             <h3 class="role-card-title">{{ $role->name }}</h3>
-                            <span class="role-card-count">{{ $role->users_count }} مستخدم</span>
+                            <span class="role-card-count">{{ __('settings.roles.users_count', ['count' => $role->users_count]) }}</span>
                             @if ($role->is_system)
-                                <span class="role-system-badge">دور أساسي</span>
+                                <span class="role-system-badge">{{ __('settings.roles.system_badge') }}</span>
                             @endif
                         </div>
                     </div>
@@ -51,7 +51,7 @@
                     @endif
 
                     <div class="role-card-permissions">
-                        <h4 class="role-card-permissions-title">الصلاحيات ({{ count($role->permissions ?? []) }})</h4>
+                        <h4 class="role-card-permissions-title">{{ __('settings.roles.permissions_count', ['count' => count($role->permissions ?? [])]) }}</h4>
                         <ul class="role-permissions-list">
                             @foreach (collect($role->permissions ?? [])->take(8) as $permissionKey)
                                 <li>
@@ -62,22 +62,22 @@
                                 </li>
                             @endforeach
                             @if (count($role->permissions ?? []) > 8)
-                                <li class="role-permissions-more">+{{ count($role->permissions) - 8 }} صلاحية أخرى</li>
+                                <li class="role-permissions-more">{{ __('settings.roles.more_permissions', ['count' => count($role->permissions) - 8]) }}</li>
                             @endif
                         </ul>
                     </div>
 
                     <div class="role-card-footer">
                         @permission('settings.roles.edit')
-                            <a href="{{ route('settings.roles.edit', $role) }}" class="btn btn-secondary btn-sm">تعديل الصلاحيات</a>
+                            <a href="{{ route('settings.roles.edit', $role) }}" class="btn btn-secondary btn-sm">{{ __('settings.roles.edit_permissions') }}</a>
                         @endpermission
 
                         @if (! $role->is_system)
                             @permission('settings.roles.delete')
-                                <form method="POST" action="{{ route('settings.roles.destroy', $role) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذا الدور؟');">
+                                <form method="POST" action="{{ route('settings.roles.destroy', $role) }}" onsubmit="return confirm(@json(__('settings.roles.confirm_delete')))">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">{{ __('common.delete') }}</button>
                                 </form>
                             @endpermission
                         @endif

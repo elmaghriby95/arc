@@ -3,25 +3,25 @@
 @section('content')
     <table class="pdf-stats">
         <tr>
-            <td><span class="label">متأخرة</span><span class="value">{{ $data['total'] }}</span></td>
-            <td><span class="label">متوسط الأيام</span><span class="value">{{ $data['avg_days'] }}</span></td>
-            <td><span class="label">أقصى توقف</span><span class="value">{{ $data['max_days'] }}</span></td>
-            <td><span class="label">حد التأخير</span><span class="value">{{ $data['stale_days'] }}+</span></td>
+            <td><span class="label">{{ __('reports.stale_transactions') }}</span><span class="value">{{ $data['total'] }}</span></td>
+            <td><span class="label">{{ __('reports.avg_stale_days') }}</span><span class="value">{{ $data['avg_days'] }}</span></td>
+            <td><span class="label">{{ __('reports.max_stale_days') }}</span><span class="value">{{ $data['max_days'] }}</span></td>
+            <td><span class="label">{{ __('reports.stale_threshold') }}</span><span class="value">{{ $data['stale_days'] }}+</span></td>
         </tr>
     </table>
 
     <div class="pdf-section">
-        <h2>التفاصيل ({{ $data['details']->count() }})</h2>
+        <h2>{{ __('reports.details') }} ({{ $data['details']->count() }})</h2>
         <table>
             <thead>
                 <tr>
-                    <th>الرقم المرجعي</th>
-                    <th>العنوان</th>
-                    <th>القسم</th>
-                    <th>الحالة</th>
-                    <th>أيام التوقف</th>
-                    <th>المنشئ</th>
-                    <th>آخر نشاط</th>
+                    <th>{{ __('common.reference_number') }}</th>
+                    <th>{{ __('common.title') }}</th>
+                    <th>{{ __('common.department') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('reports.stale_days_col') }}</th>
+                    <th>{{ __('reports.creator') }}</th>
+                    <th>{{ __('reports.last_activity') }}</th>
                 </tr>
             </thead>
             <tbody>

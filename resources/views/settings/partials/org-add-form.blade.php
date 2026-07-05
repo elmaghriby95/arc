@@ -1,6 +1,6 @@
 @props([
     'parentId' => null,
-    'defaultUnitLabel' => 'قطاع',
+    'defaultUnitLabel' => __('settings.org.unit_sector'),
     'users' => collect(),
     'unitLabelSuggestions' => [],
 ])
@@ -12,25 +12,25 @@
     @endif
     <div class="form-grid">
         <div class="form-group">
-            <x-input-label value="المسمى (نوع الوحدة)" />
+            <x-input-label :value="__('settings.org.unit_label')" />
             <input
                 name="unit_label"
                 type="text"
                 class="form-control"
                 list="org-unit-labels"
                 value="{{ old('unit_label', $defaultUnitLabel) }}"
-                placeholder="مثال: قطاع، إدارة، قسم"
+                placeholder="{{ __('settings.org.unit_label_placeholder') }}"
                 required
             >
         </div>
         <div class="form-group">
-            <x-input-label value="الاسم" />
-            <x-text-input name="name" type="text" :value="old('name')" placeholder="اسم الوحدة التنظيمية" required />
+            <x-input-label :value="__('common.name')" />
+            <x-text-input name="name" type="text" :value="old('name')" :placeholder="__('settings.org.name_placeholder')" required />
         </div>
         <div class="form-group">
-            <x-input-label value="المدير / الرئيس" />
+            <x-input-label :value="__('settings.org.head')" />
             <select name="head_id" class="form-select">
-                <option value="">— بدون تعيين —</option>
+                <option value="">{{ __('settings.org.no_head') }}</option>
                 @foreach ($users as $user)
                     <option value="{{ $user->id }}" @selected(old('head_id') == $user->id)>{{ $user->name }}</option>
                 @endforeach
@@ -38,14 +38,14 @@
         </div>
     </div>
     <div class="form-group">
-        <x-input-label value="الوصف (اختياري)" />
+        <x-input-label :value="__('settings.org.description_optional')" />
         <textarea name="description" rows="2" class="form-control">{{ old('description') }}</textarea>
     </div>
     <div class="form-check form-group">
         <input name="is_active" type="checkbox" value="1" @checked(old('is_active', true))>
-        <x-input-label value="نشط" />
+        <x-input-label :value="__('common.active')" />
     </div>
     <div class="form-actions">
-        <x-primary-button>{{ $parentId ? 'إضافة' : 'إضافة وحدة رئيسية' }}</x-primary-button>
+        <x-primary-button>{{ $parentId ? __('common.add') : __('settings.org.add_root') }}</x-primary-button>
     </div>
 </form>

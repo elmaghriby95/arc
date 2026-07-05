@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <a href="{{ route('settings.users.index') }}" class="settings-back-link">← العودة للمستخدمين</a>
-                <h2 class="page-title">إنشاء مستخدم جديد</h2>
-                <p class="page-subtitle">أضف حساباً جديداً وحدّد دوره وموقعه في الهيكل التنظيمي</p>
+                <a href="{{ route('settings.users.index') }}" class="settings-back-link">{{ __('common.back_to_users') }}</a>
+                <h2 class="page-title">{{ __('settings.users.create_title') }}</h2>
+                <p class="page-subtitle">{{ __('settings.users.create_subtitle') }}</p>
             </div>
         </div>
     </x-slot>
@@ -15,12 +15,12 @@
         <div class="user-create-steps" aria-hidden="true">
             <div class="user-create-step user-create-step--active">
                 <span class="user-create-step-num">1</span>
-                <span class="user-create-step-label">بيانات الحساب</span>
+                <span class="user-create-step-label">{{ __('settings.users.step_account') }}</span>
             </div>
             <div class="user-create-step-line"></div>
             <div class="user-create-step">
                 <span class="user-create-step-num">2</span>
-                <span class="user-create-step-label">الدور والموقع</span>
+                <span class="user-create-step-label">{{ __('settings.users.step_role') }}</span>
             </div>
         </div>
 
@@ -35,20 +35,20 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="card-title">بيانات الحساب</h3>
-                        <p class="user-create-card-desc">المعلومات الأساسية لتسجيل الدخول</p>
+                        <h3 class="card-title">{{ __('settings.users.account_title') }}</h3>
+                        <p class="user-create-card-desc">{{ __('settings.users.account_desc') }}</p>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="form-grid form-grid-2">
                         <div class="form-group">
-                            <x-input-label for="name" value="الاسم الكامل" />
-                            <x-text-input id="name" name="name" type="text" :value="old('name')" required placeholder="مثال: أحمد محمد" autofocus />
+                            <x-input-label for="name" :value="__('settings.users.full_name')" />
+                            <x-text-input id="name" name="name" type="text" :value="old('name')" required :placeholder="__('settings.users.name_placeholder')" autofocus />
                             @error('name')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
 
                         <div class="form-group">
-                            <x-input-label for="email" value="البريد الإلكتروني" />
+                            <x-input-label for="email" :value="__('common.email')" />
                             <x-text-input id="email" name="email" type="email" :value="old('email')" required placeholder="example@domain.com" dir="ltr" />
                             @error('email')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
@@ -57,12 +57,12 @@
                     <div class="form-grid form-grid-2">
                         <div class="form-group">
                             <div class="form-label-row">
-                                <x-input-label for="password" value="كلمة المرور" />
-                                <button type="button" class="btn btn-link btn-sm" data-generate-password>توليد تلقائي</button>
+                                <x-input-label for="password" :value="__('auth.password')" />
+                                <button type="button" class="btn btn-link btn-sm" data-generate-password>{{ __('settings.users.generate_password') }}</button>
                             </div>
                             <div class="password-input-wrap">
                                 <x-text-input id="password" name="password" type="password" required autocomplete="new-password" data-password-input />
-                                <button type="button" class="password-toggle" data-password-toggle aria-label="إظهار كلمة المرور">
+                                <button type="button" class="password-toggle" data-password-toggle :aria-label="__('auth.show_password')">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" data-icon-show>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -76,10 +76,10 @@
                         </div>
 
                         <div class="form-group">
-                            <x-input-label for="password_confirmation" value="تأكيد كلمة المرور" />
+                            <x-input-label for="password_confirmation" :value="__('auth.confirm_password')" />
                             <div class="password-input-wrap">
                                 <x-text-input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" data-password-input />
-                                <button type="button" class="password-toggle" data-password-toggle aria-label="إظهار كلمة المرور">
+                                <button type="button" class="password-toggle" data-password-toggle :aria-label="__('auth.show_password')">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" data-icon-show>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -92,7 +92,7 @@
                         </div>
                     </div>
 
-                    <p class="form-hint">سيُفعَّل الحساب مباشرةً دون الحاجة لتأكيد البريد الإلكتروني.</p>
+                    <p class="form-hint">{{ __('settings.users.auto_activate_hint') }}</p>
                 </div>
             </div>
 
@@ -104,16 +104,16 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="card-title">الدور والموقع التنظيمي</h3>
-                        <p class="user-create-card-desc">يحدد ما يمكن للمستخدم رؤيته والوصول إليه</p>
+                        <h3 class="card-title">{{ __('settings.users.role_org_title') }}</h3>
+                        <p class="user-create-card-desc">{{ __('settings.users.role_org_desc') }}</p>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="form-grid form-grid-2">
                         <div class="form-group">
-                            <x-input-label for="role_id" value="الدور" />
+                            <x-input-label for="role_id" :value="__('common.role')" />
                             <select id="role_id" name="role_id" class="form-select" required data-role-select>
-                                <option value="" disabled @selected(! old('role_id'))>— اختر دوراً —</option>
+                                <option value="" disabled @selected(! old('role_id'))>{{ __('settings.users.choose_role') }}</option>
                                 @foreach ($roles as $role)
                                     <option
                                         value="{{ $role->id }}"
@@ -127,13 +127,13 @@
                             @error('role_id')<p class="form-error">{{ $message }}</p>@enderror
 
                             <div class="role-description-preview" data-role-description hidden>
-                                <span class="role-description-preview-label">وصف الدور:</span>
+                                <span class="role-description-preview-label">{{ __('settings.users.role_description') }}</span>
                                 <span data-role-description-text></span>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <x-input-label for="department_id" value="الموقع في الهيكل التنظيمي" />
+                            <x-input-label for="department_id" :value="__('settings.users.org_location')" />
                             @include('settings.partials.org-unit-select', [
                                 'orgUnits' => $orgUnits,
                                 'selected' => old('department_id'),
@@ -143,16 +143,16 @@
                     </div>
 
                     <div class="org-scope-preview" data-org-preview hidden>
-                        <span class="org-scope-preview-label">المسار التنظيمي:</span>
+                        <span class="org-scope-preview-label">{{ __('settings.users.org_path') }}</span>
                         <span class="org-path" data-org-preview-text></span>
                     </div>
 
                     <div class="org-scope-info">
-                        <strong>كيف يعمل النطاق؟</strong>
+                        <strong>{{ __('settings.users.scope_title') }}</strong>
                         <ul>
-                            <li>المستخدم يرى الوثائق والبيانات المرتبطة بوحدته فقط، والوحدات التابعة لها.</li>
-                            <li>مثال: إذا عُيِّن على <em>إدارة</em> يرى كل الأقسام تحتها، وليس الإدارات الأخرى.</li>
-                            <li>مدير النظام يرى كل المنظومة بغض النظر عن الموقع التنظيمي.</li>
+                            <li>{{ __('settings.users.scope_line_1') }}</li>
+                            <li>{{ __('settings.users.scope_line_2') }}</li>
+                            <li>{{ __('settings.users.scope_line_3') }}</li>
                         </ul>
                     </div>
                 </div>
@@ -160,10 +160,10 @@
 
             <div class="card user-create-footer">
                 <div class="card-footer form-actions">
-                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">إلغاء</a>
+                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
                     <x-primary-button>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                        إنشاء المستخدم
+                        {{ __('settings.users.create_submit') }}
                     </x-primary-button>
                 </div>
             </div>

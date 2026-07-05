@@ -12,24 +12,12 @@ enum ReportType: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::TransactionPipeline => 'حالة المعاملات',
-            self::StaleTransactions => 'المعاملات المتأخرة',
-            self::DepartmentProductivity => 'إنتاجية الأقسام',
-            self::DocumentsAttachments => 'الوثائق والمرفقات',
-            self::StatusHistory => 'سجل حركة المعاملات',
-        };
+        return __('reports.'.$this->translationKey().'.label');
     }
 
     public function description(): string
     {
-        return match ($this) {
-            self::TransactionPipeline => 'توزيع المعاملات حسب مراحل سير العمل والأقسام وأنواع المعاملات',
-            self::StaleTransactions => 'المعاملات غير المكتملة التي تجاوزت مدة التوقف المحددة',
-            self::DepartmentProductivity => 'مقارنة أداء الأقسام في إنشاء وإنجاز المعاملات',
-            self::DocumentsAttachments => 'إحصائيات المرفقات وحجم التخزين وتوزيع أنواع الملفات',
-            self::StatusHistory => 'سجل تفصيلي لجميع انتقالات حالات المعاملات',
-        };
+        return __('reports.'.$this->translationKey().'.description');
     }
 
     public function colorClass(): string
@@ -56,5 +44,10 @@ enum ReportType: string
     public static function tryFromRoute(?string $slug): ?self
     {
         return $slug ? self::tryFrom($slug) : null;
+    }
+
+    private function translationKey(): string
+    {
+        return str_replace('-', '_', $this->value);
     }
 }

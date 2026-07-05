@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <a href="{{ route('settings.users.index') }}" class="settings-back-link">← العودة للمستخدمين</a>
-                <h2 class="page-title">تعديل المستخدم: {{ $user->name }}</h2>
-                <p class="page-subtitle">تحديد الدور والموقع في الهيكل التنظيمي</p>
+                <a href="{{ route('settings.users.index') }}" class="settings-back-link">{{ __('common.back_to_users') }}</a>
+                <h2 class="page-title">{{ __('settings.users.edit_title', ['name' => $user->name]) }}</h2>
+                <p class="page-subtitle">{{ __('settings.users.edit_subtitle') }}</p>
             </div>
         </div>
     </x-slot>
@@ -14,7 +14,7 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">بيانات المستخدم</h3>
+                <h3 class="card-title">{{ __('settings.users.user_data') }}</h3>
             </div>
             <div class="card-body">
                 <div class="user-edit-summary">
@@ -31,12 +31,12 @@
             @csrf
             @method('PUT')
             <div class="card-header">
-                <h3 class="card-title">الدور والموقع التنظيمي</h3>
+                <h3 class="card-title">{{ __('settings.users.role_org_title') }}</h3>
             </div>
             <div class="card-body">
                 <div class="form-grid form-grid-2">
                     <div class="form-group">
-                        <x-input-label for="role_id" value="الدور" />
+                        <x-input-label for="role_id" :value="__('common.role')" />
                         <select id="role_id" name="role_id" class="form-select" required>
                             @foreach ($roles as $role)
                                 <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>{{ $role->name }}</option>
@@ -46,7 +46,7 @@
                     </div>
 
                     <div class="form-group">
-                        <x-input-label for="department_id" value="الموقع في الهيكل التنظيمي" />
+                        <x-input-label for="department_id" :value="__('settings.users.org_location')" />
                         @include('settings.partials.org-unit-select', [
                             'orgUnits' => $orgUnits,
                             'selected' => $user->department_id,
@@ -57,23 +57,23 @@
 
                 @if ($user->department_id && isset($breadcrumbs[$user->department_id]))
                     <div class="org-scope-preview">
-                        <span class="org-scope-preview-label">المسار الحالي:</span>
+                        <span class="org-scope-preview-label">{{ __('settings.users.current_path') }}</span>
                         <span class="org-path">{{ $breadcrumbs[$user->department_id] }}</span>
                     </div>
                 @endif
 
                 <div class="org-scope-info">
-                    <strong>كيف يعمل النطاق؟</strong>
+                    <strong>{{ __('settings.users.scope_title') }}</strong>
                     <ul>
-                        <li>المستخدم يرى الوثائق والبيانات المرتبطة بوحدته فقط، والوحدات التابعة لها.</li>
-                        <li>مثال: إذا عُيِّن على <em>إدارة</em> يرى كل الأقسام تحتها، وليس الإدارات الأخرى.</li>
-                        <li>مدير النظام يرى كل المنظومة بغض النظر عن الموقع التنظيمي.</li>
+                        <li>{{ __('settings.users.scope_line_1') }}</li>
+                        <li>{{ __('settings.users.scope_line_2') }}</li>
+                        <li>{{ __('settings.users.scope_line_3') }}</li>
                     </ul>
                 </div>
             </div>
             <div class="card-footer">
-                <x-primary-button>حفظ التغييرات</x-primary-button>
-                <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">إلغاء</a>
+                <x-primary-button>{{ __('settings.users.save_changes') }}</x-primary-button>
+                <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
             </div>
         </form>
     </div>

@@ -3,25 +3,25 @@
 @section('content')
     <table class="pdf-stats">
         <tr>
-            <td><span class="label">الأقسام</span><span class="value">{{ $data['totals']['departments'] }}</span></td>
-            <td><span class="label">منشأة</span><span class="value">{{ $data['totals']['created'] }}</span></td>
-            <td><span class="label">مؤرشفة</span><span class="value">{{ $data['totals']['archived'] }}</span></td>
-            <td><span class="label">قيد الإجراء</span><span class="value">{{ $data['totals']['in_progress'] }}</span></td>
+            <td><span class="label">{{ __('reports.departments') }}</span><span class="value">{{ $data['totals']['departments'] }}</span></td>
+            <td><span class="label">{{ __('reports.created') }}</span><span class="value">{{ $data['totals']['created'] }}</span></td>
+            <td><span class="label">{{ __('reports.archived') }}</span><span class="value">{{ $data['totals']['archived'] }}</span></td>
+            <td><span class="label">{{ __('reports.in_progress') }}</span><span class="value">{{ $data['totals']['in_progress'] }}</span></td>
         </tr>
     </table>
 
     <div class="pdf-section">
-        <h2>مقارنة الأقسام</h2>
+        <h2>{{ __('reports.department_comparison') }}</h2>
         <table>
             <thead>
                 <tr>
-                    <th>القسم</th>
-                    <th>منشأة</th>
-                    <th>مسودة</th>
-                    <th>قيد الإجراء</th>
-                    <th>مؤرشفة</th>
-                    <th>مكتملة بالفترة</th>
-                    <th>نسبة الإنجاز</th>
+                    <th>{{ __('common.department') }}</th>
+                    <th>{{ __('reports.created') }}</th>
+                    <th>{{ __('reports.draft') }}</th>
+                    <th>{{ __('reports.in_progress') }}</th>
+                    <th>{{ __('reports.archived') }}</th>
+                    <th>{{ __('reports.completed_in_period') }}</th>
+                    <th>{{ __('reports.completion_rate') }}</th>
                 </tr>
             </thead>
             <tbody>

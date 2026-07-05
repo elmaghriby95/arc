@@ -27,8 +27,8 @@ class UpdateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'role_id.required' => 'يجب اختيار دور للمستخدم.',
-            'department_id.exists' => 'الوحدة التنظيمية المحددة غير موجودة.',
+            'role_id.required' => __('validation.user.role_required'),
+            'department_id.exists' => __('validation.user.department_exists'),
         ];
     }
 
@@ -39,7 +39,7 @@ class UpdateUserRequest extends FormRequest
             $role = Role::find($this->input('role_id'));
 
             if ($user && $user->is($this->user()) && $role && $role->slug !== 'admin') {
-                $validator->errors()->add('role_id', 'لا يمكنك تغيير دورك إلى دور أقل من مدير النظام.');
+                $validator->errors()->add('role_id', __('validation.user.cannot_demote_self'));
             }
         });
     }

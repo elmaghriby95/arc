@@ -53,6 +53,6 @@ class ReferenceNumberSettingsController extends Controller
 
         return redirect()
             ->route('settings.reference-numbers.index')
-            ->with('success', 'تم حفظ إعدادات الرقم الإشاري بنجاح.');
+            ->with('success', __('messages.reference_number.saved'));
     }
 }

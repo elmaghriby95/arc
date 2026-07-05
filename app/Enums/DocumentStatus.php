@@ -10,10 +10,6 @@ enum DocumentStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'مسودة',
-            self::Active => 'نشط',
-            self::Archived => 'مؤرشف',
-        };
+        return __('documents.status.'.$this->value);
     }
 }

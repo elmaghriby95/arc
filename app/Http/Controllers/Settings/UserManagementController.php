@@ -41,7 +41,7 @@ class UserManagementController extends Controller
 
         return redirect()
             ->route('settings.users.index')
-            ->with('success', 'تم إنشاء المستخدم بنجاح.');
+            ->with('success', __('messages.user.created'));
     }
 
     public function edit(User $user): View
@@ -60,6 +60,6 @@ class UserManagementController extends Controller
 
         return redirect()
             ->route('settings.users.index')
-            ->with('success', 'تم تحديث إعدادات المستخدم بنجاح.');
+            ->with('success', __('messages.user.updated'));
     }
 }

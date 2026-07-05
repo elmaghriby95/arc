@@ -35,7 +35,7 @@ class DocumentTypeController extends Controller
 
         return redirect()
             ->route('settings.document-types.index')
-            ->with('success', 'تم إضافة نوع المستند بنجاح.');
+            ->with('success', __('messages.document_type.created'));
     }
 
     public function update(Request $request, DocumentType $documentType): RedirectResponse
@@ -56,7 +56,7 @@ class DocumentTypeController extends Controller
 
         return redirect()
             ->route('settings.document-types.index')
-            ->with('success', 'تم تحديث نوع المستند بنجاح.');
+            ->with('success', __('messages.document_type.updated'));
     }
 
     public function destroy(DocumentType $documentType): RedirectResponse
@@ -65,6 +65,6 @@ class DocumentTypeController extends Controller
 
         return redirect()
             ->route('settings.document-types.index')
-            ->with('success', 'تم حذف نوع المستند بنجاح.');
+            ->with('success', __('messages.document_type.deleted'));
     }
 }

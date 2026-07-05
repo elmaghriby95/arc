@@ -100,142 +100,65 @@ enum Permission: string
 
     public function label(): string
     {
-        $key = 'permissions.'.str_replace('.', '_', $this->value);
-        $translated = __($key);
-
-        if ($translated !== $key) {
-            return $translated;
-        }
-
-        return match ($this) {
-            self::DashboardView => 'عرض لوحة التحكم',
-
-            self::ReportsView => 'عرض التقارير',
-
-            self::DocumentsView => 'عرض الوثائق (مستندات المعاملات)',
-            self::DocumentsCreate => 'إضافة وثيقة',
-            self::DocumentsEdit => 'تعديل وثيقة',
-            self::DocumentsDelete => 'حذف وثيقة',
-            self::DocumentsDownload => 'تحميل وثيقة',
-
-            self::DepartmentsView => 'عرض الأقسام',
-            self::DepartmentsCreate => 'إضافة قسم',
-            self::DepartmentsEdit => 'تعديل قسم',
-            self::DepartmentsDelete => 'حذف قسم',
-
-            self::CategoriesView => 'عرض التصنيفات',
-            self::CategoriesCreate => 'إضافة تصنيف',
-            self::CategoriesEdit => 'تعديل تصنيف',
-            self::CategoriesDelete => 'حذف تصنيف',
-
-            self::SettingsView => 'عرض صفحة الإعدادات',
-
-            self::SettingsUsersView => 'عرض المستخدمين',
-            self::SettingsUsersCreate => 'إنشاء مستخدم',
-            self::SettingsUsersEdit => 'تعديل المستخدمين',
-
-            self::SettingsRolesView => 'عرض الأدوار',
-            self::SettingsRolesCreate => 'إنشاء دور',
-            self::SettingsRolesEdit => 'تعديل دور',
-            self::SettingsRolesDelete => 'حذف دور',
-
-            self::SettingsOrganizationView => 'عرض الهيكل التنظيمي',
-
-            self::SettingsDocumentTypesView => 'عرض أنواع المستندات',
-            self::SettingsDocumentTypesCreate => 'إضافة نوع مستند',
-            self::SettingsDocumentTypesEdit => 'تعديل نوع مستند',
-            self::SettingsDocumentTypesDelete => 'حذف نوع مستند',
-
-            self::SettingsTransactionTypesView => 'عرض أنواع المعاملات',
-            self::SettingsTransactionTypesCreate => 'إضافة نوع معاملة',
-            self::SettingsTransactionTypesEdit => 'تعديل نوع معاملة',
-            self::SettingsTransactionTypesDelete => 'حذف نوع معاملة',
-
-            self::SettingsTransactionStatusesView => 'عرض حالات المعاملات',
-            self::SettingsTransactionStatusesCreate => 'إضافة حالة معاملة',
-            self::SettingsTransactionStatusesEdit => 'تعديل حالة معاملة',
-            self::SettingsTransactionStatusesDelete => 'حذف حالة معاملة',
-
-            self::TransactionsView => 'عرض المعاملات',
-            self::TransactionsViewAll => 'عرض كل المعاملات',
-            self::TransactionsCreate => 'إنشاء معاملة',
-            self::TransactionsEdit => 'تعديل معاملة',
-            self::TransactionsDelete => 'حذف معاملة',
-            self::TransactionsStatusReview => 'الانتقال إلى قيد المراجعة',
-            self::TransactionsStatusApprove => 'اعتماد المعاملة',
-            self::TransactionsStatusArchive => 'أرشفة المعاملة',
-
-            self::SettingsFoldersView => 'عرض شجرة المجلدات',
-            self::SettingsFoldersCreate => 'إضافة مجلد',
-            self::SettingsFoldersEdit => 'تعديل مجلد',
-            self::SettingsFoldersDelete => 'حذف مجلد',
-
-            self::SettingsLanguagesView => 'عرض اللغات',
-            self::SettingsLanguagesCreate => 'إضافة لغة',
-            self::SettingsLanguagesEdit => 'تعديل لغة',
-            self::SettingsLanguagesDelete => 'حذف لغة',
-
-            self::SettingsReferenceNumbersView => 'عرض إعدادات الرقم الإشاري',
-            self::SettingsReferenceNumbersEdit => 'تعديل إعدادات الرقم الإشاري',
-
-            self::DocumentsReferenceNumberDuplicateOverride => 'السماح بتكرار الرقم الإشاري',
-
-            self::ProfileView => 'عرض الملف الشخصي',
-            self::ProfileEdit => 'تعديل الملف الشخصي',
-            self::ProfileDelete => 'حذف الحساب',
-        };
+        return __('permissions.'.str_replace('.', '_', $this->value));
     }
 
     public function group(): string
     {
-        return match ($this) {
-            self::DashboardView => 'القائمة الرئيسية',
+        return __('permissions.groups.'.$this->groupSlug());
+    }
 
-            self::ReportsView => 'التقارير',
+    public function groupSlug(): string
+    {
+        return match ($this) {
+            self::DashboardView => 'main_menu',
+
+            self::ReportsView => 'reports',
 
             self::DocumentsView,
             self::DocumentsCreate,
             self::DocumentsEdit,
             self::DocumentsDelete,
-            self::DocumentsDownload => 'الوثائق',
+            self::DocumentsDownload,
+            self::DocumentsReferenceNumberDuplicateOverride => 'documents',
 
             self::DepartmentsView,
             self::DepartmentsCreate,
             self::DepartmentsEdit,
-            self::DepartmentsDelete => 'الأقسام',
+            self::DepartmentsDelete => 'departments',
 
             self::CategoriesView,
             self::CategoriesCreate,
             self::CategoriesEdit,
-            self::CategoriesDelete => 'التصنيفات',
+            self::CategoriesDelete => 'categories',
 
-            self::SettingsView => 'الإعدادات',
+            self::SettingsView => 'settings',
 
             self::SettingsUsersView,
             self::SettingsUsersCreate,
-            self::SettingsUsersEdit => 'إدارة المستخدمين',
+            self::SettingsUsersEdit => 'users_management',
 
             self::SettingsRolesView,
             self::SettingsRolesCreate,
             self::SettingsRolesEdit,
-            self::SettingsRolesDelete => 'إدارة الأدوار',
+            self::SettingsRolesDelete => 'roles_management',
 
-            self::SettingsOrganizationView => 'الهيكل التنظيمي',
+            self::SettingsOrganizationView => 'organization',
 
             self::SettingsDocumentTypesView,
             self::SettingsDocumentTypesCreate,
             self::SettingsDocumentTypesEdit,
-            self::SettingsDocumentTypesDelete => 'أنواع المستندات',
+            self::SettingsDocumentTypesDelete => 'document_types',
 
             self::SettingsTransactionTypesView,
             self::SettingsTransactionTypesCreate,
             self::SettingsTransactionTypesEdit,
-            self::SettingsTransactionTypesDelete => 'أنواع المعاملات',
+            self::SettingsTransactionTypesDelete => 'transaction_types',
 
             self::SettingsTransactionStatusesView,
             self::SettingsTransactionStatusesCreate,
             self::SettingsTransactionStatusesEdit,
-            self::SettingsTransactionStatusesDelete => 'حالات المعاملات',
+            self::SettingsTransactionStatusesDelete => 'transaction_statuses',
 
             self::TransactionsView,
             self::TransactionsViewAll,
@@ -244,26 +167,24 @@ enum Permission: string
             self::TransactionsDelete,
             self::TransactionsStatusReview,
             self::TransactionsStatusApprove,
-            self::TransactionsStatusArchive => 'إدارة الأرشفة',
+            self::TransactionsStatusArchive => 'archive_management',
 
             self::SettingsFoldersView,
             self::SettingsFoldersCreate,
             self::SettingsFoldersEdit,
-            self::SettingsFoldersDelete => 'شجرة المجلدات',
+            self::SettingsFoldersDelete => 'folder_tree',
 
             self::SettingsLanguagesView,
             self::SettingsLanguagesCreate,
             self::SettingsLanguagesEdit,
-            self::SettingsLanguagesDelete => 'اللغات',
+            self::SettingsLanguagesDelete => 'languages',
 
             self::SettingsReferenceNumbersView,
-            self::SettingsReferenceNumbersEdit => 'إعدادات الرقم الإشاري',
-
-            self::DocumentsReferenceNumberDuplicateOverride => 'الوثائق',
+            self::SettingsReferenceNumbersEdit => 'reference_numbers',
 
             self::ProfileView,
             self::ProfileEdit,
-            self::ProfileDelete => 'الملف الشخصي',
+            self::ProfileDelete => 'profile',
         };
     }
 

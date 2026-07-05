@@ -11,7 +11,7 @@ class EnsureUserIsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()?->isAdmin()) {
-            abort(403, 'غير مصرح لك بالوصول إلى هذه الصفحة.');
+            abort(403, __('messages.admin_access_denied'));
         }
 
         return $next($request);

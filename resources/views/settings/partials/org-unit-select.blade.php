@@ -4,10 +4,14 @@
     'orgUnits' => [],
     'selected' => null,
     'required' => false,
-    'placeholder' => '— اختر موقعك في الهيكل التنظيمي —',
+    'placeholder' => null,
     'showHint' => true,
     'selectClass' => 'form-select org-unit-select',
 ])
+
+@php
+    $placeholder = $placeholder ?? __('common.choose_org_unit');
+@endphp
 
 <div class="org-unit-picker">
     <select id="{{ $id }}" name="{{ $name }}" class="{{ $selectClass }}" @if($required) required @endif>
@@ -21,6 +25,6 @@
         @endforeach
     </select>
     @if ($showHint)
-        <p class="org-unit-picker-hint">حدّد الوحدة التي يتبعها المستخدم — يحدد ذلك ما يظهر له في المنظومة (وحدته + الوحدات التابعة لها).</p>
+        <p class="org-unit-picker-hint">{{ __('settings.org.unit_hint') }}</p>
     @endif
 </div>
