@@ -20,6 +20,25 @@ SCAN_TIMEOUT = int(os.environ.get("SCAN_TIMEOUT_SECONDS", "180"))
 DEFAULT_RESOLUTION = int(os.environ.get("SCAN_DEFAULT_RESOLUTION", "120"))
 
 
+def load_env_file() -> None:
+    env_file = Path(__file__).resolve().parent / "agent.env"
+
+    if not env_file.is_file():
+        return
+
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+load_env_file()
+
+
 def allowed_origins() -> list[str]:
     raw = os.environ.get("SCAN_ALLOWED_ORIGINS", "")
     origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
@@ -40,7 +59,7 @@ def origin_allowed(origin: str) -> bool:
         return True
 
     for allowed in allowed_origins():
-        if origin == allowed or origin.startswith(allowed.rstrip("/")):
+        if origin.rstrip("/") == allowed.rstrip("/"):
             return True
 
     return False

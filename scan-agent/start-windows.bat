@@ -18,9 +18,19 @@ if errorlevel 1 (
     exit /b 1
 )
 
+if not exist "%~dp0agent.env" (
+    if exist "%~dp0agent.env.example" (
+        copy /Y "%~dp0agent.env.example" "%~dp0agent.env" >nul
+        echo Created agent.env from agent.env.example
+    ) else (
+        echo [WARN] agent.env not found. Create it with SCAN_ALLOWED_ORIGINS=https://arc.fwit.ly
+    )
+)
+
 echo.
 echo ARC Scan Agent (Windows / WIA)
 echo Listening on http://127.0.0.1:8765
+echo CORS origins: see agent.env ^(SCAN_ALLOWED_ORIGINS^)
 echo Press Ctrl+C to stop.
 echo.
 

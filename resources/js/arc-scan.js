@@ -52,6 +52,7 @@
             return new Error(
                 'تعذّر الاتصال بـ ARC Scan Agent على جهازك.\n\n'
                 + '• Windows: شغّل scan-agent/start-windows.bat\n'
+                + '• تأكد من scan-agent/agent.env: SCAN_ALLOWED_ORIGINS=https://arc.fwit.ly\n'
                 + '• Ubuntu: cd ~/scan-agent && ./install-ubuntu.sh (مع ARC_URL=https://arc.fwit.ly)\n'
                 + '• ثم: curl http://127.0.0.1:8765/health',
             );
