@@ -198,8 +198,11 @@
                                             <button type="button" class="txnw-btn txnw-btn--outline" data-txn-browse>اختر ملفات من الجهاز</button>
                                             <small>PDF · Word · Excel · صور — حتى 20 MB للملف</small>
                                         </div>
-                                        <ul class="txnw-upload-list is-hidden" data-txn-file-list data-txn-queue></ul>
+                                        <div class="txnw-upload-queue is-hidden" data-txn-queue>
+                                            <ul class="txnw-upload-list" data-txn-file-list></ul>
+                                        </div>
                                     </div>
+                                    <p class="txnw-hint">يمكنك إنشاء المعاملة بدون مستندات، لكن الرفع متاح فقط عندما تكون المعاملة في حالة «مسودة».</p>
                                 </div>
 
                                 <footer class="txnw-step-foot">

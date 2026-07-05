@@ -219,6 +219,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/transaction-attachments.js') }}"></script>
+        <script src="{{ asset('js/transaction-attachments.js') }}?v={{ filemtime(public_path('js/transaction-attachments.js')) }}"></script>
     @endpush
 </x-app-layout>

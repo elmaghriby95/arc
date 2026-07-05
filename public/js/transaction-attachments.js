@@ -67,9 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addFiles = (files) => {
         const incoming = Array.from(files).filter(isAllowed);
+        const rejected = Array.from(files).length - incoming.length;
 
         if (incoming.length === 0) {
+            if (rejected > 0) {
+                alert('نوع الملف غير مدعوم. المسموح: PDF، Word، Excel، وصور.');
+            }
+
             return;
+        }
+
+        if (rejected > 0) {
+            alert(`تم تجاهل ${rejected} ملف — نوع غير مدعوم.`);
         }
 
         selectedFiles = [...selectedFiles, ...incoming];

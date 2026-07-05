@@ -28,7 +28,7 @@
                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.bmp,image/*,application/pdf">
                 <div class="txn-dropzone-content" data-txn-dropzone-content>
                     <div class="txn-dropzone-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
                     </div>
                     <p class="txn-dropzone-title">اسحب الملفات وأفلتها هنا</p>
                     <p class="txn-dropzone-hint">PDF · Word · Excel · صور</p>
@@ -39,6 +39,15 @@
                     <button type="submit" class="btn btn-primary btn-block" data-txn-upload-btn disabled>رفع الملفات</button>
                 </div>
             </form>
+        @elseif (auth()->user()?->hasPermission('transactions.edit'))
+            <div class="txn-dropzone txn-dropzone--locked">
+                <div class="txn-dropzone-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                </div>
+                <p class="txn-dropzone-title">رفع المستندات غير متاح</p>
+                <p class="txn-dropzone-hint">يمكن إضافة المستندات فقط عندما تكون المعاملة في حالة «مسودة».</p>
+                <p class="txn-dropzone-hint">الحالة الحالية: <strong>{{ $transaction->status?->name ?? '—' }}</strong></p>
+            </div>
         @endif
 
         <div class="txn-attachments-list">
