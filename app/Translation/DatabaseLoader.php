@@ -19,11 +19,17 @@ class DatabaseLoader extends FileLoader
             return $lines;
         }
 
-        $dbLines = Cache::remember(
-            TranslationCache::key($locale, $group),
-            now()->addDay(),
-            fn () => $this->loadFromDatabase($locale, $group),
-        );
+        $cacheKey = TranslationCache::key($locale, $group);
+
+        if (Cache::has($cacheKey)) {
+            $dbLines = Cache::get($cacheKey, []);
+        } else {
+            $dbLines = $this->loadFromDatabase($locale, $group);
+
+            if ($dbLines !== []) {
+                Cache::put($cacheKey, $dbLines, now()->addDay());
+            }
+        }
 
         return array_replace($lines, $dbLines);
     }

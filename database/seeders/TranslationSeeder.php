@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Language;
 use App\Models\Translation;
 use App\Models\TranslationKey;
+use App\Services\TranslationCache;
 use Database\Seeders\Data\TranslationCatalog;
 use Illuminate\Database\Seeder;
 
@@ -64,5 +65,9 @@ class TranslationSeeder extends Seeder
         }
 
         $this->command?->info("تم: {$keyCount} مفتاح، {$translationCount} ترجمة.");
+
+        TranslationCache::forgetAll();
+
+        $this->command?->info('تم مسح كاش الترجمات.');
     }
 }

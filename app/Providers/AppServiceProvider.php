@@ -12,13 +12,15 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->extend('translation.loader', function ($loader, $app) {
-            return new \App\Translation\DatabaseLoader($app['files'], $app['path.lang']);
-        });
+        //
     }
 
     public function boot(): void
     {
+        $this->app->extend('translation.loader', function ($loader, $app) {
+            return new \App\Translation\DatabaseLoader($app['files'], $app->langPath());
+        });
+
         Schema::defaultStringLength(191);
 
         \Illuminate\Pagination\Paginator::useBootstrapFive();
