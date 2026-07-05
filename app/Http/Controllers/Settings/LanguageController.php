@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Language;
+use App\Services\TranslationCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,7 +41,7 @@ class LanguageController extends Controller
 
         return redirect()
             ->route('settings.languages.index')
-            ->with('success', 'تم إضافة اللغة بنجاح.');
+            ->with('success', __('messages.language_added'));
     }
 
     public function update(Request $request, Language $language): RedirectResponse
@@ -58,15 +59,20 @@ class LanguageController extends Controller
             Language::where('id', '!=', $language->id)->update(['is_default' => false]);
         }
 
+        $oldCode = $language->code;
+
         $language->update([
             ...$validated,
             'is_active' => $request->boolean('is_active'),
             'is_default' => $request->boolean('is_default'),
         ]);
 
+        TranslationCache::forgetLocale($oldCode);
+        TranslationCache::forgetLocale($language->code);
+
         return redirect()
             ->route('settings.languages.index')
-            ->with('success', 'تم تحديث اللغة بنجاح.');
+            ->with('success', __('messages.language_updated'));
     }
 
     public function destroy(Language $language): RedirectResponse
@@ -74,13 +80,13 @@ class LanguageController extends Controller
         if ($language->is_default) {
             return redirect()
                 ->route('settings.languages.index')
-                ->with('error', 'لا يمكن حذف اللغة الافتراضية.');
+                ->with('error', __('messages.cannot_delete_default_language'));
         }
 
         $language->delete();
 
         return redirect()
             ->route('settings.languages.index')
-            ->with('success', 'تم حذف اللغة بنجاح.');
+            ->with('success', __('messages.language_deleted'));
     }
 }

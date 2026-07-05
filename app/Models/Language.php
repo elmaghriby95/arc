@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Language extends Model
 {
@@ -23,8 +24,20 @@ class Language extends Model
         ];
     }
 
+    public function translations(): HasMany
+    {
+        return $this->hasMany(Translation::class);
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function directionLabel(): string
     {
-        return $this->direction === 'rtl' ? 'من اليمين لليسار' : 'من اليسار لليمين';
+        return $this->direction === 'rtl'
+            ? __('common.direction_rtl_short')
+            : __('common.direction_ltr_short');
     }
 }

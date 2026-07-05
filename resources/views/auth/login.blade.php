@@ -1,7 +1,7 @@
 <x-login-layout>
     <div class="login-form-header">
-        <h2 class="login-form-title">مرحباً بعودتك</h2>
-        <p class="login-form-desc">سجّل دخولك للوصول إلى لوحة التحكم وإدارة الأرشيف</p>
+        <h2 class="login-form-title">{{ __('auth.welcome_back') }}</h2>
+        <p class="login-form-desc">{{ __('auth.login_desc') }}</p>
     </div>
 
     <x-auth-session-status :status="session('status')" />
@@ -18,7 +18,7 @@
         @csrf
 
         <div class="login-field">
-            <label for="email" class="login-label">{{ __('Email') }}</label>
+            <label for="email" class="login-label">{{ __('auth.email') }}</label>
             <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -41,7 +41,7 @@
         </div>
 
         <div class="login-field">
-            <label for="password" class="login-label">{{ __('Password') }}</label>
+            <label for="password" class="login-label">{{ __('auth.password') }}</label>
             <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -58,7 +58,7 @@
                     autocomplete="current-password"
                     data-password-input
                 >
-                <button type="button" class="login-password-toggle" data-password-toggle aria-label="إظهار كلمة المرور">
+                <button type="button" class="login-password-toggle" data-password-toggle aria-label="{{ __('auth.show_password') }}">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" data-icon-show>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -74,16 +74,16 @@
         <div class="login-options">
             <label class="login-remember">
                 <input id="remember_me" type="checkbox" name="remember">
-                <span>{{ __('Remember me') }}</span>
+                <span>{{ __('auth.remember_me') }}</span>
             </label>
 
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="login-forgot">{{ __('Forgot your password?') }}</a>
+                <a href="{{ route('password.request') }}" class="login-forgot">{{ __('auth.forgot_password') }}</a>
             @endif
         </div>
 
         <button type="submit" class="login-submit">
-            <span>{{ __('Log in') }}</span>
+            <span>{{ __('auth.login') }}</span>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
             </svg>
@@ -92,8 +92,8 @@
 
     @if (Route::has('register'))
         <p class="login-register">
-            ليس لديك حساب؟
-            <a href="{{ route('register') }}">{{ __('Register') }}</a>
+            {{ __('auth.no_account') }}
+            <a href="{{ route('register') }}">{{ __('auth.register') }}</a>
         </p>
     @endif
 </x-login-layout>

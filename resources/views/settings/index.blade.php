@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                <h2 class="page-title">الإعدادات</h2>
-                <p class="page-subtitle">إدارة المستخدمين والأدوار والهيكل التنظيمي وإعدادات الأرشيف</p>
+                <h2 class="page-title">{{ __('settings.title') }}</h2>
+                <p class="page-subtitle">{{ __('settings.subtitle') }}</p>
             </div>
         </div>
     </x-slot>
@@ -20,27 +20,27 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="settings-hero-title">مركز التحكم</h3>
-                    <p class="settings-hero-desc">اختر أحد الأقسام أدناه لإدارة إعدادات النظام والصلاحيات</p>
+                    <h3 class="settings-hero-title">{{ __('settings.hero_title') }}</h3>
+                    <p class="settings-hero-desc">{{ __('settings.hero_desc') }}</p>
                 </div>
             </div>
             <div class="settings-hero-stats">
                 <div class="settings-hero-stat">
                     <span class="settings-hero-stat-value">{{ $stats['users'] }}</span>
-                    <span class="settings-hero-stat-label">مستخدم</span>
+                    <span class="settings-hero-stat-label">{{ __('settings.users_count') }}</span>
                 </div>
                 <div class="settings-hero-stat">
                     <span class="settings-hero-stat-value">{{ $stats['departments'] }}</span>
-                    <span class="settings-hero-stat-label">قسم</span>
+                    <span class="settings-hero-stat-label">{{ __('settings.departments_count') }}</span>
                 </div>
                 <div class="settings-hero-stat">
                     <span class="settings-hero-stat-value">{{ $stats['roles'] }}</span>
-                    <span class="settings-hero-stat-label">دور</span>
+                    <span class="settings-hero-stat-label">{{ __('settings.roles_count') }}</span>
                 </div>
             </div>
         </div>
 
-        <h3 class="settings-section-title">إدارة النظام</h3>
+        <h3 class="settings-section-title">{{ __('settings.system_management') }}</h3>
 
         <div class="settings-modules">
             @permission('settings.users.view')
@@ -51,10 +51,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">إدارة المستخدمين</h3>
-                    <p class="settings-module-desc">عرض وإدارة حسابات المستخدمين، تعيين الأقسام، ومتابعة النشاط</p>
+                    <h3 class="settings-module-title">{{ __('settings.users_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.users_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['users'] }} مستخدم</span>
+                        <span class="settings-badge">{{ __('settings.users_badge', ['count' => $stats['users']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -73,8 +73,8 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">إدارة الأدوار</h3>
-                    <p class="settings-module-desc">إنشاء أدوار مخصصة وتحديد صلاحيات كل إجراء في النظام</p>
+                    <h3 class="settings-module-title">{{ __('settings.roles_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.roles_desc') }}</p>
                     <div class="settings-module-meta">
                         @foreach ($roleCounts as $role)
                             <span class="settings-badge settings-badge--muted" title="{{ $role->name }}">{{ $role->users_count }}</span>
@@ -97,10 +97,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">الهيكل التنظيمي</h3>
-                    <p class="settings-module-desc">شجرة مرنة للقطاعات والإدارات والأقسام مع تعيين المدراء</p>
+                    <h3 class="settings-module-title">{{ __('settings.org_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.org_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['departments'] }} وحدة تنظيمية</span>
+                        <span class="settings-badge">{{ __('settings.org_badge', ['count' => $stats['departments']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -112,7 +112,7 @@
             @endpermission
         </div>
 
-        <h3 class="settings-section-title">إعدادات الأرشيف</h3>
+        <h3 class="settings-section-title">{{ __('settings.archive_settings') }}</h3>
 
         <div class="settings-modules">
             @permission('settings.transaction-statuses.view')
@@ -123,10 +123,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">حالات المعاملات</h3>
-                    <p class="settings-module-desc">تسلسل سير عمل المعاملات وصلاحيات الانتقال بين الحالات</p>
+                    <h3 class="settings-module-title">{{ __('settings.txn_statuses_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.txn_statuses_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['transactionStatuses'] }} حالة نشطة</span>
+                        <span class="settings-badge">{{ __('settings.txn_statuses_badge', ['count' => $stats['transactionStatuses']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -145,10 +145,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">أنواع المستندات</h3>
-                    <p class="settings-module-desc">تصنيف أنواع الوثائق مثل الخطابات والعقود والتقارير</p>
+                    <h3 class="settings-module-title">{{ __('settings.doc_types_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.doc_types_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['documentTypes'] }} نوع نشط</span>
+                        <span class="settings-badge">{{ __('settings.doc_types_badge', ['count' => $stats['documentTypes']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -167,10 +167,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">أنواع المعاملات</h3>
-                    <p class="settings-module-desc">تصنيف المعاملات الواردة والصادرة والداخلية</p>
+                    <h3 class="settings-module-title">{{ __('settings.txn_types_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.txn_types_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['transactionTypes'] }} نوع نشط</span>
+                        <span class="settings-badge">{{ __('settings.txn_types_badge', ['count' => $stats['transactionTypes']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -189,10 +189,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">شجرة المجلدات</h3>
-                    <p class="settings-module-desc">هيكل المجلدات لتنظيم وتصنيف الوثائق المؤرشفة</p>
+                    <h3 class="settings-module-title">{{ __('settings.folders_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.folders_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['folders'] }} مجلد نشط</span>
+                        <span class="settings-badge">{{ __('settings.folders_badge', ['count' => $stats['folders']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -211,10 +211,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">اللغات</h3>
-                    <p class="settings-module-desc">إدارة لغات واجهة النظام واتجاه العرض RTL/LTR</p>
+                    <h3 class="settings-module-title">{{ __('settings.languages_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.languages_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">{{ $stats['languages'] }} لغة نشطة</span>
+                        <span class="settings-badge">{{ __('settings.languages_badge', ['count' => $stats['languages']]) }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -233,10 +233,10 @@
                     </svg>
                 </div>
                 <div class="settings-module-body">
-                    <h3 class="settings-module-title">إعدادات الرقم الإشاري</h3>
-                    <p class="settings-module-desc">قواعد الأرقام الإشارية، الرقم التشغيلي، منع التكرار، والتدقيق</p>
+                    <h3 class="settings-module-title">{{ __('settings.ref_numbers_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.ref_numbers_desc') }}</p>
                     <div class="settings-module-meta">
-                        <span class="settings-badge">تكوين النظام</span>
+                        <span class="settings-badge">{{ __('settings.ref_numbers_badge') }}</span>
                     </div>
                 </div>
                 <span class="settings-module-arrow">
@@ -251,18 +251,18 @@
         @if ($recentUsers->isNotEmpty())
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">آخر المستخدمين المسجّلين</h3>
-                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">عرض الكل</a>
+                    <h3 class="card-title">{{ __('settings.recent_users') }}</h3>
+                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.view_all') }}</a>
                 </div>
                 <div class="card-body">
                     <div class="table-wrapper">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>الاسم</th>
-                                    <th>البريد الإلكتروني</th>
-                                    <th>الدور</th>
-                                    <th>القسم</th>
+                                    <th>{{ __('common.name') }}</th>
+                                    <th>{{ __('common.email') }}</th>
+                                    <th>{{ __('common.role') }}</th>
+                                    <th>{{ __('common.department') }}</th>
                                 </tr>
                             </thead>
                             <tbody>

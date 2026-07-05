@@ -6,6 +6,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\TransactionAttachmentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Settings\DocumentTypeController;
@@ -17,8 +18,12 @@ use App\Http\Controllers\Settings\RoleManagementController;
 use App\Http\Controllers\Settings\SettingsController;
 use App\Http\Controllers\Settings\TransactionStatusController;
 use App\Http\Controllers\Settings\TransactionTypeController;
+use App\Http\Controllers\Settings\TranslationController;
 use App\Http\Controllers\Settings\UserManagementController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('locale/{language}', [\App\Http\Controllers\LocaleController::class, 'switch'])
+    ->name('locale.switch');
 
 Route::get('/', function () {
     return auth()->check()
@@ -36,6 +41,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)
         ->middleware('permission:dashboard.view')
         ->name('dashboard');
+
+    Route::prefix('reports')->name('reports.')->middleware('permission:reports.view')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/{type}', [ReportController::class, 'show'])->name('show');
+        Route::get('/{type}/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/{type}/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+    });
 
     Route::get('documents/{attachment}/download', [DocumentController::class, 'download'])
         ->middleware('permission:documents.download')
@@ -266,6 +278,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('permission:settings.languages.delete')
             ->name('languages.destroy');
 
+        Route::middleware('permission:settings.languages.view')->group(function () {
+            Route::get('/languages/{language}/translations', [TranslationController::class, 'index'])
+                ->name('languages.translations');
+        });
+
+        Route::middleware('permission:settings.languages.edit')->group(function () {
+            Route::post('/languages/{language}/translations', [TranslationController::class, 'update'])
+                ->name('languages.translations.update');
+            Route::post('/languages/{language}/translations/keys', [TranslationController::class, 'storeKey'])
+                ->name('languages.translations.keys.store');
+            Route::delete('/languages/{language}/translations/keys/{translationKey}', [TranslationController::class, 'destroyKey'])
+                ->name('languages.translations.keys.destroy');
+        });
+
         Route::middleware('permission:settings.reference-numbers.view')->group(function () {
             Route::get('/reference-numbers', [ReferenceNumberSettingsController::class, 'index'])->name('reference-numbers.index');
         });
@@ -285,6 +311,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('permission:profile.edit')
         ->name('profile.update');
+
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])
+        ->middleware('permission:profile.edit')
+        ->name('profile.avatar.update');
+
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])
+        ->middleware('permission:profile.edit')
+        ->name('profile.avatar.destroy');
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->middleware('permission:profile.delete')

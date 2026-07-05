@@ -12,7 +12,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->extend('translation.loader', function ($loader, $app) {
+            return new \App\Translation\DatabaseLoader($app['files'], $app['path.lang']);
+        });
     }
 
     public function boot(): void
@@ -22,6 +24,14 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Pagination\Paginator::useBootstrapFive();
 
         TransactionStatusHistory::observe(TransactionStatusHistoryObserver::class);
+
+        View::composer(['layouts.partials.navbar', 'layouts.login', 'layouts.guest', 'auth.login'], function ($view) {
+            $view->with('navbarLanguages', \App\Models\Language::query()
+                ->where('is_active', true)
+                ->orderByDesc('is_default')
+                ->orderBy('name')
+                ->get());
+        });
 
         View::composer('layouts.partials.navbar', function ($view) {
             $user = auth()->user();
@@ -34,6 +44,14 @@ class AppServiceProvider extends ServiceProvider
                 'navbarNotifications' => $user->notifications()->limit(15)->get(),
                 'navbarUnreadCount' => $user->unreadNotifications()->count(),
             ]);
+        });
+
+        View::composer('*', function ($view) {
+            if (! isset($view->getData()['activeLanguage'])) {
+                $view->with('activeLanguage', \App\Models\Language::query()
+                    ->where('code', app()->getLocale())
+                    ->first());
+            }
         });
 
         \Illuminate\Support\Facades\Blade::if('permission', function (string ...$permissions) {

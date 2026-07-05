@@ -1,7 +1,7 @@
 <section>
-    <header style="margin-bottom:1rem;">
-        <h2 class="card-title">{{ __('Profile Information') }}</h2>
-        <p class="text-muted">{{ __("Update your account's profile information and email address.") }}</p>
+    <header class="profile-form-header">
+        <h2 class="card-title">{{ __('profile.info_title') }}</h2>
+        <p class="text-muted">{{ __('profile.info_desc') }}</p>
     </header>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
@@ -12,33 +12,43 @@
         @csrf
         @method('patch')
 
-        <div class="form-group">
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" />
+        <div class="form-grid form-grid-2">
+            <div class="form-group">
+                <x-input-label for="name" :value="__('profile.name')" />
+                <x-text-input id="name" name="name" type="text" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+                <x-input-error :messages="$errors->get('name')" />
+            </div>
+
+            <div class="form-group">
+                <x-input-label for="email" :value="__('profile.email')" />
+                <x-text-input id="email" name="email" type="email" :value="old('email', $user->email)" required autocomplete="username" />
+                <x-input-error :messages="$errors->get('email')" />
+            </div>
         </div>
 
-        <div class="form-group">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" />
-
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
+        @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
+            <div class="profile-verify-notice">
                 <p class="text-muted">
-                    {{ __('Your email address is unverified.') }}
-                    <button form="send-verification" class="btn btn-link">{{ __('Click here to re-send the verification email.') }}</button>
+                    {{ __('profile.email_unverified_notice') }}
+                    <button form="send-verification" class="btn btn-link">{{ __('profile.resend_verification') }}</button>
                 </p>
 
                 @if (session('status') === 'verification-link-sent')
-                    <p class="text-success">{{ __('A new verification link has been sent to your email address.') }}</p>
+                    <p class="text-success">{{ __('profile.verification_sent') }}</p>
                 @endif
-            @endif
-        </div>
+            </div>
+        @endif
 
         <div class="form-actions">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+            @permission('profile.edit')
+                <x-primary-button>{{ __('profile.save') }}</x-primary-button>
+            @endpermission
             @if (session('status') === 'profile-updated')
-                <span class="text-muted">{{ __('Saved.') }}</span>
+                <span class="text-success profile-save-notice">{{ __('profile.saved') }}</span>
+            @elseif (session('status') === 'avatar-updated')
+                <span class="text-success profile-save-notice">{{ __('profile.avatar_saved') }}</span>
+            @elseif (session('status') === 'avatar-removed')
+                <span class="text-success profile-save-notice">{{ __('profile.avatar_removed') }}</span>
             @endif
         </div>
     </form>

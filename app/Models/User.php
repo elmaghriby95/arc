@@ -10,8 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'department_id'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'department_id', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -24,8 +25,38 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'created_by');
+    }
+
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->avatar_path);
+    }
+
+    public function avatarInitial(): string
+    {
+        return mb_substr($this->name, 0, 1);
+    }
+
+    public function roleSlug(): string
+    {
+        return $this->role?->slug ?? 'user';
     }
 
     public function role(): BelongsTo
@@ -36,6 +67,11 @@ class User extends Authenticatable
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function language(): BelongsTo
+    {
+        return $this->belongsTo(Language::class);
     }
 
     public function documents(): HasMany
@@ -52,6 +88,7 @@ class User extends Authenticatable
     {
         $routes = [
             'dashboard.view' => 'dashboard',
+            'reports.view' => 'reports.index',
             'transactions.view' => 'transactions.index',
             'documents.view' => 'documents.index',
             'departments.view' => 'departments.index',
@@ -66,7 +103,7 @@ class User extends Authenticatable
             }
         }
 
-        abort(403, 'لا تملك صلاحية الوصول إلى أي صفحة في النظام. تواصل مع مدير النظام.');
+        abort(403, __('messages.no_access'));
     }
 
     public function isAdmin(): bool

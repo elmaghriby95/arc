@@ -12,7 +12,7 @@
                 </span>
                 <span class="navbar-brand-copy">
                     <span class="navbar-brand-text">{{ config('app.name') }}</span>
-                    <span class="navbar-brand-tagline">إدارة الوثائق والأرشفة</span>
+                    <span class="navbar-brand-tagline">{{ __('nav.tagline') }}</span>
                 </span>
             </a>
 
@@ -21,14 +21,14 @@
                     <span class="navbar-link-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
                     </span>
-                    <span class="navbar-link-text">{{ __('Dashboard') }}</span>
+                    <span class="navbar-link-text">{{ __('nav.dashboard') }}</span>
                 </a>
                 @permission('documents.view')
                     <a href="{{ route('documents.index') }}" class="navbar-link {{ request()->routeIs('documents.*') ? 'is-active' : '' }}">
                         <span class="navbar-link-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
                         </span>
-                        <span class="navbar-link-text">الوثائق</span>
+                        <span class="navbar-link-text">{{ __('nav.documents') }}</span>
                     </a>
                 @endpermission
                 @permission('transactions.view')
@@ -36,7 +36,15 @@
                         <span class="navbar-link-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
                         </span>
-                        <span class="navbar-link-text">إدارة الأرشفة</span>
+                        <span class="navbar-link-text">{{ __('nav.transactions') }}</span>
+                    </a>
+                @endpermission
+                @permission('reports.view')
+                    <a href="{{ route('reports.index') }}" class="navbar-link {{ request()->routeIs('reports.*') ? 'is-active' : '' }}">
+                        <span class="navbar-link-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+                        </span>
+                        <span class="navbar-link-text">التقارير</span>
                     </a>
                 @endpermission
                 @permission('departments.view')
@@ -44,7 +52,7 @@
                         <span class="navbar-link-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
                         </span>
-                        <span class="navbar-link-text">الأقسام</span>
+                        <span class="navbar-link-text">{{ __('nav.departments') }}</span>
                     </a>
                 @endpermission
                 @permission('categories.view')
@@ -52,7 +60,7 @@
                         <span class="navbar-link-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 0 1 0 2.828l-7 7a2 2 0 0 1-2.828 0l-7-7A2 2 0 0 1 3 12V7a4 4 0 0 1 4-4z"/></svg>
                         </span>
-                        <span class="navbar-link-text">التصنيفات</span>
+                        <span class="navbar-link-text">{{ __('nav.categories') }}</span>
                     </a>
                 @endpermission
                 @permission('settings.view')
@@ -60,15 +68,37 @@
                         <span class="navbar-link-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
                         </span>
-                        <span class="navbar-link-text">الإعدادات</span>
+                        <span class="navbar-link-text">{{ __('nav.settings') }}</span>
                     </a>
                 @endpermission
             </div>
         </div>
 
         <div class="navbar-end">
+            @if (($navbarLanguages ?? collect())->isNotEmpty())
+            <div class="dropdown navbar-language" data-dropdown>
+                <button type="button" class="navbar-language-btn" data-dropdown-toggle aria-haspopup="true" aria-expanded="false" aria-label="{{ __('nav.language') }}">
+                    <span class="navbar-language-code">{{ strtoupper($activeLanguage->code ?? app()->getLocale()) }}</span>
+                    <span class="navbar-user-chevron" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                    </span>
+                </button>
+                <div class="dropdown-menu navbar-dropdown navbar-language-menu">
+                    @foreach ($navbarLanguages as $lang)
+                        <form method="POST" action="{{ route('locale.switch', $lang) }}">
+                            @csrf
+                            <button type="submit" class="dropdown-item navbar-dropdown-item {{ ($activeLanguage->id ?? null) === $lang->id ? 'is-active' : '' }}">
+                                <span class="navbar-language-option-code">{{ strtoupper($lang->code) }}</span>
+                                <span>{{ $lang->native_name }}</span>
+                            </button>
+                        </form>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <div class="dropdown navbar-notifications" data-dropdown>
-                <button type="button" class="navbar-notifications-btn {{ ($navbarUnreadCount ?? 0) > 0 ? 'has-unread' : '' }}" data-dropdown-toggle aria-haspopup="true" aria-expanded="false" aria-label="الإشعارات{{ ($navbarUnreadCount ?? 0) > 0 ? ' — '.$navbarUnreadCount.' غير مقروء' : '' }}">
+                <button type="button" class="navbar-notifications-btn {{ ($navbarUnreadCount ?? 0) > 0 ? 'has-unread' : '' }}" data-dropdown-toggle aria-haspopup="true" aria-expanded="false" aria-label="{{ __('nav.notifications') }}{{ ($navbarUnreadCount ?? 0) > 0 ? ' — '.__('nav.unread_count', ['count' => $navbarUnreadCount]) : '' }}">
                     <span class="navbar-notifications-btn-inner" aria-hidden="true">
                         <svg class="navbar-notifications-bell" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                             <path d="M9.001 19h6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
@@ -90,11 +120,11 @@
                                 </svg>
                             </span>
                             <div class="navbar-notifications-header-copy">
-                                <strong>الإشعارات</strong>
+                                <strong>{{ __('nav.notifications') }}</strong>
                                 @if (($navbarUnreadCount ?? 0) > 0)
-                                    <span class="navbar-notifications-header-sub">{{ $navbarUnreadCount }} غير مقروء</span>
+                                    <span class="navbar-notifications-header-sub">{{ __('nav.unread_count', ['count' => $navbarUnreadCount]) }}</span>
                                 @else
-                                    <span class="navbar-notifications-header-sub">لا إشعارات جديدة</span>
+                                    <span class="navbar-notifications-header-sub">{{ __('nav.no_new_notifications') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -105,7 +135,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
-                                    <span>تعليم الكل</span>
+                                    <span>{{ __('nav.mark_all_read') }}</span>
                                 </button>
                             </form>
                         @endif
@@ -188,15 +218,15 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
                                     </svg>
                                 </span>
-                                <strong>لا توجد إشعارات</strong>
-                                <p>ستظهر هنا تحديثات حالة المعاملات والأرشفة فور حدوثها.</p>
+                                <strong>{{ __('nav.no_notifications') }}</strong>
+                                <p>{{ __('nav.notifications_empty_hint') }}</p>
                             </div>
                         @endforelse
                     </div>
 
                     @if (($navbarNotifications ?? collect())->isNotEmpty())
                         <div class="navbar-notifications-footer">
-                            <span>آخر {{ ($navbarNotifications ?? collect())->count() }} إشعار</span>
+                            <span>{{ __('nav.last_notifications', ['count' => ($navbarNotifications ?? collect())->count()]) }}</span>
                         </div>
                     @endif
                 </div>
@@ -204,7 +234,7 @@
 
             <div class="dropdown navbar-user" data-dropdown>
                 <button type="button" class="navbar-user-btn" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
-                    <span class="navbar-user-avatar">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
+                    <x-user-avatar :user="Auth::user()" size="sm" class="navbar-user-avatar" />
                     <span class="navbar-user-meta">
                         <span class="navbar-user-name">{{ Auth::user()->name }}</span>
                         <span class="navbar-user-role">{{ Auth::user()->role?->name ?? '—' }}</span>
@@ -215,7 +245,7 @@
                 </button>
                 <div class="dropdown-menu navbar-dropdown">
                     <div class="navbar-dropdown-header">
-                        <span class="navbar-dropdown-avatar">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
+                        <x-user-avatar :user="Auth::user()" size="sm" class="navbar-dropdown-avatar" />
                         <div>
                             <strong>{{ Auth::user()->name }}</strong>
                             <small>{{ Auth::user()->role?->name ?? '—' }}</small>
@@ -224,19 +254,19 @@
                     <div class="navbar-dropdown-divider"></div>
                     <a href="{{ route('profile.edit') }}" class="dropdown-item navbar-dropdown-item">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z"/></svg>
-                        {{ __('Profile') }}
+                        {{ __('nav.profile') }}
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item navbar-dropdown-item navbar-dropdown-item--danger">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1"/></svg>
-                            {{ __('Log Out') }}
+                            {{ __('nav.logout') }}
                         </button>
                     </form>
                 </div>
             </div>
 
-            <button type="button" class="navbar-toggle" data-navbar-toggle aria-label="القائمة" aria-expanded="false">
+            <button type="button" class="navbar-toggle" data-navbar-toggle aria-label="{{ __('nav.menu') }}" aria-expanded="false">
                 <span class="navbar-toggle-bar"></span>
                 <span class="navbar-toggle-bar"></span>
                 <span class="navbar-toggle-bar"></span>

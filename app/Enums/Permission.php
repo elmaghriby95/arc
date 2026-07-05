@@ -7,6 +7,9 @@ enum Permission: string
     // القائمة الرئيسية
     case DashboardView = 'dashboard.view';
 
+    // التقارير
+    case ReportsView = 'reports.view';
+
     // الوثائق
     case DocumentsView = 'documents.view';
     case DocumentsCreate = 'documents.create';
@@ -97,8 +100,17 @@ enum Permission: string
 
     public function label(): string
     {
+        $key = 'permissions.'.str_replace('.', '_', $this->value);
+        $translated = __($key);
+
+        if ($translated !== $key) {
+            return $translated;
+        }
+
         return match ($this) {
             self::DashboardView => 'عرض لوحة التحكم',
+
+            self::ReportsView => 'عرض التقارير',
 
             self::DocumentsView => 'عرض الوثائق (مستندات المعاملات)',
             self::DocumentsCreate => 'إضافة وثيقة',
@@ -178,6 +190,8 @@ enum Permission: string
     {
         return match ($this) {
             self::DashboardView => 'القائمة الرئيسية',
+
+            self::ReportsView => 'التقارير',
 
             self::DocumentsView,
             self::DocumentsCreate,
