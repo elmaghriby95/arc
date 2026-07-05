@@ -24,12 +24,12 @@ class TransactionReviewLogController extends Controller
         return view('transactions.review-log', [
             'entries' => $entries,
             'orgUnits' => $this->scopedOrgUnitOptions($user),
-            'reviewers' => $this->scopedReviewers($user),
+            'reviewers' => $this->scopedReviewers($user, $reviewLog),
             'actions' => [
-                WorkflowAction::Submit,
                 WorkflowAction::Approve,
                 WorkflowAction::Reject,
             ],
+            'showsTeamLog' => ! $reviewLog->showsPersonalLogOnly($user),
         ]);
     }
 
@@ -51,28 +51,12 @@ class TransactionReviewLogController extends Controller
     }
 
     /** @return \Illuminate\Support\Collection<int, User> */
-    private function scopedReviewers(User $user)
+    private function scopedReviewers(User $user, TransactionReviewLogService $reviewLog)
     {
         $historyQuery = TransactionStatusHistory::query()
-            ->whereIn('action', [
-                WorkflowAction::Submit->value,
-                WorkflowAction::Approve->value,
-                WorkflowAction::Reject->value,
-            ]);
+            ->whereIn('action', $reviewLog->reviewActions());
 
-        if (! $user->hasPermission('transactions.view-all')) {
-            $departmentIds = $user->transactionOrgScopeDepartmentIds();
-
-            if ($departmentIds === []) {
-                return collect();
-            }
-
-            $historyQuery->whereHas('transaction', function ($query) use ($departmentIds) {
-                if ($departmentIds !== null) {
-                    $query->whereIn('department_id', $departmentIds);
-                }
-            });
-        }
+        $reviewLog->applyScope($historyQuery, $user);
 
         $reviewerIds = $historyQuery
             ->distinct()

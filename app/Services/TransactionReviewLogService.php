@@ -12,10 +12,50 @@ class TransactionReviewLogService
 {
     /** @var list<string> */
     private const REVIEW_ACTIONS = [
-        WorkflowAction::Submit->value,
         WorkflowAction::Approve->value,
         WorkflowAction::Reject->value,
     ];
+
+    public function canViewTeamLog(User $user): bool
+    {
+        return $user->hasPermission('transactions.view-all');
+    }
+
+    /** @param Builder<TransactionStatusHistory> $query */
+    public function applyScope(Builder $query, User $user): void
+    {
+        if ($this->canViewTeamLog($user)) {
+            return;
+        }
+
+        if ($this->showsPersonalLogOnly($user)) {
+            $query->where('changed_by', $user->id);
+
+            return;
+        }
+
+        $departmentIds = $user->transactionOrgScopeDepartmentIds();
+
+        $query->where(function (Builder $outer) use ($user, $departmentIds) {
+            $outer->where('changed_by', $user->id);
+
+            if ($departmentIds !== null && $departmentIds !== []) {
+                $outer->orWhereHas(
+                    'transaction',
+                    fn (Builder $transactionQuery) => $transactionQuery->whereIn('department_id', $departmentIds)
+                );
+            }
+        });
+    }
+
+    public function showsPersonalLogOnly(User $user): bool
+    {
+        if ($this->canViewTeamLog($user)) {
+            return false;
+        }
+
+        return ! $user->hasPermission('transactions.status.approve');
+    }
 
     /** @param Builder<TransactionStatusHistory> $query */
     public function applyFilters(Builder $query, Request $request, User $user): void
@@ -64,7 +104,13 @@ class TransactionReviewLogService
     public function baseQuery(User $user): Builder
     {
         $query = TransactionStatusHistory::query()
-            ->whereIn('action', self::REVIEW_ACTIONS)
+            ->where(function (Builder $builder) {
+                $builder->whereIn('action', self::REVIEW_ACTIONS)
+                    ->orWhere(function (Builder $legacy) {
+                        $legacy->whereNull('action')
+                            ->whereHas('fromStatus', fn (Builder $status) => $status->where('code', 'REVIEW'));
+                    });
+            })
             ->with([
                 'transaction.department',
                 'transaction.transactionType',
@@ -75,16 +121,14 @@ class TransactionReviewLogService
             ])
             ->orderByDesc('created_at');
 
-        if (! $user->hasPermission('transactions.view-all')) {
-            $departmentIds = $user->transactionOrgScopeDepartmentIds();
-
-            $query->whereHas('transaction', function (Builder $transactionQuery) use ($departmentIds) {
-                if ($departmentIds !== null) {
-                    $transactionQuery->whereIn('department_id', $departmentIds);
-                }
-            });
-        }
+        $this->applyScope($query, $user);
 
         return $query;
+    }
+
+    /** @return list<string> */
+    public function reviewActions(): array
+    {
+        return self::REVIEW_ACTIONS;
     }
 }

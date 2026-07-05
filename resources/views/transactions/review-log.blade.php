@@ -3,7 +3,7 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">{{ __('transactions.review_log_title') }}</h1>
-                <p class="page-subtitle">{{ __('transactions.review_log_subtitle') }}</p>
+                <p class="page-subtitle">{{ $showsTeamLog ? __('transactions.review_log_subtitle') : __('transactions.review_log_subtitle_personal') }}</p>
             </div>
             @permission('transactions.view')
                 <a href="{{ route('transactions.index') }}" class="btn btn-secondary btn-lg">
@@ -26,6 +26,7 @@
                     <x-input-label for="search" :value="__('common.search')" />
                     <x-text-input id="search" name="search" type="text" :value="request('search')" :placeholder="__('transactions.search_placeholder')" />
                 </div>
+                @if ($showsTeamLog)
                 <div class="form-group">
                     <x-input-label for="department_id" :value="__('common.org_unit')" />
                     @include('settings.partials.org-unit-select', [
@@ -44,6 +45,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
                 <div class="form-group">
                     <x-input-label for="action" :value="__('transactions.action')" />
                     <select id="action" name="action" class="form-select">
