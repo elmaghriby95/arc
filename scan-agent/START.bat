@@ -11,6 +11,9 @@ if errorlevel 1 (
     goto :done
 )
 
+echo ARC Scan Agent v2 - no PHP required
+echo.
+
 call "%~dp0run-agent.bat"
 
 :done

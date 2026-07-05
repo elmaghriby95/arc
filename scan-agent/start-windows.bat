@@ -1,2 +1,5 @@
 @echo off
-call "%~dp0run-agent.bat"
+echo.
+echo This file is outdated. Use START.bat instead.
+echo.
+start "" "%~dp0START.bat"
