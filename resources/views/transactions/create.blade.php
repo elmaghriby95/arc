@@ -60,26 +60,6 @@
                     </div>
                 @endif
 
-                @php
-                    $txnCreateI18n = [
-                        'select_folder_required' => __('transactions.js.select_folder_required'),
-                        'no_folder_selected' => __('transactions.js.no_folder_selected'),
-                        'unsupported_file_type' => __('transactions.js.unsupported_file_type'),
-                        'files_rejected' => __('transactions.js.files_rejected'),
-                        'folder_unit_mismatch' => __('transactions.js.folder_unit_mismatch'),
-                        'field_year' => __('transactions.js.field_year'),
-                        'field_month' => __('transactions.js.field_month'),
-                        'field_month_required' => __('transactions.js.field_month_required'),
-                        'field_original' => __('transactions.js.field_original'),
-                        'field_original_required' => __('transactions.js.field_original_required'),
-                        'field_operational' => __('transactions.js.field_operational'),
-                        'field_title' => __('transactions.js.field_title'),
-                        'field_reference_number' => __('transactions.js.field_reference_number'),
-                        'field_reference_placeholder' => __('transactions.js.field_reference_placeholder'),
-                        'delete' => __('transactions.js.delete'),
-                    ];
-                @endphp
-
                 <form method="POST"
                       action="{{ route('transactions.store') }}"
                       enctype="multipart/form-data"

@@ -74,6 +74,7 @@ class TransactionController extends Controller
             'defaultDepartmentId' => $user->department_id,
             'referenceSettings' => ReferenceNumberSetting::instance(),
             'referenceFormConfig' => $referenceNumbers->formConfig($user),
+            'txnCreateI18n' => $this->transactionCreateJsI18n(),
         ]);
     }
 
@@ -219,6 +220,7 @@ class TransactionController extends Controller
             'workflow' => TransactionStatus::workflowSequence(),
             'workflowActions' => $workflow->availableActions($transaction, $user),
             'canManageAttachments' => $user->hasPermission('transactions.edit') && $transaction->canBeEdited(),
+            'txnAttachmentsI18n' => $this->transactionAttachmentsJsI18n(),
         ]);
     }
 
@@ -404,5 +406,37 @@ class TransactionController extends Controller
         if (! auth()->user()?->canAccessTransaction($transaction)) {
             abort(403, __('messages.transaction.access_denied'));
         }
+    }
+
+    /** @return array<string, string> */
+    private function transactionCreateJsI18n(): array
+    {
+        return [
+            'select_folder_required' => __('transactions.js.select_folder_required'),
+            'no_folder_selected' => __('transactions.js.no_folder_selected'),
+            'unsupported_file_type' => __('transactions.js.unsupported_file_type'),
+            'files_rejected' => __('transactions.js.files_rejected'),
+            'folder_unit_mismatch' => __('transactions.js.folder_unit_mismatch'),
+            'field_year' => __('transactions.js.field_year'),
+            'field_month' => __('transactions.js.field_month'),
+            'field_month_required' => __('transactions.js.field_month_required'),
+            'field_original' => __('transactions.js.field_original'),
+            'field_original_required' => __('transactions.js.field_original_required'),
+            'field_operational' => __('transactions.js.field_operational'),
+            'field_title' => __('transactions.js.field_title'),
+            'field_reference_number' => __('transactions.js.field_reference_number'),
+            'field_reference_placeholder' => __('transactions.js.field_reference_placeholder'),
+            'delete' => __('transactions.js.delete'),
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function transactionAttachmentsJsI18n(): array
+    {
+        return [
+            'remove' => __('transactions.js.remove'),
+            'unsupported_file_type' => __('transactions.js.unsupported_file_type'),
+            'files_rejected' => __('transactions.js.files_rejected'),
+        ];
     }
 }

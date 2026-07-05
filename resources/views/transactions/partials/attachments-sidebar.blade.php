@@ -14,13 +14,6 @@
         @endpermission
 
         @if ($canManageAttachments)
-            @php
-                $txnAttachmentsI18n = [
-                    'remove' => __('transactions.js.remove'),
-                    'unsupported_file_type' => __('transactions.js.unsupported_file_type'),
-                    'files_rejected' => __('transactions.js.files_rejected'),
-                ];
-            @endphp
             <form method="POST"
                   action="{{ route('transactions.attachments.upload', $transaction) }}"
                   enctype="multipart/form-data"
