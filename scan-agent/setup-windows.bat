@@ -22,6 +22,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 
 if errorlevel 1 (
     echo [ERROR] Download failed. Check internet connection.
+    echo Log: %~dp0setup.log
     pause
     exit /b 1
 )
