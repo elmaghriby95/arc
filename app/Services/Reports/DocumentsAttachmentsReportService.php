@@ -62,7 +62,7 @@ class DocumentsAttachmentsReportService
             ->values();
 
         $byMime = $attachments
-            ->groupBy(fn ($a) => $a->effectiveMimeType() ?? 'غير محدد')
+            ->groupBy(fn ($a) => $a->effectiveMimeType() ?? __('reports.file_kind.unknown'))
             ->map(fn ($group, $mime) => [
                 'mime' => $mime,
                 'count' => $group->count(),
@@ -103,8 +103,8 @@ class DocumentsAttachmentsReportService
             'pdf' => 'PDF',
             'word' => 'Word',
             'excel' => 'Excel',
-            'image' => 'صورة',
-            default => 'ملف آخر',
+            'image' => __('reports.file_kind.image'),
+            default => __('reports.file_kind.other'),
         };
     }
 

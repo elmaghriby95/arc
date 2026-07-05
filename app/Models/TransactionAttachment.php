@@ -59,7 +59,7 @@ class TransactionAttachment extends Model
             ?: $this->original_name
             ?: $this->file_name
             ?: $this->document?->title
-            ?: 'مرفق';
+            ?: __('documents.attachment_fallback');
     }
 
     public function effectiveMimeType(): ?string

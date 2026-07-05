@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Permission;
+use App\Enums\ReportType;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -16,7 +17,10 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'مدير النظام',
                 'description' => 'صلاحيات كاملة على جميع أجزاء النظام',
-                'permissions' => Permission::values(),
+                'permissions' => array_values(array_unique(array_merge(
+                    Permission::values(),
+                    ReportType::permissionValues(),
+                ))),
                 'is_system' => true,
             ]
         );

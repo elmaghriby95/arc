@@ -27,6 +27,11 @@ class ReportWorkbookExport implements WithMultipleSheets
             ReportType::DepartmentProductivity => self::productivity($data),
             ReportType::DocumentsAttachments => self::documents($data),
             ReportType::StatusHistory => self::history($data),
+            ReportType::CompletionTime => self::completionTime($data),
+            ReportType::UserActivity => self::userActivity($data),
+            ReportType::ReferenceNumbers => self::referenceNumbers($data),
+            ReportType::FolderDistribution => self::folderDistribution($data),
+            ReportType::ConfidentialDocuments => self::confidentialDocuments($data),
         };
     }
 
@@ -50,8 +55,20 @@ class ReportWorkbookExport implements WithMultipleSheets
         ])->all();
 
         return new self([
-            new ReportSheetExport('ملخص الحالات', ['الحالة', 'الرمز', 'العدد'], $summaryRows),
-            new ReportSheetExport('التفاصيل', ['الرقم المرجعي', 'العنوان', 'القسم', 'النوع', 'الحالة', 'المنشئ', 'التاريخ'], $detailRows),
+            new ReportSheetExport(__('reports.export.sheet.status_summary'), [
+                __('common.status'),
+                __('reports.export.col.code'),
+                __('reports.count'),
+            ], $summaryRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('common.reference_number'),
+                __('common.title'),
+                __('common.department'),
+                __('common.transaction_type'),
+                __('common.status'),
+                __('reports.export.col.creator'),
+                __('common.date'),
+            ], $detailRows),
         ]);
     }
 
@@ -76,8 +93,21 @@ class ReportWorkbookExport implements WithMultipleSheets
         ])->all();
 
         return new self([
-            new ReportSheetExport('حسب القسم', ['القسم', 'العدد', 'متوسط الأيام'], $deptRows),
-            new ReportSheetExport('التفاصيل', ['الرقم المرجعي', 'العنوان', 'القسم', 'النوع', 'الحالة', 'أيام التوقف', 'المنشئ', 'آخر نشاط'], $detailRows),
+            new ReportSheetExport(__('reports.export.sheet.by_department'), [
+                __('common.department'),
+                __('reports.count'),
+                __('reports.avg_days'),
+            ], $deptRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('common.reference_number'),
+                __('common.title'),
+                __('common.department'),
+                __('common.transaction_type'),
+                __('common.status'),
+                __('reports.export.col.stale_days'),
+                __('reports.export.col.creator'),
+                __('reports.last_activity'),
+            ], $detailRows),
         ]);
     }
 
@@ -95,7 +125,15 @@ class ReportWorkbookExport implements WithMultipleSheets
         ])->all();
 
         return new self([
-            new ReportSheetExport('إنتاجية الأقسام', ['القسم', 'منشأة', 'مسودة', 'قيد الإجراء', 'مؤرشفة', 'مكتملة بالفترة', 'نسبة الإنجاز'], $rows),
+            new ReportSheetExport(__('reports.export.sheet.productivity'), [
+                __('common.department'),
+                __('reports.created'),
+                __('reports.draft'),
+                __('reports.in_progress'),
+                __('reports.archived'),
+                __('reports.completed_in_period'),
+                __('reports.completion_rate'),
+            ], $rows),
         ]);
     }
 
@@ -121,8 +159,22 @@ class ReportWorkbookExport implements WithMultipleSheets
         ])->all();
 
         return new self([
-            new ReportSheetExport('حسب النوع', ['نوع الملف', 'العدد', 'الحجم'], $kindRows),
-            new ReportSheetExport('التفاصيل', ['العنوان', 'المعاملة', 'القسم', 'نوع المعاملة', 'نوع الملف', 'MIME', 'الحجم', 'الرافع', 'التاريخ'], $detailRows),
+            new ReportSheetExport(__('reports.export.sheet.by_kind'), [
+                __('reports.export.col.file_kind'),
+                __('reports.count'),
+                __('reports.size'),
+            ], $kindRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('common.title'),
+                __('dashboard.transaction'),
+                __('common.department'),
+                __('common.transaction_type'),
+                __('reports.export.col.file_kind'),
+                __('reports.export.col.mime'),
+                __('reports.size'),
+                __('reports.uploader'),
+                __('common.date'),
+            ], $detailRows),
         ]);
     }
 
@@ -147,8 +199,156 @@ class ReportWorkbookExport implements WithMultipleSheets
         ])->all();
 
         return new self([
-            new ReportSheetExport('حسب الإجراء', ['الإجراء', 'العدد'], $actionRows),
-            new ReportSheetExport('التفاصيل', ['التاريخ', 'الرقم المرجعي', 'العنوان', 'القسم', 'من حالة', 'إلى حالة', 'الإجراء', 'بواسطة', 'ملاحظات'], $detailRows),
+            new ReportSheetExport(__('reports.export.sheet.by_action'), [
+                __('reports.export.col.action'),
+                __('reports.count'),
+            ], $actionRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('common.date'),
+                __('common.reference_number'),
+                __('common.title'),
+                __('common.department'),
+                __('reports.export.col.from_status'),
+                __('reports.export.col.to_status'),
+                __('reports.export.col.action'),
+                __('reports.export.col.changed_by'),
+                __('reports.export.col.notes'),
+            ], $detailRows),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function completionTime(array $data): self
+    {
+        $deptRows = collect($data['by_department'])->map(fn ($row) => [
+            $row['department'], $row['count'], $row['avg_days'],
+        ])->all();
+
+        $detailRows = collect($data['details'])->map(fn ($row) => [
+            $row['reference_number'], $row['title'], $row['department'], $row['type'],
+            $row['total_days'], $row['created_at'], $row['archived_at'],
+        ])->all();
+
+        return new self([
+            new ReportSheetExport(__('reports.export.sheet.by_department'), [
+                __('common.department'),
+                __('reports.count'),
+                __('reports.avg_days'),
+            ], $deptRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('common.reference_number'),
+                __('common.title'),
+                __('common.department'),
+                __('common.transaction_type'),
+                __('reports.export.col.total_days'),
+                __('reports.created_at'),
+                __('reports.archived_at'),
+            ], $detailRows),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function userActivity(array $data): self
+    {
+        $rows = collect($data['details'])->map(fn ($row) => [
+            $row['user'], $row['department'], $row['role'],
+            $row['created'], $row['transitions'], $row['uploads'], $row['total'],
+        ])->all();
+
+        return new self([
+            new ReportSheetExport(__('reports.export.sheet.user_activity'), [
+                __('reports.user'),
+                __('common.department'),
+                __('common.role'),
+                __('reports.created_transactions'),
+                __('reports.transitions'),
+                __('reports.uploads'),
+                __('reports.sum'),
+            ], $rows),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function referenceNumbers(array $data): self
+    {
+        $dupRows = collect($data['duplicates'])->map(fn ($row) => [
+            $row['reference_number'], $row['count'],
+        ])->all();
+
+        $detailRows = collect($data['details'])->map(fn ($row) => [
+            $row['reference_number'], $row['year'], $row['month'], $row['title'],
+            $row['transaction'], $row['department'], $row['uploader'], $row['date'],
+            $row['is_duplicate'] ? __('common.yes') : __('common.no'),
+        ])->all();
+
+        return new self([
+            new ReportSheetExport(__('reports.export.sheet.duplicates'), [
+                __('reports.reference_number'),
+                __('reports.export.col.repetition'),
+            ], $dupRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('reports.reference_number'),
+                __('reports.year'),
+                __('reports.month'),
+                __('common.title'),
+                __('dashboard.transaction'),
+                __('common.department'),
+                __('reports.uploader'),
+                __('common.date'),
+                __('reports.export.col.duplicate'),
+            ], $detailRows),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function folderDistribution(array $data): self
+    {
+        $folderRows = collect($data['by_folder'])->map(fn ($row) => [
+            $row['folder'], $row['department'], $row['transactions'], $row['attachments'],
+        ])->all();
+
+        $detailRows = collect($data['details'])->map(fn ($row) => [
+            $row['reference_number'], $row['title'], $row['folder'], $row['department'],
+            $row['type'], $row['status'], $row['date'],
+        ])->all();
+
+        return new self([
+            new ReportSheetExport(__('reports.export.sheet.by_folder'), [
+                __('reports.export.col.folder'),
+                __('common.department'),
+                __('reports.transactions'),
+                __('reports.attachments'),
+            ], $folderRows),
+            new ReportSheetExport(__('reports.details'), [
+                __('common.reference_number'),
+                __('common.title'),
+                __('reports.export.col.folder'),
+                __('common.department'),
+                __('common.transaction_type'),
+                __('common.status'),
+                __('common.date'),
+            ], $detailRows),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function confidentialDocuments(array $data): self
+    {
+        $rows = collect($data['details'])->map(fn ($row) => [
+            $row['source'], $row['title'], $row['reference_number'], $row['department'],
+            $row['category'], $row['uploader'], $row['date'],
+        ])->all();
+
+        return new self([
+            new ReportSheetExport(__('reports.export.sheet.confidential'), [
+                __('reports.source'),
+                __('common.title'),
+                __('reports.reference_number'),
+                __('common.department'),
+                __('reports.export.col.category'),
+                __('reports.uploader'),
+                __('common.date'),
+            ], $rows),
         ]);
     }
 }

@@ -1,4 +1,6 @@
 <x-app-layout>
+    @include('reports.partials.styles')
+
     <x-slot name="header">
         <div class="page-header">
             <div>

@@ -34,7 +34,7 @@
         });
 
         if (! response.ok) {
-            let message = 'فشل المسح.';
+            let message = 'Scan failed.';
 
             try {
                 const payload = await response.json();
@@ -57,7 +57,7 @@
         button.dataset.arcScanBound = '1';
 
         const idleLabel = button.dataset.scanIdleLabel || button.textContent.trim();
-        const scanningLabel = button.dataset.scanningLabel || 'جاري المسح...';
+        const scanningLabel = button.dataset.scanningLabel || 'Scanning...';
 
         button.addEventListener('click', async () => {
             button.disabled = true;

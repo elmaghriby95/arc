@@ -57,21 +57,21 @@ readonly class ReportFilter
         if ($this->dateFrom || $this->dateTo) {
             $from = $this->dateFrom?->format('Y-m-d') ?? '—';
             $to = $this->dateTo?->format('Y-m-d') ?? '—';
-            $lines[] = "الفترة: {$from} → {$to}";
+            $lines[] = __('reports.scope.period', ['from' => $from, 'to' => $to]);
         } else {
-            $lines[] = 'الفترة: الكل';
+            $lines[] = __('reports.scope.period_all');
         }
 
         if ($this->departmentId) {
-            $lines[] = 'القسم: #'.$this->departmentId;
+            $lines[] = __('reports.scope.department', ['name' => '#'.$this->departmentId]);
         }
 
         if ($this->transactionTypeId) {
-            $lines[] = 'نوع المعاملة: #'.$this->transactionTypeId;
+            $lines[] = __('reports.scope.transaction_type', ['name' => '#'.$this->transactionTypeId]);
         }
 
         if ($this->transactionStatusId) {
-            $lines[] = 'الحالة: #'.$this->transactionStatusId;
+            $lines[] = __('reports.scope.status', ['name' => '#'.$this->transactionStatusId]);
         }
 
         return $lines;

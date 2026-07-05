@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const refConfig = JSON.parse(form.dataset.refConfig || '{}');
+    const i18n = JSON.parse(form.dataset.txnI18n || '{}');
     let currentStep = 1;
     const totalSteps = 3;
 
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropzone = form.querySelector('[data-txn-create-dropzone]');
     const fileInput = dropzone?.querySelector('[data-txn-file-input]');
     const browseBtn = dropzone?.querySelector('[data-txn-browse]');
+    const scanBtn = dropzone?.querySelector('[data-txn-scan]');
     const content = dropzone?.querySelector('[data-txn-dropzone-content]');
     const queue = dropzone?.querySelector('[data-txn-queue]');
     const fileList = dropzone?.querySelector('[data-txn-file-list]');
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 folderPicker?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 folderPicker?.classList.add('txnw-box--error');
                 setTimeout(() => folderPicker?.closest('.txnw-box')?.classList.add('txnw-box--error'), 0);
-                alert('يرجى اختيار مجلد لحفظ المعاملة.');
+                alert(i18n.select_folder_required || 'Please select a folder.');
                 return false;
             }
         }
@@ -130,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             folderSelectedName.textContent = name;
         } else {
             folderSelected.classList.add('is-empty');
-            folderSelectedName.textContent = 'لم يُحدد مجلد';
+            folderSelectedName.textContent = i18n.no_folder_selected || 'No folder selected';
         }
     };
 
@@ -144,32 +146,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = fileName.replace(/\.[^.]+$/, '');
 
         const yearField = refConfig.allow_previous_years
-            ? `<label>السنة</label><input type="number" name="reference_years[${index}]" value="${refConfig.current_year}" min="1900" max="2100">`
+            ? `<label>${i18n.field_year || 'Year'}</label><input type="number" name="reference_years[${index}]" value="${refConfig.current_year}" min="1900" max="2100">`
             : `<input type="hidden" name="reference_years[${index}]" value="${refConfig.current_year}">`;
 
         const monthField = refConfig.month_optional
-            ? `<label>الشهر</label><input type="number" name="reference_months[${index}]" min="1" max="12" placeholder="—">`
-            : `<label>الشهر *</label><input type="number" name="reference_months[${index}]" min="1" max="12" required>`;
+            ? `<label>${i18n.field_month || 'Month'}</label><input type="number" name="reference_months[${index}]" min="1" max="12" placeholder="—">`
+            : `<label>${i18n.field_month_required || 'Month *'}</label><input type="number" name="reference_months[${index}]" min="1" max="12" required>`;
 
         const originalField = refConfig.original_document_number_optional
-            ? `<label>رقم أصلي</label><input type="text" name="original_document_numbers[${index}]" placeholder="—">`
-            : `<label>رقم أصلي *</label><input type="text" name="original_document_numbers[${index}]" required>`;
+            ? `<label>${i18n.field_original || 'Original number'}</label><input type="text" name="original_document_numbers[${index}]" placeholder="—">`
+            : `<label>${i18n.field_original_required || 'Original number *'}</label><input type="text" name="original_document_numbers[${index}]" required>`;
 
         const op = refConfig.operational_number_enabled
-            ? `<label class="txnw-upload-ref-toggle"><input type="checkbox" name="use_operational[${index}]" value="1" data-use-operational data-index="${index}"> رقم تشغيلي</label>`
+            ? `<label class="txnw-upload-ref-toggle"><input type="checkbox" name="use_operational[${index}]" value="1" data-use-operational data-index="${index}"> ${i18n.field_operational || 'Operational number'}</label>`
             : '';
 
         return `<li class="txnw-upload-item" data-doc-index="${index}">
             <div class="txnw-upload-item-head">
                 <span>${fileName}</span>
                 <span>${formatSize(selectedFiles[index]?.size || 0)}</span>
-                <button type="button" data-remove-index="${index}" aria-label="حذف">&times;</button>
+                <button type="button" data-remove-index="${index}" aria-label="${i18n.delete || 'Delete'}">&times;</button>
             </div>
             <div class="txnw-upload-item-body">
-                <div><label>العنوان</label><input type="text" name="titles[${index}]" value="${title}"></div>
+                <div><label>${i18n.field_title || 'Title'}</label><input type="text" name="titles[${index}]" value="${title}"></div>
                 ${op}
                 <div class="txnw-upload-ref-official" data-ref-official="${index}">
-                    <div><label>الرقم الإشاري *</label><input type="text" name="reference_numbers[${index}]" placeholder="أدخل الرقم"></div>
+                    <div><label>${i18n.field_reference_number || 'Reference number *'}</label><input type="text" name="reference_numbers[${index}]" placeholder="${i18n.field_reference_placeholder || 'Enter number'}"></div>
                     ${yearField}${monthField}${originalField}
                 </div>
             </div>
@@ -215,14 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (! incoming.length) {
             if (rejected > 0) {
-                alert('نوع الملف غير مدعوم. المسموح: PDF، Word، Excel، وصور.');
+                alert(i18n.unsupported_file_type || 'Unsupported file type.');
             }
 
             return;
         }
 
         if (rejected > 0) {
-            alert(`تم تجاهل ${rejected} ملف — نوع غير مدعوم.`);
+            alert((i18n.files_rejected || ':count file(s) ignored.').replace(':count', rejected));
         }
 
         selectedFiles = [...selectedFiles, ...incoming];
@@ -234,6 +236,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     browseBtn?.addEventListener('click', () => fileInput?.click());
     fileInput?.addEventListener('change', () => fileInput.files?.length && addFiles(fileInput.files));
+
+    window.ArcScan?.bindButton(scanBtn, {
+        onSuccess: (file) => addFiles([file]),
+        onError: (error) => {
+            const detailTemplate = form.dataset.scanFailedDetail || '';
+            const fallback = form.dataset.scanFailed || 'Scan failed.';
+
+            alert(
+                error?.message && detailTemplate
+                    ? detailTemplate.replace(':message', error.message)
+                    : fallback,
+            );
+        },
+    });
 
     ['dragenter', 'dragover'].forEach((e) => dropzone?.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.add('is-dragover'); }));
     ['dragleave', 'drop'].forEach((e) => dropzone?.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove('is-dragover'); }));
@@ -325,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deptId && folderDeptId && deptId !== folderDeptId) {
             event.preventDefault();
             showStep(2);
-            alert('المجلد المحدد لا ينتمي للوحدة التنظيمية المختارة. اختر مجلداً يطابق الوحدة في الخطوة الأولى، أو غيّر الوحدة التنظيمية.');
+            alert(i18n.folder_unit_mismatch || 'Folder does not match organizational unit.');
         }
     });
 

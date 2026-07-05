@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:dashboard.view')
         ->name('dashboard');
 
-    Route::prefix('reports')->name('reports.')->middleware('permission:reports.view')->group(function () {
+    Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/{type}', [ReportController::class, 'show'])->name('show');
         Route::get('/{type}/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');

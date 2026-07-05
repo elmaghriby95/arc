@@ -224,6 +224,9 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/transaction-attachments.js') }}?v={{ filemtime(public_path('js/transaction-attachments.js')) }}"></script>
+        @php($txAttachmentsJs = resource_path('js/transaction-attachments.js'))
+        @if (is_readable($txAttachmentsJs))
+            <script>{!! file_get_contents($txAttachmentsJs) !!}</script>
+        @endif
     @endpush
 </x-app-layout>

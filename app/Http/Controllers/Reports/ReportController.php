@@ -24,14 +24,15 @@ class ReportController extends Controller
 
     public function index(): View
     {
-        return view('reports.index', [
-            'reports' => ReportType::cases(),
-        ]);
+        abort_unless(auth()->user()?->canAccessReports(), 403);
+
+        return view('reports.index');
     }
 
     public function show(Request $request, string $type): View
     {
         $reportType = $this->resolveType($type);
+        $this->authorizeReport($reportType);
         $user = $request->user();
         $filter = ReportFilter::fromRequest($request);
         $scope = $this->runner->scope($user);
@@ -51,6 +52,7 @@ class ReportController extends Controller
     public function exportPdf(Request $request, string $type): Response
     {
         $reportType = $this->resolveType($type);
+        $this->authorizeReport($reportType);
         $user = $request->user();
         $filter = ReportFilter::fromRequest($request);
         $scope = $this->runner->scope($user);
@@ -73,6 +75,7 @@ class ReportController extends Controller
     public function exportExcel(Request $request, string $type): BinaryFileResponse
     {
         $reportType = $this->resolveType($type);
+        $this->authorizeReport($reportType);
         $user = $request->user();
         $filter = ReportFilter::fromRequest($request);
         $data = $this->runner->run($reportType, $user, $filter);
@@ -94,5 +97,10 @@ class ReportController extends Controller
         }
 
         return $reportType;
+    }
+
+    private function authorizeReport(ReportType $reportType): void
+    {
+        abort_unless(auth()->user()?->canViewReport($reportType), 403);
     }
 }

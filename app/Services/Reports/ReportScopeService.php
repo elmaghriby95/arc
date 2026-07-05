@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Models\Department;
+use App\Models\Document;
 use App\Models\Transaction;
 use App\Models\TransactionAttachment;
 use App\Models\TransactionStatus;
@@ -108,6 +109,28 @@ class ReportScopeService
         return $query;
     }
 
+    /** @param Builder<Document> $query */
+    public function applyDocumentFilters(Builder $query, ReportFilter $filter): Builder
+    {
+        if ($ids = $this->scopedDepartmentIds()) {
+            $query->whereIn('department_id', $ids);
+        }
+
+        if ($filter->departmentId && $this->user->canAccessDepartment($filter->departmentId)) {
+            $query->where('department_id', $filter->departmentId);
+        }
+
+        if ($filter->dateFrom) {
+            $query->where('created_at', '>=', $filter->dateFrom);
+        }
+
+        if ($filter->dateTo) {
+            $query->where('created_at', '<=', $filter->dateTo);
+        }
+
+        return $query;
+    }
+
     /** @return list<array{id: int, label: string, depth: int}> */
     public function orgUnitOptions(): array
     {
@@ -141,27 +164,33 @@ class ReportScopeService
         if ($filter->dateFrom || $filter->dateTo) {
             $from = $filter->dateFrom?->format('Y-m-d') ?? '—';
             $to = $filter->dateTo?->format('Y-m-d') ?? '—';
-            $lines[] = "الفترة: {$from} → {$to}";
+            $lines[] = __('reports.scope.period', ['from' => $from, 'to' => $to]);
         } else {
-            $lines[] = 'الفترة: الكل';
+            $lines[] = __('reports.scope.period_all');
         }
 
         if ($filter->departmentId) {
-            $lines[] = 'القسم: '.($this->resolveDepartmentLabel($filter->departmentId) ?? '#'.$filter->departmentId);
+            $lines[] = __('reports.scope.department', [
+                'name' => $this->resolveDepartmentLabel($filter->departmentId) ?? '#'.$filter->departmentId,
+            ]);
         }
 
         if ($filter->transactionTypeId) {
             $type = TransactionType::find($filter->transactionTypeId);
-            $lines[] = 'نوع المعاملة: '.($type?->name ?? '#'.$filter->transactionTypeId);
+            $lines[] = __('reports.scope.transaction_type', [
+                'name' => $type?->name ?? '#'.$filter->transactionTypeId,
+            ]);
         }
 
         if ($filter->transactionStatusId) {
             $status = TransactionStatus::find($filter->transactionStatusId);
-            $lines[] = 'الحالة: '.($status?->name ?? '#'.$filter->transactionStatusId);
+            $lines[] = __('reports.scope.status', [
+                'name' => $status?->name ?? '#'.$filter->transactionStatusId,
+            ]);
         }
 
         if ($filter->staleDays !== 7) {
-            $lines[] = 'مدة التوقف: '.$filter->staleDays.' يوم';
+            $lines[] = __('reports.scope.stale_days', ['days' => $filter->staleDays]);
         }
 
         return $lines;

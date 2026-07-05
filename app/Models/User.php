@@ -84,11 +84,34 @@ class User extends Authenticatable
         return $this->role?->hasPermission($permission) ?? false;
     }
 
+    public function canAccessReports(): bool
+    {
+        if ($this->hasPermission(\App\Enums\Permission::ReportsView->value)) {
+            return true;
+        }
+
+        foreach (\App\Enums\ReportType::cases() as $type) {
+            if ($this->hasPermission($type->permission())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function canViewReport(\App\Enums\ReportType $type): bool
+    {
+        if ($this->hasPermission(\App\Enums\Permission::ReportsView->value)) {
+            return true;
+        }
+
+        return $this->hasPermission($type->permission());
+    }
+
     public function homeUrl(): string
     {
         $routes = [
             'dashboard.view' => 'dashboard',
-            'reports.view' => 'reports.index',
             'transactions.view' => 'transactions.index',
             'documents.view' => 'documents.index',
             'departments.view' => 'departments.index',
@@ -96,6 +119,10 @@ class User extends Authenticatable
             'settings.view' => 'settings.index',
             'profile.view' => 'profile.edit',
         ];
+
+        if ($this->canAccessReports()) {
+            return route('reports.index', absolute: false);
+        }
 
         foreach ($routes as $permission => $route) {
             if ($this->hasPermission($permission)) {

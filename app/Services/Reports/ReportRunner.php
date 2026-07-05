@@ -14,6 +14,11 @@ class ReportRunner
         private readonly DepartmentProductivityReportService $productivity,
         private readonly DocumentsAttachmentsReportService $documents,
         private readonly StatusHistoryReportService $history,
+        private readonly CompletionTimeReportService $completionTime,
+        private readonly UserActivityReportService $userActivity,
+        private readonly ReferenceNumbersReportService $referenceNumbers,
+        private readonly FolderDistributionReportService $folderDistribution,
+        private readonly ConfidentialDocumentsReportService $confidentialDocuments,
     ) {}
 
     public function scope(User $user): ReportScopeService
@@ -30,6 +35,11 @@ class ReportRunner
             ReportType::DepartmentProductivity => $this->productivity->generate($filter),
             ReportType::DocumentsAttachments => $this->documents->generate($filter),
             ReportType::StatusHistory => $this->history->generate($filter),
+            ReportType::CompletionTime => $this->completionTime->generate($filter),
+            ReportType::UserActivity => $this->userActivity->generate($filter),
+            ReportType::ReferenceNumbers => $this->referenceNumbers->generate($filter),
+            ReportType::FolderDistribution => $this->folderDistribution->generate($filter),
+            ReportType::ConfidentialDocuments => $this->confidentialDocuments->generate($filter),
         };
     }
 }

@@ -47,7 +47,7 @@ class ReferenceNumberService
 
         if (! $settings->operational_number_enabled) {
             throw ValidationException::withMessages([
-                'files' => 'الرقم التشغيلي غير مفعّل في إعدادات النظام.',
+                'files' => __('messages.reference_number.operational_disabled'),
             ]);
         }
 
@@ -111,13 +111,13 @@ class ReferenceNumberService
 
         if ($referenceNumber === '') {
             throw ValidationException::withMessages([
-                'files' => 'يجب إدخال الرقم الإشاري لكل مستند أو اختيار الرقم التشغيلي.',
+                'files' => __('messages.reference_number.required'),
             ]);
         }
 
         if (! $settings->allow_free_format_reference && ! preg_match('/^[A-Za-z0-9\/\-]+$/', $referenceNumber)) {
             throw ValidationException::withMessages([
-                'files' => 'صيغة الرقم الإشاري غير مسموحة حسب إعدادات النظام.',
+                'files' => __('messages.reference_number.format_denied'),
             ]);
         }
 
@@ -127,7 +127,7 @@ class ReferenceNumberService
 
         if (! $settings->month_optional && $month === null) {
             throw ValidationException::withMessages([
-                'files' => 'الشهر مطلوب في الرقم الإشاري حسب إعدادات النظام.',
+                'files' => __('messages.reference_number.month_required'),
             ]);
         }
 
@@ -135,7 +135,7 @@ class ReferenceNumberService
 
         if (! $settings->original_document_number_optional && $originalNumber === '') {
             throw ValidationException::withMessages([
-                'files' => 'رقم المستند الأصلي مطلوب حسب إعدادات النظام.',
+                'files' => __('messages.reference_number.original_required'),
             ]);
         }
 
@@ -177,7 +177,7 @@ class ReferenceNumberService
 
         if ($attachmentExists || $documentExists) {
             throw ValidationException::withMessages([
-                'files' => "الرقم الإشاري «{$referenceNumber}» مستخدم مسبقاً ضمن نفس الوحدة والسنة.",
+                'files' => __('messages.reference_number.duplicate', ['number' => $referenceNumber]),
             ]);
         }
     }

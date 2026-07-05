@@ -18,7 +18,12 @@
                   action="{{ route('transactions.attachments.upload', $transaction) }}"
                   enctype="multipart/form-data"
                   class="txn-dropzone"
-                  data-txn-dropzone>
+                  data-txn-dropzone
+                  data-txn-i18n='@json([
+                      "remove" => __("transactions.js.remove"),
+                      "unsupported_file_type" => __("transactions.js.unsupported_file_type"),
+                      "files_rejected" => __("transactions.js.files_rejected"),
+                  ])'>
                 @csrf
                 <input type="file"
                        name="files[]"

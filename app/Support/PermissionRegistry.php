@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\Permission;
+use App\Enums\ReportType;
 use App\Models\TransactionStatus;
 
 class PermissionRegistry
@@ -13,19 +14,34 @@ class PermissionRegistry
         $groups = [];
 
         foreach (Permission::grouped() as $group => $permissions) {
-            $groups[$group] = array_map(
+            $options = array_map(
                 fn (Permission $permission) => new PermissionOption($permission->value, $permission->label()),
                 $permissions
             );
+
+            if ($group === __('permissions.groups.reports')) {
+                $options = array_merge($options, self::reportPermissionOptions());
+            }
+
+            $groups[$group] = $options;
         }
 
         $workflow = TransactionStatus::workflowPermissionOptions();
 
         if ($workflow !== []) {
-            $groups['سير عمل المعاملات (مراحل)'] = $workflow;
+            $groups[__('permissions.groups.workflow_stages')] = $workflow;
         }
 
         return $groups;
+    }
+
+    /** @return list<PermissionOption> */
+    private static function reportPermissionOptions(): array
+    {
+        return array_map(
+            fn (ReportType $type) => new PermissionOption($type->permission(), $type->permissionLabel()),
+            ReportType::cases()
+        );
     }
 
     /** @return list<string> */
@@ -33,6 +49,7 @@ class PermissionRegistry
     {
         return array_values(array_unique(array_merge(
             Permission::values(),
+            ReportType::permissionValues(),
             TransactionStatus::workflowPermissionKeys(),
         )));
     }
@@ -43,6 +60,12 @@ class PermissionRegistry
 
         if ($enum) {
             return $enum->label();
+        }
+
+        foreach (ReportType::cases() as $type) {
+            if ($type->permission() === $permission) {
+                return $type->permissionLabel();
+            }
         }
 
         $status = TransactionStatus::findByWorkflowPermission($permission);
