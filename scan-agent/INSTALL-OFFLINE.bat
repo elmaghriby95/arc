@@ -34,6 +34,7 @@ if not exist "%~dp0agent.env" (
 )
 
 echo [2/3] Registering auto-start...
+del "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\ARC-Scan-Agent.vbs" 2>nul
 schtasks /Delete /TN "%TASK_NAME%" /F >nul 2>&1
 schtasks /Create /TN "%TASK_NAME%" /TR "\"%PYW%\" \"%AGENT%\"" /SC ONLOGON /DELAY 000045 /F >nul 2>&1
 

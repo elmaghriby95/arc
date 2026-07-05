@@ -6,10 +6,11 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import traceback
 import uuid
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from pathlib import Path
 
@@ -63,6 +64,13 @@ def setup_logging() -> None:
 
 
 setup_logging()
+
+
+def subprocess_kwargs() -> dict[str, int]:
+    if sys.platform == "win32":
+        return {"creationflags": subprocess.CREATE_NO_WINDOW}
+
+    return {}
 
 
 def allowed_origins() -> list[str]:
@@ -179,6 +187,7 @@ def optimize_jpeg(path: Path, quality: int, max_width: int) -> Path:
             capture_output=True,
             timeout=90,
             check=False,
+            **subprocess_kwargs(),
         )
 
         if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
@@ -243,6 +252,7 @@ def _shrink_jpeg_worker(args: tuple[str, int, int, str]) -> str:
         capture_output=True,
         timeout=45,
         check=False,
+        **subprocess_kwargs(),
     )
 
     if result.returncode == 0 and target.exists() and target.stat().st_size > 0:
@@ -267,7 +277,7 @@ def parallel_batch_compress(
     if len(pages) == 1:
         return [Path(_shrink_jpeg_worker(tasks[0]))]
 
-    with ProcessPoolExecutor(max_workers=PARALLEL_WORKERS) as pool:
+    with ThreadPoolExecutor(max_workers=PARALLEL_WORKERS) as pool:
         results = list(pool.map(_shrink_jpeg_worker, tasks))
 
     return [Path(result) for result in results]
@@ -597,9 +607,6 @@ def scan():
 
 
 if __name__ == "__main__":
-    import multiprocessing
-
-    multiprocessing.freeze_support()
     ensure_com()
     app.logger.info("ARC Scan Agent starting on http://%s:%s", HOST, PORT)
     print("ARC Scan Agent ready.", flush=True)
