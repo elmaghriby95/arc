@@ -1,7 +1,3 @@
-@php
-    $cairoRegular = \App\Support\Reports\PdfFont::cairoRegular();
-    $cairoBold = \App\Support\Reports\PdfFont::cairoBold();
-@endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -9,23 +5,11 @@
     <title>{{ $reportType->label() }}</title>
     <style>
         @page { margin: 28px 32px; }
-        @font-face {
-            font-family: 'Cairo';
-            font-style: normal;
-            font-weight: 400;
-            src: url('{{ $cairoRegular }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Cairo';
-            font-style: normal;
-            font-weight: 700;
-            src: url('{{ $cairoBold }}') format('truetype');
-        }
         * { box-sizing: border-box; }
         html, body {
             direction: rtl;
             unicode-bidi: embed;
-            font-family: 'Cairo', sans-serif;
+            font-family: '{{ $pdfFontFamily }}', 'dejavu sans', sans-serif;
             font-size: 11px;
             color: #1e293b;
             line-height: 1.6;
@@ -40,7 +24,7 @@
         .pdf-header h1 {
             margin: 0 0 4px;
             font-size: 20px;
-            font-weight: 700;
+            font-weight: bold;
             color: #312e81;
         }
         .pdf-header p { margin: 0; color: #64748b; font-size: 10px; }
@@ -58,7 +42,7 @@
         .pdf-section h2 {
             margin: 0 0 8px;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: bold;
             color: #4338ca;
             border-right: 4px solid #6366f1;
             padding-right: 8px;
@@ -79,7 +63,7 @@
         th {
             background: #4338ca;
             color: #fff;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 10px;
         }
         tr:nth-child(even) td { background: #f8fafc; }
@@ -96,7 +80,7 @@
             width: 25%;
         }
         .pdf-stats .label { display: block; font-size: 9px; color: #64748b; }
-        .pdf-stats .value { display: block; font-size: 16px; font-weight: 700; color: #4338ca; }
+        .pdf-stats .value { display: block; font-size: 16px; font-weight: bold; color: #4338ca; }
         .pdf-footer {
             position: fixed;
             bottom: 0;

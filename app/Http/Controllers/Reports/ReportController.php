@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Services\Reports\ReportRunner;
+use App\Support\Reports\PdfFontRegistry;
 use App\Support\Reports\ReportFilter;
 use Barryvdh\DomPDF\PDF as DomPdf;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function exportPdf(Request $request, string $type, DomPdf $domPdf): Response
+    public function exportPdf(Request $request, string $type, DomPdf $domPdf, PdfFontRegistry $pdfFonts): Response
     {
         $this->ensurePdfExportAvailable();
 
@@ -60,8 +61,10 @@ class ReportController extends Controller
         $scope = $this->runner->scope($user);
         $data = $this->runner->run($reportType, $user, $filter);
 
-        $pdf = $domPdf->setOption('enable_remote', true)
-            ->setOption('default_font', 'cairo')
+        $dompdfInstance = $domPdf->getDomPDF();
+        $fontFamily = $pdfFonts->familyForPdf($dompdfInstance);
+
+        $pdf = $domPdf->setOption('default_font', $fontFamily)
             ->setOption('enable_font_subsetting', true)
             ->loadView($reportType->pdfView(), [
             'reportType' => $reportType,
@@ -70,6 +73,7 @@ class ReportController extends Controller
             'filterSummary' => $scope->filterSummary($filter),
             'generatedAt' => now()->format('Y-m-d H:i'),
             'generatedBy' => $user->name,
+            'pdfFontFamily' => $fontFamily,
         ])->setPaper('a4', 'landscape');
 
         $filename = $reportType->value.'-'.now()->format('Y-m-d').'.pdf';
