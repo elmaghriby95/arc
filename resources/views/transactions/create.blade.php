@@ -70,6 +70,9 @@
                       data-scan-failed-detail="{{ __('transactions.scan_failed_detail', ['message' => ':message']) }}"
                       data-ref-config='@json($referenceFormConfig)'
                       data-txn-i18n='@json($txnCreateI18n)'
+                      data-max-file-bytes="{{ $uploadLimits['max_file_bytes'] }}"
+                      data-php-upload-bytes="{{ $uploadLimits['php_upload_bytes'] }}"
+                      data-php-post-bytes="{{ $uploadLimits['php_post_bytes'] }}"
                       data-initial-step="{{ $errors->has('folder_id') ? 2 : 1 }}">
                     @csrf
 

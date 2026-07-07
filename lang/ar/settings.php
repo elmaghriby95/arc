@@ -49,8 +49,6 @@ return [
         'login_remember_me' => 'تذكرني',
         'login_forgot_password' => 'نسيت كلمة المرور',
         'login_button' => 'زر تسجيل الدخول',
-        'login_no_account' => 'لا تملك حساباً؟',
-        'login_register' => 'رابط إنشاء حساب',
         'login_page_title' => 'عنوان الصفحة (تبويب المتصفح)',
         'login_copyright' => 'نص حقوق النشر',
     ],

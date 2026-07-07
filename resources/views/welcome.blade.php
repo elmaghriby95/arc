@@ -16,9 +16,6 @@
                     <a href="{{ route('dashboard') }}" class="btn btn-primary">{{ __('nav.dashboard') }}</a>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-primary">{{ __('auth.login') }}</a>
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn-secondary">{{ __('auth.register') }}</a>
-                    @endif
                 @endauth
             </div>
         </div>

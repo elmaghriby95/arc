@@ -84,6 +84,7 @@ class TransactionController extends Controller
             'referenceSettings' => ReferenceNumberSetting::instance(),
             'referenceFormConfig' => $referenceNumbers->formConfig($user),
             'txnCreateI18n' => $this->transactionCreateJsI18n(),
+            'uploadLimits' => $this->transactionUploadLimits(),
         ]);
     }
 
@@ -493,6 +494,34 @@ class TransactionController extends Controller
         return redirect($url)->with('success', __('messages.transaction.created'));
     }
 
+    /** @return array{max_file_bytes: int, php_upload_bytes: int, php_post_bytes: int} */
+    private function transactionUploadLimits(): array
+    {
+        return [
+            'max_file_bytes' => 20480 * 1024,
+            'php_upload_bytes' => $this->iniSizeToBytes(ini_get('upload_max_filesize')),
+            'php_post_bytes' => $this->iniSizeToBytes(ini_get('post_max_size')),
+        ];
+    }
+
+    private function iniSizeToBytes(string|false $value): int
+    {
+        if (! is_string($value) || $value === '') {
+            return 0;
+        }
+
+        $value = trim($value);
+        $unit = strtolower(substr($value, -1));
+        $number = (float) $value;
+
+        return (int) match ($unit) {
+            'g' => $number * 1024 * 1024 * 1024,
+            'm' => $number * 1024 * 1024,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
     /** @return array<string, string> */
     private function transactionCreateJsI18n(): array
     {
@@ -515,6 +544,8 @@ class TransactionController extends Controller
             'upload_progress' => __('transactions.js.upload_progress'),
             'upload_preparing' => __('transactions.js.upload_preparing'),
             'upload_failed' => __('transactions.js.upload_failed'),
+            'upload_too_large' => __('transactions.js.upload_too_large'),
+            'upload_server_limit' => __('transactions.js.upload_server_limit'),
             'validation_heading' => __('transactions.js.validation_heading'),
         ];
     }

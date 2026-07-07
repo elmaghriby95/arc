@@ -89,11 +89,4 @@
             </svg>
         </button>
     </form>
-
-    @if (Route::has('register'))
-        <p class="login-register">
-            {{ $systemSettings->loginText('no_account') }}
-            <a href="{{ route('register') }}">{{ $systemSettings->loginText('register') }}</a>
-        </p>
-    @endif
 </x-login-layout>

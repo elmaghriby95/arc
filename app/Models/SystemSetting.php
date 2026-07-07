@@ -24,8 +24,6 @@ class SystemSetting extends Model
         'remember_me' => 'login_remember_me',
         'forgot_password' => 'login_forgot_password',
         'login' => 'login_button',
-        'no_account' => 'login_no_account',
-        'register' => 'login_register',
         'login_page_title' => 'login_page_title',
         'copyright' => 'login_copyright',
     ];

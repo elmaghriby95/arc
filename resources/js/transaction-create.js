@@ -43,6 +43,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formatSize = (bytes) => bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
 
+    const maxFileBytes = Number(form.dataset.maxFileBytes) || (20480 * 1024);
+    const phpUploadBytes = Number(form.dataset.phpUploadBytes) || 0;
+    const phpPostBytes = Number(form.dataset.phpPostBytes) || 0;
+
+    const validateUploadLimits = () => {
+        const oversized = selectedFiles.filter((file) => file.size > maxFileBytes);
+
+        if (oversized.length) {
+            alert(
+                (i18n.upload_too_large || 'File too large.')
+                    + `\n${oversized.map((f) => `${f.name} (${formatSize(f.size)})`).join('\n')}`,
+            );
+
+            return false;
+        }
+
+        const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+        const formOverhead = 256 * 1024;
+
+        if (phpUploadBytes > 0 && selectedFiles.some((file) => file.size > phpUploadBytes)) {
+            alert(i18n.upload_server_limit || 'Server upload limit is too low for this file.');
+
+            return false;
+        }
+
+        if (phpPostBytes > 0 && totalBytes + formOverhead > phpPostBytes) {
+            alert(i18n.upload_server_limit || 'Server post limit is too low for this upload.');
+
+            return false;
+        }
+
+        return true;
+    };
+
     const showStep = (step) => {
         currentStep = step;
 
@@ -446,6 +480,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (xhr.status === 413) {
+                setFormLocked(false);
+                resetUploadProgress();
+                showValidationErrors(data?.errors || {
+                    files: [data?.message || i18n.upload_server_limit || 'Upload too large for server.'],
+                });
+
+                return;
+            }
+
             if (xhr.status >= 200 && xhr.status < 300 && data?.redirect) {
                 window.location.assign(data.redirect);
 
@@ -514,6 +558,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (selectedFiles.length === 0) {
+            return;
+        }
+
+        if (! validateUploadLimits()) {
+            event.preventDefault();
+
             return;
         }
 
