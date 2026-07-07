@@ -28,8 +28,8 @@
 @endpermission
 
 @if ($hasArchiveMenu)
-    <div class="dropdown navbar-nav-group" data-navbar-dropdown>
-        <button type="button" class="navbar-link navbar-link--group {{ $archiveActive ? 'is-active' : '' }}" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
+    <details class="navbar-nav-details" @if ($archiveActive) open @endif>
+        <summary class="navbar-link navbar-link--summary {{ $archiveActive ? 'is-active' : '' }}">
             <span class="navbar-link-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
             </span>
@@ -37,10 +37,10 @@
             <span class="navbar-link-chevron" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
             </span>
-        </button>
-        <div class="dropdown-menu navbar-nav-submenu" data-group-label="{{ __('nav.archive') }}">
+        </summary>
+        <div class="navbar-nav-panel" data-group-label="{{ __('nav.archive') }}">
             @permission('transactions.view')
-                <a href="{{ route('transactions.index') }}" class="dropdown-item navbar-nav-subitem {{ request()->routeIs('transactions.index', 'transactions.show', 'transactions.create', 'transactions.edit') ? 'is-active' : '' }}">
+                <a href="{{ route('transactions.index') }}" class="navbar-nav-subitem {{ request()->routeIs('transactions.index', 'transactions.show', 'transactions.create', 'transactions.edit') ? 'is-active' : '' }}">
                     <span class="navbar-nav-subitem-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5"/></svg>
                     </span>
@@ -49,7 +49,7 @@
             @endpermission
             @permission('transactions.review-log.view')
                 @if (Route::has('transactions.review-log'))
-                    <a href="{{ route('transactions.review-log') }}" class="dropdown-item navbar-nav-subitem {{ request()->routeIs('transactions.review-log') ? 'is-active' : '' }}">
+                    <a href="{{ route('transactions.review-log') }}" class="navbar-nav-subitem {{ request()->routeIs('transactions.review-log') ? 'is-active' : '' }}">
                         <span class="navbar-nav-subitem-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
                         </span>
@@ -59,7 +59,7 @@
             @endpermission
             @permission('lending-requests.view')
                 @if (Route::has('lending-requests.index'))
-                    <a href="{{ route('lending-requests.index') }}" class="dropdown-item navbar-nav-subitem {{ request()->routeIs('lending-requests.*') ? 'is-active' : '' }}">
+                    <a href="{{ route('lending-requests.index') }}" class="navbar-nav-subitem {{ request()->routeIs('lending-requests.*') ? 'is-active' : '' }}">
                         <span class="navbar-nav-subitem-icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
                         </span>
@@ -68,7 +68,7 @@
                 @endif
             @endpermission
         </div>
-    </div>
+    </details>
 @endif
 
 @if (auth()->user()?->canAccessReports())
@@ -81,8 +81,8 @@
 @endif
 
 @if ($hasStructureMenu)
-    <div class="dropdown navbar-nav-group" data-navbar-dropdown>
-        <button type="button" class="navbar-link navbar-link--group {{ $structureActive ? 'is-active' : '' }}" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
+    <details class="navbar-nav-details" @if ($structureActive) open @endif>
+        <summary class="navbar-link navbar-link--summary {{ $structureActive ? 'is-active' : '' }}">
             <span class="navbar-link-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
             </span>
@@ -90,10 +90,10 @@
             <span class="navbar-link-chevron" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
             </span>
-        </button>
-        <div class="dropdown-menu navbar-nav-submenu" data-group-label="{{ __('nav.structure') }}">
+        </summary>
+        <div class="navbar-nav-panel" data-group-label="{{ __('nav.structure') }}">
             @permission('departments.view')
-                <a href="{{ route('departments.index') }}" class="dropdown-item navbar-nav-subitem {{ request()->routeIs('departments.*') ? 'is-active' : '' }}">
+                <a href="{{ route('departments.index') }}" class="navbar-nav-subitem {{ request()->routeIs('departments.*') ? 'is-active' : '' }}">
                     <span class="navbar-nav-subitem-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
                     </span>
@@ -101,7 +101,7 @@
                 </a>
             @endpermission
             @permission('categories.view')
-                <a href="{{ route('categories.index') }}" class="dropdown-item navbar-nav-subitem {{ request()->routeIs('categories.*') ? 'is-active' : '' }}">
+                <a href="{{ route('categories.index') }}" class="navbar-nav-subitem {{ request()->routeIs('categories.*') ? 'is-active' : '' }}">
                     <span class="navbar-nav-subitem-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 0 1 0 2.828l-7 7a2 2 0 0 1-2.828 0l-7-7A2 2 0 0 1 3 12V7a4 4 0 0 1 4-4z"/></svg>
                     </span>
@@ -109,7 +109,7 @@
                 </a>
             @endpermission
         </div>
-    </div>
+    </details>
 @endif
 
 @permission('settings.view')

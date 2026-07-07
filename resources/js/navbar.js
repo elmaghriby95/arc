@@ -11,45 +11,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     };
 
-    const closeNavDropdowns = () => {
-        document.querySelectorAll('[data-navbar-dropdown].is-open').forEach((dropdown) => {
-            dropdown.classList.remove('is-open');
-            dropdown.querySelector('[data-dropdown-toggle]')?.setAttribute('aria-expanded', 'false');
-        });
-    };
-
-    document.querySelectorAll('[data-navbar-dropdown]').forEach((dropdown) => {
-        const toggle = dropdown.querySelector('[data-dropdown-toggle]');
-        if (!toggle) {
-            return;
-        }
-
-        toggle.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const willOpen = !dropdown.classList.contains('is-open');
-            closeNavDropdowns();
-
-            if (willOpen) {
-                dropdown.classList.add('is-open');
-                toggle.setAttribute('aria-expanded', 'true');
+    document.querySelectorAll('.navbar-nav-details').forEach((details) => {
+        details.addEventListener('toggle', () => {
+            if (!details.open) {
+                return;
             }
+
+            document.querySelectorAll('.navbar-nav-details').forEach((other) => {
+                if (other !== details) {
+                    other.removeAttribute('open');
+                }
+            });
         });
     });
 
     document.addEventListener('click', (event) => {
-        if (event.target.closest('[data-navbar-dropdown]')) {
+        if (event.target.closest('.navbar-nav-details')) {
             return;
         }
 
-        closeNavDropdowns();
+        document.querySelectorAll('.navbar-nav-details[open]').forEach((details) => {
+            details.removeAttribute('open');
+        });
     });
 
     document.querySelectorAll('[data-navbar-menu] .navbar-nav-subitem').forEach((link) => {
-        link.addEventListener('click', () => {
-            closeNavDropdowns();
-            closeMobileMenu();
-        });
+        link.addEventListener('click', closeMobileMenu);
     });
 });
