@@ -47,7 +47,7 @@
 
     navbarBackdrop?.addEventListener('click', closeNavbarMenu);
 
-    document.querySelectorAll('[data-navbar-menu] .navbar-link, [data-navbar-menu] .navbar-nav-subitem').forEach((link) => {
+    document.querySelectorAll('[data-navbar-menu] .navbar-link').forEach((link) => {
         link.addEventListener('click', closeNavbarMenu);
     });
 

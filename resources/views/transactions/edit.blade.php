@@ -18,6 +18,12 @@
                     @method('PUT')
 
                     <div class="form-group">
+                        <x-input-label for="archival_reference" :value="__('transactions.archival_reference')" />
+                        <x-text-input id="archival_reference" name="archival_reference" type="text" :value="old('archival_reference', $transaction->archival_reference)" required />
+                        @error('archival_reference')<p class="form-error">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div class="form-group">
                         <x-input-label for="title" :value="__('transactions.title_label')" />
                         <x-text-input id="title" name="title" type="text" :value="old('title', $transaction->title)" required />
                     </div>

@@ -12,10 +12,12 @@ use App\Models\TransactionType;
 use App\Models\User;
 use App\Services\LendingEligibilityService;
 use App\Services\ReferenceNumberService;
+use App\Services\TransactionQrCodeService;
 use App\Services\TransactionScopeService;
 use App\Services\WorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
@@ -34,6 +36,7 @@ class TransactionController extends Controller
                 $query->where(function ($builder) use ($search) {
                     $builder->where('title', 'like', "%{$search}%")
                         ->orWhere('reference_number', 'like', "%{$search}%")
+                        ->orWhere('archival_reference', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%");
                 });
             })
@@ -95,6 +98,7 @@ class TransactionController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'archival_reference' => ['required', 'string', 'max:255', 'unique:transactions,archival_reference'],
             'description' => ['nullable', 'string'],
             'transaction_type_id' => ['nullable', 'exists:transaction_types,id'],
             'department_id' => ['required', 'exists:departments,id'],
@@ -135,6 +139,7 @@ class TransactionController extends Controller
 
         $transaction = Transaction::create([
             'reference_number' => $this->generateReferenceNumber(),
+            'archival_reference' => $validated['archival_reference'],
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'transaction_type_id' => $validated['transaction_type_id'] ?? null,
@@ -202,7 +207,7 @@ class TransactionController extends Controller
             ->with('success', __('messages.transaction.created'));
     }
 
-    public function show(Transaction $transaction, WorkflowService $workflow, LendingEligibilityService $lendingEligibility): View
+    public function show(Transaction $transaction, WorkflowService $workflow, LendingEligibilityService $lendingEligibility, TransactionQrCodeService $qrCodes): View
     {
         $this->authorizeTransactionAccess($transaction);
 
@@ -227,6 +232,17 @@ class TransactionController extends Controller
             'canManageAttachments' => $user->hasPermission('transactions.edit') && $transaction->canBeEdited(),
             'txnAttachmentsI18n' => $this->transactionAttachmentsJsI18n(),
             'canRequestLending' => $lendingEligibility->canUserRequest($user, $transaction),
+            'qrPayload' => $qrCodes->payload($transaction),
+        ]);
+    }
+
+    public function qrCode(Transaction $transaction, TransactionQrCodeService $qrCodes): Response
+    {
+        $this->authorizeTransactionAccess($transaction);
+
+        return response($qrCodes->svg($transaction), 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'private, max-age=3600',
         ]);
     }
 
@@ -260,6 +276,7 @@ class TransactionController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'archival_reference' => ['required', 'string', 'max:255', Rule::unique('transactions', 'archival_reference')->ignore($transaction->id)],
             'description' => ['nullable', 'string'],
             'transaction_type_id' => ['nullable', 'exists:transaction_types,id'],
             'department_id' => ['required', 'exists:departments,id'],
@@ -282,6 +299,7 @@ class TransactionController extends Controller
 
         $transaction->update([
             'title' => $validated['title'],
+            'archival_reference' => $validated['archival_reference'],
             'description' => $validated['description'] ?? null,
             'transaction_type_id' => $validated['transaction_type_id'] ?? null,
             'department_id' => $validated['department_id'],

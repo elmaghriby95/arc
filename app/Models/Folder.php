@@ -14,6 +14,9 @@ class Folder extends Model
         'parent_id',
         'department_id',
         'name',
+        'cabinet_number',
+        'row_number',
+        'box_number',
         'description',
         'color',
         'sort_order',
@@ -40,6 +43,15 @@ class Folder extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Folder::class, 'parent_id')->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function locationLabel(): string
+    {
+        return implode(' · ', array_filter([
+            $this->cabinet_number ? __('settings.folders.cabinet_badge', ['number' => $this->cabinet_number]) : null,
+            $this->row_number ? __('settings.folders.row_badge', ['number' => $this->row_number]) : null,
+            $this->box_number ? __('settings.folders.box_badge', ['number' => $this->box_number]) : null,
+        ]));
     }
 
     /** @param list<int>|null $departmentIds null = unrestricted (admin) */

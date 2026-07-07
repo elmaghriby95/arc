@@ -100,6 +100,12 @@
 
                                 <div class="txnw-box">
                                     <div class="txnw-field txnw-field--full">
+                                        <label for="archival_reference">{{ __('transactions.archival_reference') }} <span class="txnw-req">*</span></label>
+                                        <input type="text" id="archival_reference" name="archival_reference" class="txnw-input" value="{{ old('archival_reference') }}" required placeholder="{{ __('transactions.archival_reference_placeholder') }}">
+                                        <p class="txnw-hint">{{ __('transactions.archival_reference_hint') }}</p>
+                                        @error('archival_reference')<p class="form-error">{{ $message }}</p>@enderror
+                                    </div>
+                                    <div class="txnw-field txnw-field--full">
                                         <label for="title">{{ __('transactions.title_label') }} <span class="txnw-req">*</span></label>
                                         <input type="text" id="title" name="title" class="txnw-input" value="{{ old('title') }}" required autofocus placeholder="{{ __('transactions.title_placeholder') }}">
                                     </div>

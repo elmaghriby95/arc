@@ -38,6 +38,9 @@
                     @if ($folder->department_id && isset($breadcrumbs[$folder->department_id]))
                         <span class="settings-badge settings-badge--muted">{{ $breadcrumbs[$folder->department_id] }}</span>
                     @endif
+                    @if ($folder->locationLabel())
+                        <span class="settings-badge settings-badge--primary">{{ $folder->locationLabel() }}</span>
+                    @endif
                     <span class="settings-badge">{{ __('settings.folders.sort_order_badge', ['order' => $folder->sort_order]) }}</span>
                     @unless ($folder->is_active)
                         <span class="settings-badge settings-badge--danger">{{ __('common.inactive') }}</span>
@@ -72,6 +75,18 @@
                             'showHint' => false,
                             'required' => true,
                         ])
+                    </div>
+                    <div class="form-group">
+                        <x-input-label :value="__('settings.folders.cabinet_number')" />
+                        <x-text-input name="cabinet_number" type="text" :value="$folder->cabinet_number" required />
+                    </div>
+                    <div class="form-group">
+                        <x-input-label :value="__('settings.folders.row_number')" />
+                        <x-text-input name="row_number" type="text" :value="$folder->row_number" required />
+                    </div>
+                    <div class="form-group">
+                        <x-input-label :value="__('settings.folders.box_number')" />
+                        <x-text-input name="box_number" type="text" :value="$folder->box_number" required />
                     </div>
                     <div class="form-grid">
                         <div class="form-group">

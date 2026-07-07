@@ -7,7 +7,8 @@
                     <div>
                         <h2 class="page-title">{{ $transaction->title }}</h2>
                         <div class="txn-page-meta">
-                            <code class="txn-ref">{{ $transaction->reference_number }}</code>
+                            <code class="txn-ref">{{ $transaction->archival_reference }}</code>
+                            <span class="text-muted txn-system-ref">{{ $transaction->reference_number }}</span>
                             <x-transaction-status-badge :status="$transaction->status" />
                         </div>
                     </div>
@@ -47,6 +48,9 @@
                         <div class="txn-hero-item">
                             <span class="txn-hero-label">{{ __('common.folder') }}</span>
                             <strong>{{ $transaction->folder?->name ?? '—' }}</strong>
+                            @if ($transaction->folder?->locationLabel())
+                                <small class="text-muted d-block">{{ $transaction->folder->locationLabel() }}</small>
+                            @endif
                         </div>
                         <div class="txn-hero-item">
                             <span class="txn-hero-label">{{ __('transactions.date') }}</span>
@@ -59,6 +63,19 @@
                         <div class="txn-hero-item">
                             <span class="txn-hero-label">{{ __('transactions.attachments_count') }}</span>
                             <strong>{{ $transaction->attachments->count() }}</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card txn-qr-card">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ __('transactions.qr_code_title') }}</h3>
+                    </div>
+                    <div class="card-body txn-qr-body">
+                        <img src="{{ route('transactions.qr-code', $transaction) }}" alt="{{ __('transactions.qr_code_title') }}" width="200" height="200" class="txn-qr-image">
+                        <div class="txn-qr-meta">
+                            <p class="form-hint">{{ __('transactions.qr_code_hint') }}</p>
+                            <code class="txn-qr-payload">{{ $qrPayload }}</code>
                         </div>
                     </div>
                 </section>

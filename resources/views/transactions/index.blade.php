@@ -102,7 +102,7 @@
                     <tbody>
                         @forelse ($transactions as $transaction)
                             <tr>
-                                <td><code>{{ $transaction->reference_number }}</code></td>
+                                <td><code>{{ $transaction->archival_reference }}</code></td>
                                 <td>{{ $transaction->title }}</td>
                                 <td>{{ $transaction->transactionType?->name ?? '—' }}</td>
                                 <td>{{ $transaction->department?->name ?? '—' }}</td>

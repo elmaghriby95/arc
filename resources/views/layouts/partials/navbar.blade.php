@@ -226,3 +226,17 @@
 
     <div class="navbar-mobile-backdrop" data-navbar-backdrop aria-hidden="true"></div>
 </nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-navbar-menu] .navbar-nav-subitem').forEach((link) => {
+        link.addEventListener('click', () => {
+            document.querySelector('[data-navbar-menu]')?.classList.remove('is-open');
+            document.querySelector('[data-navbar-toggle]')?.classList.remove('is-active');
+            document.querySelector('[data-navbar-toggle]')?.setAttribute('aria-expanded', 'false');
+            document.querySelector('[data-navbar-backdrop]')?.classList.remove('is-visible');
+            document.body.style.overflow = '';
+        });
+    });
+});
+</script>

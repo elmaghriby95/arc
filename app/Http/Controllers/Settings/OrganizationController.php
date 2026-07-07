@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\User;
+use App\Services\DepartmentCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class OrganizationController extends Controller
@@ -31,7 +31,7 @@ class OrganizationController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, DepartmentCodeService $departmentCodes): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -44,7 +44,7 @@ class OrganizationController extends Controller
 
         Department::create([
             ...$validated,
-            'code' => $this->generateUniqueCode($validated['name']),
+            'code' => $departmentCodes->generateForParent($validated['parent_id'] ?? null),
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -80,24 +80,5 @@ class OrganizationController extends Controller
         return redirect()
             ->route('settings.organization.index')
             ->with('success', __('messages.organization.deleted'));
-    }
-
-    private function generateUniqueCode(string $name): string
-    {
-        $base = Str::upper(Str::substr(Str::slug($name, ''), 0, 8));
-
-        if ($base === '') {
-            $base = 'UNIT';
-        }
-
-        $code = $base;
-        $counter = 1;
-
-        while (Department::where('code', $code)->exists()) {
-            $code = $base.'-'.$counter;
-            $counter++;
-        }
-
-        return $code;
     }
 }

@@ -448,6 +448,12 @@ class TranslationCatalog
             ['group' => 'settings.folders', 'key' => 'empty', 'values' => ['ar' => 'لا توجد مجلدات بعد.', 'en' => 'No folders yet.', 'fr' => 'Aucun dossier.']],
             ['group' => 'settings.folders', 'key' => 'sub_folders_count', 'values' => ['ar' => ':count مجلد فرعي', 'en' => ':count sub-folder(s)', 'fr' => ':count sous-dossier(s)']],
             ['group' => 'settings.folders', 'key' => 'sort_order_badge', 'values' => ['ar' => 'ترتيب :order', 'en' => 'Order :order', 'fr' => 'Ordre :order']],
+            ['group' => 'settings.folders', 'key' => 'cabinet_number', 'values' => ['ar' => 'رقم الدولاب', 'en' => 'Cabinet number', 'fr' => 'Numéro d\'armoire']],
+            ['group' => 'settings.folders', 'key' => 'row_number', 'values' => ['ar' => 'رقم الصف', 'en' => 'Row number', 'fr' => 'Numéro de rangée']],
+            ['group' => 'settings.folders', 'key' => 'box_number', 'values' => ['ar' => 'رقم الصندوق', 'en' => 'Box number', 'fr' => 'Numéro de boîte']],
+            ['group' => 'settings.folders', 'key' => 'cabinet_badge', 'values' => ['ar' => 'دولاب :number', 'en' => 'Cabinet :number', 'fr' => 'Armoire :number']],
+            ['group' => 'settings.folders', 'key' => 'row_badge', 'values' => ['ar' => 'صف :number', 'en' => 'Row :number', 'fr' => 'Rangée :number']],
+            ['group' => 'settings.folders', 'key' => 'box_badge', 'values' => ['ar' => 'صندوق :number', 'en' => 'Box :number', 'fr' => 'Boîte :number']],
         ];
     }
 
@@ -799,6 +805,11 @@ class TranslationCatalog
             ['group' => 'transactions', 'key' => 'workflow_after_create', 'values' => ['ar' => 'بعد الإنشاء تنتقل المعاملة عبر:', 'en' => 'After creation the transaction moves through:', 'fr' => 'Après création, la transaction passe par :']],
             ['group' => 'transactions', 'key' => 'validation_heading', 'values' => ['ar' => 'يرجى تصحيح الأخطاء التالية:', 'en' => 'Please correct the following errors:', 'fr' => 'Veuillez corriger les erreurs suivantes :']],
             ['group' => 'transactions', 'key' => 'create_steps', 'values' => ['ar' => 'خطوات إنشاء المعاملة', 'en' => 'Transaction creation steps', 'fr' => 'Étapes de création']],
+            ['group' => 'transactions', 'key' => 'archival_reference', 'values' => ['ar' => 'الرقم الإشاري للمعاملة', 'en' => 'Transaction reference number', 'fr' => 'Numéro indicatif de la transaction']],
+            ['group' => 'transactions', 'key' => 'archival_reference_placeholder', 'values' => ['ar' => 'أدخل الرقم الإشاري الرسمي للمعاملة', 'en' => 'Enter the official transaction reference number', 'fr' => 'Saisir le numéro indicatif officiel']],
+            ['group' => 'transactions', 'key' => 'archival_reference_hint', 'values' => ['ar' => 'حقل إلزامي — يُستخدم في رمز QR وفي البحث عن المعاملة', 'en' => 'Required — used in the QR code and transaction search', 'fr' => 'Obligatoire — utilisé dans le QR et la recherche']],
+            ['group' => 'transactions', 'key' => 'qr_code_title', 'values' => ['ar' => 'رمز QR للمعاملة', 'en' => 'Transaction QR code', 'fr' => 'Code QR de la transaction']],
+            ['group' => 'transactions', 'key' => 'qr_code_hint', 'values' => ['ar' => 'يتضمن: الرقم الإشاري | رقم الدولاب | رقم الصف | رقم الصندوق', 'en' => 'Contains: reference | cabinet | row | box', 'fr' => 'Contient : indicatif | armoire | rangée | boîte']],
             ['group' => 'transactions', 'key' => 'step_basic', 'values' => ['ar' => 'البيانات الأساسية', 'en' => 'Basic information', 'fr' => 'Informations de base']],
             ['group' => 'transactions', 'key' => 'step_basic_desc', 'values' => ['ar' => 'عنوان المعاملة والوحدة التنظيمية ونوعها وتاريخها', 'en' => 'Title, organizational unit, type and date', 'fr' => 'Titre, unité, type et date']],
             ['group' => 'transactions', 'key' => 'step_folder', 'values' => ['ar' => 'المجلد والوصف', 'en' => 'Folder & description', 'fr' => 'Dossier et description']],

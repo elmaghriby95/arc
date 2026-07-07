@@ -148,6 +148,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+        Route::get('transactions/{transaction}/qr-code', [TransactionController::class, 'qrCode'])->name('transactions.qr-code');
         Route::post('transactions/{transaction}/transition', [TransactionController::class, 'transition'])->name('transactions.transition');
     });
 

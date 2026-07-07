@@ -11,6 +11,7 @@ class Transaction extends Model
 {
     protected $fillable = [
         'reference_number',
+        'archival_reference',
         'title',
         'description',
         'transaction_type_id',
