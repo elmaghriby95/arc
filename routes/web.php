@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BrandingAssetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
@@ -27,6 +28,10 @@ use App\Http\Controllers\Settings\TransactionTypeController;
 use App\Http\Controllers\Settings\TranslationController;
 use App\Http\Controllers\Settings\UserManagementController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/brand/{file}', [BrandingAssetController::class, 'show'])
+    ->where('file', '[A-Za-z0-9_\-\.]+')
+    ->name('branding.file');
 
 Route::post('locale/{language}', [\App\Http\Controllers\LocaleController::class, 'switch'])
     ->name('locale.switch');

@@ -19,8 +19,9 @@
                 @if ($systemSettings->hasLogo())
                     <img
                         src="{{ $systemSettings->logoUrl() }}"
-                        alt="{{ $systemSettings->appName() }}"
+                        alt=""
                         class="login-brand-logo-img"
+                        decoding="async"
                     >
                 @else
                     <div class="login-brand-logo">

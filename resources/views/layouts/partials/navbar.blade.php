@@ -7,8 +7,9 @@
                 @if ($systemSettings->hasLogo())
                     <img
                         src="{{ $systemSettings->logoUrl() }}"
-                        alt="{{ $systemSettings->appName() }}"
+                        alt=""
                         class="navbar-brand-logo-img"
+                        decoding="async"
                     >
                 @else
                     <span class="navbar-brand-icon" aria-hidden="true">
