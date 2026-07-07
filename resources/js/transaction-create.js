@@ -26,9 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const content = dropzone?.querySelector('[data-txn-dropzone-content]');
     const queue = dropzone?.querySelector('[data-txn-queue]');
     const fileList = dropzone?.querySelector('[data-txn-file-list]');
+    const submitBtn = form.querySelector('[data-txn-submit]');
+    const uploadProgress = form.querySelector('[data-txn-upload-progress]');
+    const progressFill = uploadProgress?.querySelector('[data-txn-upload-progress-fill]');
+    const progressStatus = uploadProgress?.querySelector('[data-txn-upload-progress-status]');
+    const progressPct = uploadProgress?.querySelector('[data-txn-upload-progress-pct]');
 
     /** @type {File[]} */
     let selectedFiles = [];
+    let isUploading = false;
+    const submitInitiallyDisabled = submitBtn?.disabled ?? false;
 
     const allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
 
@@ -329,6 +336,131 @@ document.addEventListener('DOMContentLoaded', () => {
         updateFolderSelected(init.dataset.folderName);
     }
 
+    const setFormLocked = (locked) => {
+        isUploading = locked;
+        form.classList.toggle('is-uploading', locked);
+        submitBtn && (submitBtn.disabled = locked || submitInitiallyDisabled);
+        form.querySelectorAll('[data-next-step], [data-prev-step], [data-go-step], [data-txn-browse], [data-txn-scan], [data-remove-index]').forEach((el) => {
+            el.disabled = locked;
+        });
+    };
+
+    const updateUploadProgress = (loaded, total) => {
+        if (! uploadProgress) {
+            return;
+        }
+
+        const pct = total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+
+        if (progressFill) {
+            progressFill.style.width = `${pct}%`;
+        }
+
+        if (progressPct) {
+            progressPct.textContent = `${pct}%`;
+        }
+
+        if (progressStatus) {
+            const loadedStr = formatSize(loaded);
+            const totalStr = formatSize(total);
+            const template = i18n.upload_progress || 'Uploading… :pct% (:loaded / :total)';
+
+            progressStatus.textContent = template
+                .replace(':pct', String(pct))
+                .replace(':loaded', loadedStr)
+                .replace(':total', totalStr);
+        }
+    };
+
+    const resetUploadProgress = () => {
+        uploadProgress?.classList.add('is-hidden');
+
+        if (progressFill) {
+            progressFill.style.width = '0%';
+        }
+
+        if (progressPct) {
+            progressPct.textContent = '0%';
+        }
+
+        if (progressStatus) {
+            progressStatus.textContent = i18n.upload_preparing || 'Preparing upload…';
+        }
+    };
+
+    const showValidationErrors = (errors) => {
+        const items = Object.values(errors || {}).flat();
+
+        if (! items.length) {
+            return;
+        }
+
+        const wrap = form.closest('.txnw-wrap');
+        let alert = wrap?.querySelector('.txnw-alert--error');
+
+        if (! alert && wrap) {
+            alert = document.createElement('div');
+            alert.className = 'txnw-alert txnw-alert--error';
+            alert.setAttribute('role', 'alert');
+            wrap.insertBefore(alert, form);
+        }
+
+        if (alert) {
+            alert.innerHTML = `<strong>${i18n.validation_heading || 'Please correct the following errors:'}</strong><ul>${items.map((e) => `<li>${e}</li>`).join('')}</ul>`;
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const submitWithProgress = () => {
+        const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
+
+        uploadProgress?.classList.remove('is-hidden');
+        updateUploadProgress(0, selectedFiles.reduce((sum, file) => sum + file.size, 0));
+
+        xhr.open('POST', form.action);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                updateUploadProgress(event.loaded, event.total);
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 422) {
+                setFormLocked(false);
+                resetUploadProgress();
+
+                try {
+                    showValidationErrors(JSON.parse(xhr.responseText)?.errors);
+                } catch {
+                    alert(i18n.upload_failed || 'Upload failed.');
+                }
+
+                return;
+            }
+
+            if (xhr.status >= 200 && xhr.status < 400) {
+                window.location.href = xhr.responseURL || form.action;
+                return;
+            }
+
+            setFormLocked(false);
+            resetUploadProgress();
+            alert(i18n.upload_failed || 'Upload failed.');
+        });
+
+        xhr.addEventListener('error', () => {
+            setFormLocked(false);
+            resetUploadProgress();
+            alert(i18n.upload_failed || 'Upload failed.');
+        });
+
+        xhr.send(formData);
+    };
+
     form.addEventListener('submit', (event) => {
         const deptId = departmentSelect?.value;
         const selectedNode = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
@@ -338,7 +470,34 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             showStep(2);
             alert(i18n.folder_unit_mismatch || 'Folder does not match organizational unit.');
+            return;
         }
+
+        if (isUploading) {
+            event.preventDefault();
+            return;
+        }
+
+        if (! form.reportValidity()) {
+            event.preventDefault();
+            return;
+        }
+
+        for (let step = 1; step <= totalSteps; step++) {
+            if (! validateStep(step)) {
+                event.preventDefault();
+                showStep(step);
+                return;
+            }
+        }
+
+        if (selectedFiles.length === 0) {
+            return;
+        }
+
+        event.preventDefault();
+        setFormLocked(true);
+        submitWithProgress();
     });
 
     const initialStep = Number(form.dataset.initialStep) || 1;

@@ -960,6 +960,10 @@ class TranslationCatalog
             ['group' => 'transactions', 'key' => 'js.field_reference_placeholder', 'values' => ['ar' => 'أدخل الرقم', 'en' => 'Enter number', 'fr' => 'Saisir le numéro']],
             ['group' => 'transactions', 'key' => 'js.delete', 'values' => ['ar' => 'حذف', 'en' => 'Delete', 'fr' => 'Supprimer']],
             ['group' => 'transactions', 'key' => 'js.remove', 'values' => ['ar' => 'إزالة', 'en' => 'Remove', 'fr' => 'Retirer']],
+            ['group' => 'transactions', 'key' => 'js.upload_progress', 'values' => ['ar' => 'جاري رفع المستندات… :pct% (:loaded / :total)', 'en' => 'Uploading documents… :pct% (:loaded / :total)', 'fr' => 'Téléversement… :pct% (:loaded / :total)']],
+            ['group' => 'transactions', 'key' => 'js.upload_preparing', 'values' => ['ar' => 'جاري تجهيز الرفع…', 'en' => 'Preparing upload…', 'fr' => 'Préparation du téléversement…']],
+            ['group' => 'transactions', 'key' => 'js.upload_failed', 'values' => ['ar' => 'تعذّر رفع المستندات. تحقق من الاتصال وحجم الملفات ثم أعد المحاولة.', 'en' => 'Could not upload documents. Check your connection and file sizes, then try again.', 'fr' => 'Échec du téléversement. Vérifiez la connexion et la taille des fichiers.']],
+            ['group' => 'transactions', 'key' => 'js.validation_heading', 'values' => ['ar' => 'يرجى تصحيح الأخطاء التالية:', 'en' => 'Please correct the following errors:', 'fr' => 'Veuillez corriger les erreurs suivantes :']],
             ['group' => 'transactions', 'key' => 'scanning', 'values' => ['ar' => 'جاري المسح...', 'en' => 'Scanning...', 'fr' => 'Numérisation en cours...']],
         ];
     }

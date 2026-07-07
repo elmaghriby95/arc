@@ -222,9 +222,19 @@
                                     <p class="txnw-hint">{{ __('transactions.upload_draft_hint') }}</p>
                                 </div>
 
+                                <div class="txnw-upload-progress is-hidden" data-txn-upload-progress role="status" aria-live="polite">
+                                    <div class="txnw-upload-progress-label">
+                                        <span data-txn-upload-progress-status>{{ __('transactions.js.upload_preparing') }}</span>
+                                        <span data-txn-upload-progress-pct>0%</span>
+                                    </div>
+                                    <div class="txnw-upload-progress-track">
+                                        <div class="txnw-upload-progress-fill" data-txn-upload-progress-fill style="width: 0%"></div>
+                                    </div>
+                                </div>
+
                                 <footer class="txnw-step-foot">
                                     <button type="button" class="txnw-btn txnw-btn--ghost txnw-btn--lg" data-prev-step>{{ __('common.previous') }}</button>
-                                    <button type="submit" class="txnw-btn txnw-btn--success txnw-btn--lg txnw-btn--submit" {{ $folders->isEmpty() ? 'disabled' : '' }}>
+                                    <button type="submit" class="txnw-btn txnw-btn--success txnw-btn--lg txnw-btn--submit" data-txn-submit {{ $folders->isEmpty() ? 'disabled' : '' }}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
                                         {{ __('transactions.create_submit') }}
                                     </button>

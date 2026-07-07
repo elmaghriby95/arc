@@ -479,6 +479,10 @@ class TransactionController extends Controller
             'field_reference_number' => __('transactions.js.field_reference_number'),
             'field_reference_placeholder' => __('transactions.js.field_reference_placeholder'),
             'delete' => __('transactions.js.delete'),
+            'upload_progress' => __('transactions.js.upload_progress'),
+            'upload_preparing' => __('transactions.js.upload_preparing'),
+            'upload_failed' => __('transactions.js.upload_failed'),
+            'validation_heading' => __('transactions.js.validation_heading'),
         ];
     }
 
