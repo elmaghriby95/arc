@@ -29,6 +29,10 @@ class GeneralSettingsController extends Controller
             'favicon' => ['nullable', 'file', 'max:1024', File::types(['jpg', 'jpeg', 'png', 'webp', 'ico'])],
             'remove_logo' => ['sometimes', 'boolean'],
             'remove_favicon' => ['sometimes', 'boolean'],
+            'logo_navbar_height' => ['required', 'integer', 'min:20', 'max:80'],
+            'logo_navbar_max_width' => ['required', 'integer', 'min:40', 'max:240'],
+            'logo_login_height' => ['required', 'integer', 'min:24', 'max:120'],
+            'logo_login_max_width' => ['required', 'integer', 'min:60', 'max:320'],
         ]);
 
         $settings = SystemSetting::instance();
@@ -55,6 +59,10 @@ class GeneralSettingsController extends Controller
             'app_name' => $validated['app_name'] ?? null,
             'support_email' => $validated['support_email'] ?? null,
             'support_phone' => $validated['support_phone'] ?? null,
+            'logo_navbar_height' => $validated['logo_navbar_height'],
+            'logo_navbar_max_width' => $validated['logo_navbar_max_width'],
+            'logo_login_height' => $validated['logo_login_height'],
+            'logo_login_max_width' => $validated['logo_login_max_width'],
         ]);
 
         $settings->save();

@@ -21,6 +21,7 @@
                         src="{{ $systemSettings->logoUrl() }}"
                         alt=""
                         class="login-brand-logo-img"
+                        style="{{ $systemSettings->loginLogoStyle() }}"
                         decoding="async"
                     >
                 @else

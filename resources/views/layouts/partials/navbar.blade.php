@@ -9,6 +9,7 @@
                         src="{{ $systemSettings->logoUrl() }}"
                         alt=""
                         class="navbar-brand-logo-img"
+                        style="{{ $systemSettings->navbarLogoStyle() }}"
                         decoding="async"
                     >
                 @else

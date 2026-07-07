@@ -76,6 +76,37 @@
                             <x-input-error :messages="$errors->get('favicon')" />
                         </div>
                     </div>
+
+                    <h4 class="general-logo-sizes-title">{{ __('settings.general.logo_sizes_title') }}</h4>
+                    <div class="form-grid form-grid--2 general-logo-sizes">
+                        <div class="form-group">
+                            <x-input-label for="logo_navbar_height" :value="__('settings.general.logo_navbar_height')" />
+                            <x-text-input id="logo_navbar_height" name="logo_navbar_height" type="number" min="20" max="80" class="form-control" :value="old('logo_navbar_height', $settings->logo_navbar_height ?? 28)" required />
+                            <p class="form-hint">{{ __('settings.general.logo_navbar_height_desc') }}</p>
+                            <x-input-error :messages="$errors->get('logo_navbar_height')" />
+                        </div>
+
+                        <div class="form-group">
+                            <x-input-label for="logo_navbar_max_width" :value="__('settings.general.logo_navbar_max_width')" />
+                            <x-text-input id="logo_navbar_max_width" name="logo_navbar_max_width" type="number" min="40" max="240" class="form-control" :value="old('logo_navbar_max_width', $settings->logo_navbar_max_width ?? 100)" required />
+                            <p class="form-hint">{{ __('settings.general.logo_navbar_max_width_desc') }}</p>
+                            <x-input-error :messages="$errors->get('logo_navbar_max_width')" />
+                        </div>
+
+                        <div class="form-group">
+                            <x-input-label for="logo_login_height" :value="__('settings.general.logo_login_height')" />
+                            <x-text-input id="logo_login_height" name="logo_login_height" type="number" min="24" max="120" class="form-control" :value="old('logo_login_height', $settings->logo_login_height ?? 40)" required />
+                            <p class="form-hint">{{ __('settings.general.logo_login_height_desc') }}</p>
+                            <x-input-error :messages="$errors->get('logo_login_height')" />
+                        </div>
+
+                        <div class="form-group">
+                            <x-input-label for="logo_login_max_width" :value="__('settings.general.logo_login_max_width')" />
+                            <x-text-input id="logo_login_max_width" name="logo_login_max_width" type="number" min="60" max="320" class="form-control" :value="old('logo_login_max_width', $settings->logo_login_max_width ?? 120)" required />
+                            <p class="form-hint">{{ __('settings.general.logo_login_max_width_desc') }}</p>
+                            <x-input-error :messages="$errors->get('logo_login_max_width')" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
