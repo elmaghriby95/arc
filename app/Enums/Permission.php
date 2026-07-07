@@ -100,6 +100,10 @@ enum Permission: string
     case SettingsReferenceNumbersView = 'settings.reference-numbers.view';
     case SettingsReferenceNumbersEdit = 'settings.reference-numbers.edit';
 
+    // إعدادات رمز QR
+    case SettingsQrCodeView = 'settings.qr-code.view';
+    case SettingsQrCodeEdit = 'settings.qr-code.edit';
+
     // تجاوز تكرار الرقم الإشاري
     case DocumentsReferenceNumberDuplicateOverride = 'documents.reference-number.duplicate-override';
 
@@ -200,6 +204,9 @@ enum Permission: string
 
             self::SettingsReferenceNumbersView,
             self::SettingsReferenceNumbersEdit => 'reference_numbers',
+
+            self::SettingsQrCodeView,
+            self::SettingsQrCodeEdit => 'qr_code',
 
             self::ProfileView,
             self::ProfileEdit,

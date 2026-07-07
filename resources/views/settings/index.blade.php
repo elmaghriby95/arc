@@ -246,6 +246,29 @@
                 </span>
             </a>
             @endpermission
+
+            @permission('settings.qr-code.view')
+            <a href="{{ route('settings.qr-code.index') }}" class="settings-module settings-module--qr-code">
+                <div class="settings-module-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 15.75l2.25 2.25 4.5-4.5M10.5 15.75h.008v.008H10.5V15.75z" />
+                    </svg>
+                </div>
+                <div class="settings-module-body">
+                    <h3 class="settings-module-title">{{ __('settings.qr_code_title') }}</h3>
+                    <p class="settings-module-desc">{{ __('settings.qr_code_desc') }}</p>
+                    <div class="settings-module-meta">
+                        <span class="settings-badge">{{ __('settings.qr_code_badge') }}</span>
+                    </div>
+                </div>
+                <span class="settings-module-arrow">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                </span>
+            </a>
+            @endpermission
         </div>
 
         @if ($recentUsers->isNotEmpty())

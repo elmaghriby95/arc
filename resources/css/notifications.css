@@ -143,10 +143,10 @@
 /* ===== Dropdown panel ===== */
 
 .navbar-notifications > .dropdown-menu {
-    inset-inline-end: 0;
-    inset-inline-start: auto;
-    left: auto;
+    left: 50%;
     right: auto;
+    inset-inline-start: auto;
+    inset-inline-end: auto;
     width: min(24rem, calc(100vw - 1.25rem));
     min-width: 18.5rem;
     padding: 0;
@@ -156,6 +156,7 @@
     box-shadow:
         0 4px 6px -1px rgba(15, 23, 42, 0.06),
         0 20px 50px -12px rgba(15, 23, 42, 0.18);
+    transform: translateX(-50%);
     animation: notif-panel-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
     overflow: hidden;
 }
@@ -163,11 +164,11 @@
 @keyframes notif-panel-in {
     from {
         opacity: 0;
-        transform: translateY(-6px) scale(0.98);
+        transform: translateX(-50%) translateY(-6px) scale(0.98);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateX(-50%) translateY(0) scale(1);
     }
 }
 
@@ -584,6 +585,8 @@
     .navbar-notifications > .dropdown-menu {
         width: min(24rem, calc(100vw - 1rem));
         min-width: 0;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
     .navbar-notifications .navbar-notifications-header {

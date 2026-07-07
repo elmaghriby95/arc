@@ -63,6 +63,8 @@ return [
     'settings_languages_delete' => 'حذف لغة',
     'settings_reference-numbers_view' => 'عرض إعدادات الرقم الإشاري',
     'settings_reference-numbers_edit' => 'تعديل إعدادات الرقم الإشاري',
+    'settings_qr-code_view' => 'عرض إعدادات رمز QR',
+    'settings_qr-code_edit' => 'تعديل إعدادات رمز QR',
     'documents_reference-number_duplicate-override' => 'السماح بتكرار الرقم الإشاري',
     'profile_view' => 'عرض الملف الشخصي',
     'profile_edit' => 'تعديل الملف الشخصي',
@@ -86,6 +88,7 @@ return [
         'folder_tree' => 'شجرة المجلدات',
         'languages' => 'اللغات',
         'reference_numbers' => 'إعدادات الرقم الإشاري',
+        'qr_code' => 'إعدادات رمز QR',
         'profile' => 'الملف الشخصي',
     ],
 ];

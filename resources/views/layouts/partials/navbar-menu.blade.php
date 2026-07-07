@@ -28,7 +28,7 @@
 @endpermission
 
 @if ($hasArchiveMenu)
-    <details class="navbar-nav-details" @if ($archiveActive) open @endif>
+    <details class="navbar-nav-details">
         <summary class="navbar-link navbar-link--summary {{ $archiveActive ? 'is-active' : '' }}">
             <span class="navbar-link-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
@@ -81,7 +81,7 @@
 @endif
 
 @if ($hasStructureMenu)
-    <details class="navbar-nav-details" @if ($structureActive) open @endif>
+    <details class="navbar-nav-details">
         <summary class="navbar-link navbar-link--summary {{ $structureActive ? 'is-active' : '' }}">
             <span class="navbar-link-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>

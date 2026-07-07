@@ -118,18 +118,18 @@
             @endforelse
         </div>
 
-        <section class="txn-sidebar-qr">
-            <div id="txn-qr-print-area" class="txn-qr-print-area">
+        <section class="txn-sidebar-qr" style="--txn-qr-size: {{ $qrDisplaySize }}px;">
+            <div class="txn-qr-print-area">
                 <h3 class="txn-sidebar-qr-title">{{ __('transactions.qr_code_title') }}</h3>
                 <div class="txn-sidebar-qr-body">
-                    <img src="{{ url(route('transactions.qr-code', $transaction)) }}" alt="{{ __('transactions.qr_code_title') }}" width="160" height="160" class="txn-qr-image">
+                    <img src="{{ route('transactions.qr-code', $transaction) }}" alt="{{ __('transactions.qr_code_title') }}" width="{{ $qrDisplaySize }}" height="{{ $qrDisplaySize }}" class="txn-qr-image">
                     <p class="form-hint">{{ __('transactions.qr_code_hint') }}</p>
                     <code class="txn-qr-payload">{{ $qrPayload }}</code>
                 </div>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm txn-qr-print-btn" data-txn-qr-print>
+            <a href="{{ route('transactions.qr-code.print', $transaction) }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm txn-qr-print-btn">
                 {{ __('transactions.qr_code_print') }}
-            </button>
+            </a>
         </section>
     </div>
 </aside>

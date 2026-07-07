@@ -213,6 +213,7 @@ class TranslationCatalog
             ['group' => 'messages', 'key' => 'organization.updated', 'values' => ['ar' => 'تم تحديث الوحدة التنظيمية بنجاح.', 'en' => 'Organizational unit updated successfully.', 'fr' => 'Unité organisationnelle mise à jour avec succès.']],
             ['group' => 'messages', 'key' => 'organization.deleted', 'values' => ['ar' => 'تم حذف الوحدة التنظيمية بنجاح.', 'en' => 'Organizational unit deleted successfully.', 'fr' => 'Unité organisationnelle supprimée avec succès.']],
             ['group' => 'messages', 'key' => 'reference_number.saved', 'values' => ['ar' => 'تم حفظ إعدادات الرقم الإشاري بنجاح.', 'en' => 'Reference number settings saved successfully.', 'fr' => 'Paramètres du numéro de référence enregistrés avec succès.']],
+            ['group' => 'messages', 'key' => 'transaction_qr.saved', 'values' => ['ar' => 'تم حفظ إعدادات رمز QR بنجاح.', 'en' => 'QR code settings saved successfully.', 'fr' => 'Paramètres du QR enregistrés avec succès.']],
             ['group' => 'messages', 'key' => 'role.created', 'values' => ['ar' => 'تم إنشاء الدور بنجاح.', 'en' => 'Role created successfully.', 'fr' => 'Rôle créé avec succès.']],
             ['group' => 'messages', 'key' => 'role.updated', 'values' => ['ar' => 'تم تحديث الدور بنجاح.', 'en' => 'Role updated successfully.', 'fr' => 'Rôle mis à jour avec succès.']],
             ['group' => 'messages', 'key' => 'role.deleted', 'values' => ['ar' => 'تم حذف الدور بنجاح.', 'en' => 'Role deleted successfully.', 'fr' => 'Rôle supprimé avec succès.']],
@@ -307,6 +308,9 @@ class TranslationCatalog
             ['group' => 'settings', 'key' => 'ref_numbers_title', 'values' => ['ar' => 'إعدادات الرقم الإشاري', 'en' => 'Reference Number Settings', 'fr' => 'Paramètres des numéros de référence']],
             ['group' => 'settings', 'key' => 'ref_numbers_desc', 'values' => ['ar' => 'قواعد الأرقام الإشارية، الرقم التشغيلي، منع التكرار، والتدقيق', 'en' => 'Reference number rules, operational numbers, deduplication', 'fr' => 'Règles des numéros de référence']],
             ['group' => 'settings', 'key' => 'ref_numbers_badge', 'values' => ['ar' => 'تكوين النظام', 'en' => 'System configuration', 'fr' => 'Configuration système']],
+            ['group' => 'settings', 'key' => 'qr_code_title', 'values' => ['ar' => 'إعدادات رمز QR', 'en' => 'QR Code Settings', 'fr' => 'Paramètres du code QR']],
+            ['group' => 'settings', 'key' => 'qr_code_desc', 'values' => ['ar' => 'التحكم في حجم رمز QR للمعاملات في العرض والطباعة', 'en' => 'Control transaction QR code size for display and printing', 'fr' => 'Contrôler la taille du QR pour l\'affichage et l\'impression']],
+            ['group' => 'settings', 'key' => 'qr_code_badge', 'values' => ['ar' => 'حجم العرض والطباعة', 'en' => 'Display & print size', 'fr' => 'Taille affichage et impression']],
             ['group' => 'settings', 'key' => 'recent_users', 'values' => ['ar' => 'آخر المستخدمين المسجّلين', 'en' => 'Recently registered users', 'fr' => 'Utilisateurs récemment inscrits']],
         ];
     }
@@ -558,6 +562,17 @@ class TranslationCatalog
             ['group' => 'settings.ref_numbers', 'key' => 'override_note', 'values' => ['ar' => 'صلاحية تجاوز التكرار: يمكن منح صلاحية documents.reference-number.duplicate-override من إدارة الأدوار للمستخدمين المخوّلين، مع إلزامهم بتوثيق سبب الاستثناء.', 'en' => 'Duplicate override permission can be granted via role management with documented exception reason.', 'fr' => 'La permission de dérogation peut être accordée via les rôles.']],
             ['group' => 'settings.ref_numbers', 'key' => 'save', 'values' => ['ar' => 'حفظ الإعدادات', 'en' => 'Save settings', 'fr' => 'Enregistrer les paramètres']],
             ['group' => 'settings.ref_numbers', 'key' => 'readonly', 'values' => ['ar' => 'لديك صلاحية العرض فقط — لا يمكنك تعديل هذه الإعدادات.', 'en' => 'View-only access — you cannot edit these settings.', 'fr' => 'Accès lecture seule — modification impossible.']],
+            ['group' => 'settings.qr_code', 'key' => 'title', 'values' => ['ar' => 'إعدادات رمز QR', 'en' => 'QR Code Settings', 'fr' => 'Paramètres du code QR']],
+            ['group' => 'settings.qr_code', 'key' => 'subtitle', 'values' => ['ar' => 'تحديد حجم رمز QR في صفحة المعاملة وعند الطباعة', 'en' => 'Set QR code size on the transaction page and when printing', 'fr' => 'Définir la taille du QR sur la page transaction et à l\'impression']],
+            ['group' => 'settings.qr_code', 'key' => 'info', 'values' => ['ar' => 'يُستخدم رمز QR لربط المعاملة بموقعها الفيزيائي في الأرشيف. يمكنك ضبط حجم العرض في الشريط الجانبي وحجم الطباعة بشكل مستقل.', 'en' => 'The QR code links the transaction to its physical archive location. You can set display and print sizes independently.', 'fr' => 'Le QR relie la transaction à son emplacement physique. Tailles d\'affichage et d\'impression indépendantes.']],
+            ['group' => 'settings.qr_code', 'key' => 'sizes_title', 'values' => ['ar' => 'أحجام رمز QR', 'en' => 'QR code sizes', 'fr' => 'Tailles du code QR']],
+            ['group' => 'settings.qr_code', 'key' => 'display_size', 'values' => ['ar' => 'حجم العرض (بكسل)', 'en' => 'Display size (px)', 'fr' => 'Taille d\'affichage (px)']],
+            ['group' => 'settings.qr_code', 'key' => 'display_size_desc', 'values' => ['ar' => 'يظهر في الشريط الجانبي لصفحة المعاملة', 'en' => 'Shown in the transaction page sidebar', 'fr' => 'Affiché dans la barre latérale de la transaction']],
+            ['group' => 'settings.qr_code', 'key' => 'print_size', 'values' => ['ar' => 'حجم الطباعة (بكسل)', 'en' => 'Print size (px)', 'fr' => 'Taille d\'impression (px)']],
+            ['group' => 'settings.qr_code', 'key' => 'print_size_desc', 'values' => ['ar' => 'يُستخدم عند طباعة رمز QR', 'en' => 'Used when printing the QR code', 'fr' => 'Utilisé lors de l\'impression du QR']],
+            ['group' => 'settings.qr_code', 'key' => 'size_hint', 'values' => ['ar' => 'القيم المسموحة: من 80 إلى 500 بكسل', 'en' => 'Allowed range: 80 to 500 pixels', 'fr' => 'Plage autorisée : 80 à 500 pixels']],
+            ['group' => 'settings.qr_code', 'key' => 'save', 'values' => ['ar' => 'حفظ الإعدادات', 'en' => 'Save settings', 'fr' => 'Enregistrer les paramètres']],
+            ['group' => 'settings.qr_code', 'key' => 'readonly', 'values' => ['ar' => 'لديك صلاحية العرض فقط — لا يمكنك تعديل هذه الإعدادات.', 'en' => 'View-only access — you cannot edit these settings.', 'fr' => 'Accès lecture seule — modification impossible.']],
         ];
     }
 
@@ -752,6 +767,8 @@ class TranslationCatalog
             'settings.languages.delete' => ['ar' => 'حذف لغة', 'en' => 'Delete language', 'fr' => 'Supprimer une langue'],
             'settings.reference-numbers.view' => ['ar' => 'عرض إعدادات الرقم الإشاري', 'en' => 'View reference number settings', 'fr' => 'Voir les numéros de référence'],
             'settings.reference-numbers.edit' => ['ar' => 'تعديل إعدادات الرقم الإشاري', 'en' => 'Edit reference number settings', 'fr' => 'Modifier les numéros de référence'],
+            'settings.qr-code.view' => ['ar' => 'عرض إعدادات رمز QR', 'en' => 'View QR code settings', 'fr' => 'Voir les paramètres QR'],
+            'settings.qr-code.edit' => ['ar' => 'تعديل إعدادات رمز QR', 'en' => 'Edit QR code settings', 'fr' => 'Modifier les paramètres QR'],
             'documents.reference-number.duplicate-override' => ['ar' => 'السماح بتكرار الرقم الإشاري', 'en' => 'Allow duplicate reference numbers', 'fr' => 'Autoriser les numéros en double'],
             'profile.view' => ['ar' => 'عرض الملف الشخصي', 'en' => 'View profile', 'fr' => 'Voir le profil'],
             'profile.edit' => ['ar' => 'تعديل الملف الشخصي', 'en' => 'Edit profile', 'fr' => 'Modifier le profil'],

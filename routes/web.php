@@ -18,6 +18,7 @@ use App\Http\Controllers\Settings\FolderTreeController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\ReferenceNumberSettingsController;
+use App\Http\Controllers\Settings\TransactionQrSettingsController;
 use App\Http\Controllers\Settings\RoleManagementController;
 use App\Http\Controllers\Settings\SettingsController;
 use App\Http\Controllers\Settings\TransactionStatusController;
@@ -149,6 +150,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         Route::get('transactions/{transaction}/qr-code', [TransactionController::class, 'qrCode'])->name('transactions.qr-code');
+        Route::get('transactions/{transaction}/qr-code/print', [TransactionController::class, 'qrPrint'])->name('transactions.qr-code.print');
         Route::post('transactions/{transaction}/transition', [TransactionController::class, 'transition'])->name('transactions.transition');
     });
 
@@ -342,6 +344,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:settings.reference-numbers.edit')->group(function () {
             Route::put('/reference-numbers', [ReferenceNumberSettingsController::class, 'update'])->name('reference-numbers.update');
             Route::patch('/reference-numbers', [ReferenceNumberSettingsController::class, 'update']);
+        });
+
+        Route::middleware('permission:settings.qr-code.view')->group(function () {
+            Route::get('/qr-code', [TransactionQrSettingsController::class, 'index'])->name('qr-code.index');
+        });
+
+        Route::middleware('permission:settings.qr-code.edit')->group(function () {
+            Route::put('/qr-code', [TransactionQrSettingsController::class, 'update'])->name('qr-code.update');
+            Route::patch('/qr-code', [TransactionQrSettingsController::class, 'update']);
         });
     });
 });

@@ -3,10 +3,26 @@
 namespace App\Services;
 
 use App\Models\Transaction;
+use App\Models\TransactionQrSetting;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TransactionQrCodeService
 {
+    public function settings(): TransactionQrSetting
+    {
+        return TransactionQrSetting::instance();
+    }
+
+    public function displaySize(): int
+    {
+        return $this->settings()->display_size;
+    }
+
+    public function printSize(): int
+    {
+        return $this->settings()->print_size;
+    }
+
     public function payload(Transaction $transaction): string
     {
         $transaction->loadMissing('folder');
@@ -20,8 +36,10 @@ class TransactionQrCodeService
         ]);
     }
 
-    public function svg(Transaction $transaction, int $size = 200): string
+    public function svg(Transaction $transaction, ?int $size = null): string
     {
+        $size ??= $this->displaySize();
+
         return (string) QrCode::size($size)
             ->margin(1)
             ->encoding('UTF-8')

@@ -235,6 +235,7 @@ class TransactionController extends Controller
             'canRequestLending' => $lendingEligibility->canUserRequest($user, $transaction),
             'lendingRequestBlockReason' => $lendingEligibility->blockingReason($user, $transaction),
             'qrPayload' => $qrCodes->payload($transaction),
+            'qrDisplaySize' => $qrCodes->displaySize(),
         ]);
     }
 
@@ -242,9 +243,20 @@ class TransactionController extends Controller
     {
         $this->authorizeTransactionAccess($transaction);
 
-        return response($qrCodes->svg($transaction), 200, [
+        return response($qrCodes->svg($transaction, $qrCodes->displaySize()), 200, [
             'Content-Type' => 'image/svg+xml',
             'Cache-Control' => 'private, max-age=3600',
+        ]);
+    }
+
+    public function qrPrint(Transaction $transaction, TransactionQrCodeService $qrCodes): View
+    {
+        $this->authorizeTransactionAccess($transaction);
+
+        return view('transactions.qr-print', [
+            'qrPayload' => $qrCodes->payload($transaction),
+            'qrSvg' => $qrCodes->svg($transaction, $qrCodes->printSize()),
+            'printSize' => $qrCodes->printSize(),
         ]);
     }
 
