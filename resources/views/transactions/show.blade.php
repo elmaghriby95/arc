@@ -16,6 +16,10 @@
                             <a href="{{ route('transactions.edit', $transaction) }}" class="btn btn-secondary">{{ __('transactions.edit_data') }}</a>
                         @endif
                     @endpermission
+                    @include('lending-requests.partials.request-modal', [
+                        'transaction' => $transaction,
+                        'canRequestLending' => $canRequestLending ?? false,
+                    ])
                 </div>
             </div>
         </div>

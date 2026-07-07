@@ -75,6 +75,13 @@ enum Permission: string
     case TransactionsStatusArchive = 'transactions.status.archive';
     case TransactionsReviewLogView = 'transactions.review-log.view';
 
+    // طلبات إعارة مستندات المعاملة
+    case LendingRequestsRequest = 'lending-requests.request';
+    case LendingRequestsView = 'lending-requests.view';
+    case LendingRequestsReview = 'lending-requests.review';
+    case LendingRequestsHandover = 'lending-requests.handover';
+    case LendingRequestsLogView = 'lending-requests.log.view';
+
     // شجرة المجلدات
     case SettingsFoldersView = 'settings.folders.view';
     case SettingsFoldersCreate = 'settings.folders.create';
@@ -170,6 +177,12 @@ enum Permission: string
             self::TransactionsStatusApprove,
             self::TransactionsStatusArchive,
             self::TransactionsReviewLogView => 'archive_management',
+
+            self::LendingRequestsRequest,
+            self::LendingRequestsView,
+            self::LendingRequestsReview,
+            self::LendingRequestsHandover,
+            self::LendingRequestsLogView => 'lending_requests',
 
             self::SettingsFoldersView,
             self::SettingsFoldersCreate,

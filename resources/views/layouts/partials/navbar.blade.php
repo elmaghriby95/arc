@@ -49,6 +49,16 @@
                     </a>
                     @endif
                 @endpermission
+                @permission('lending-requests.view')
+                    @if (Route::has('lending-requests.index'))
+                    <a href="{{ route('lending-requests.index') }}" class="navbar-link {{ request()->routeIs('lending-requests.*') ? 'is-active' : '' }}">
+                        <span class="navbar-link-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+                        </span>
+                        <span class="navbar-link-text">{{ __('nav.lending_requests') }}</span>
+                    </a>
+                    @endif
+                @endpermission
                 @if (auth()->user()?->canAccessReports())
                     <a href="{{ route('reports.index') }}" class="navbar-link {{ request()->routeIs('reports.*') ? 'is-active' : '' }}">
                         <span class="navbar-link-icon" aria-hidden="true">
@@ -158,6 +168,9 @@
                                 $isUnread = $notification->read_at === null;
                                 $action = $data['action'] ?? null;
                                 $iconVariant = match (true) {
+                                    ($data['type'] ?? null) === 'lending_request_status_changed' && in_array($action, ['review_rejected', 'handover_rejected'], true) => 'reject',
+                                    ($data['type'] ?? null) === 'lending_request_status_changed' && in_array($action, ['review_approved', 'handover_confirmed', 'returned'], true) => 'approve',
+                                    ($data['type'] ?? null) === 'lending_request_status_changed' && $action === 'requested' => 'submit',
                                     $action === 'create' || ($action === null && empty($data['from_status'])) => 'create',
                                     $action === 'approve' => 'approve',
                                     $action === 'reject' => 'reject',

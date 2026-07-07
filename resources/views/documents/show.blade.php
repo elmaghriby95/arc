@@ -16,6 +16,10 @@
                 @permission('transactions.view')
                     <a href="{{ route('transactions.show', $attachment->transaction) }}" class="btn btn-primary">{{ __('documents.view_transaction') }}</a>
                 @endpermission
+                @include('lending-requests.partials.request-modal', [
+                    'transaction' => $attachment->transaction,
+                    'canRequestLending' => $canRequestLending ?? false,
+                ])
             </div>
         </div>
     </x-slot>

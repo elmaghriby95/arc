@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\LendingRequestHistory;
 use App\Models\TransactionStatusHistory;
+use App\Observers\LendingRequestHistoryObserver;
 use App\Observers\TransactionStatusHistoryObserver;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -22,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Pagination\Paginator::useBootstrapFive();
 
         TransactionStatusHistory::observe(TransactionStatusHistoryObserver::class);
+        LendingRequestHistory::observe(LendingRequestHistoryObserver::class);
 
         View::composer(['layouts.partials.navbar', 'layouts.login', 'layouts.guest', 'auth.login'], function ($view) {
             $view->with('navbarLanguages', \App\Models\Language::query()

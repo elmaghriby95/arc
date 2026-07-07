@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionLendingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,12 +20,15 @@ class Transaction extends Model
         'created_by',
         'transaction_date',
         'notes',
+        'lending_status',
+        'active_lending_request_id',
     ];
 
     protected function casts(): array
     {
         return [
             'transaction_date' => 'date',
+            'lending_status' => TransactionLendingStatus::class,
         ];
     }
 
@@ -61,6 +65,21 @@ class Transaction extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(TransactionAttachment::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function lendingRequests(): HasMany
+    {
+        return $this->hasMany(LendingRequest::class)->orderByDesc('created_at');
+    }
+
+    public function activeLendingRequest(): BelongsTo
+    {
+        return $this->belongsTo(LendingRequest::class, 'active_lending_request_id');
+    }
+
+    public function isOnLoan(): bool
+    {
+        return $this->lending_status === TransactionLendingStatus::OnLoan;
     }
 
     public function nextStatus(): ?TransactionStatus

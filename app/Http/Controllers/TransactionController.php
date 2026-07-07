@@ -10,6 +10,7 @@ use App\Models\Transaction;
 use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Models\User;
+use App\Services\LendingEligibilityService;
 use App\Services\ReferenceNumberService;
 use App\Services\TransactionScopeService;
 use App\Services\WorkflowService;
@@ -201,7 +202,7 @@ class TransactionController extends Controller
             ->with('success', __('messages.transaction.created'));
     }
 
-    public function show(Transaction $transaction, WorkflowService $workflow): View
+    public function show(Transaction $transaction, WorkflowService $workflow, LendingEligibilityService $lendingEligibility): View
     {
         $this->authorizeTransactionAccess($transaction);
 
@@ -225,6 +226,7 @@ class TransactionController extends Controller
             'workflowActions' => $workflow->availableActions($transaction, $user),
             'canManageAttachments' => $user->hasPermission('transactions.edit') && $transaction->canBeEdited(),
             'txnAttachmentsI18n' => $this->transactionAttachmentsJsI18n(),
+            'canRequestLending' => $lendingEligibility->canUserRequest($user, $transaction),
         ]);
     }
 

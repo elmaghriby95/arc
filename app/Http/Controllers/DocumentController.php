@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\TransactionAttachment;
 use App\Models\User;
+use App\Services\LendingEligibilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -55,7 +56,7 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function show(TransactionAttachment $attachment): View
+    public function show(TransactionAttachment $attachment, LendingEligibilityService $lendingEligibility): View
     {
         $this->authorizeAttachmentAccess($attachment);
 
@@ -67,7 +68,12 @@ class DocumentController extends Controller
             'uploader',
         ]);
 
-        return view('documents.show', compact('attachment'));
+        $transaction = $attachment->transaction;
+        $canRequestLending = $transaction
+            ? $lendingEligibility->canUserRequest(auth()->user(), $transaction)
+            : false;
+
+        return view('documents.show', compact('attachment', 'canRequestLending'));
     }
 
     public function preview(TransactionAttachment $attachment)

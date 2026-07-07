@@ -4,6 +4,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\LendingLogController;
+use App\Http\Controllers\LendingRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Reports\ReportController;
@@ -106,6 +108,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:transactions.review-log.view')->group(function () {
         Route::get('transactions/review-log', [TransactionReviewLogController::class, 'index'])->name('transactions.review-log');
     });
+
+    Route::middleware('permission:lending-requests.view')->group(function () {
+        Route::get('lending-requests', [LendingRequestController::class, 'index'])->name('lending-requests.index');
+    });
+
+    Route::get('lending-requests/log', [LendingLogController::class, 'index'])
+        ->middleware('permission:lending-requests.log.view')
+        ->name('lending-requests.log');
+
+    Route::get('lending-requests/{lendingRequest}', [LendingRequestController::class, 'show'])->name('lending-requests.show');
+
+    Route::post('lending-requests', [LendingRequestController::class, 'store'])
+        ->middleware('permission:lending-requests.request')
+        ->name('lending-requests.store');
+
+    Route::post('lending-requests/{lendingRequest}/review', [LendingRequestController::class, 'review'])
+        ->middleware('permission:lending-requests.review')
+        ->name('lending-requests.review');
+
+    Route::post('lending-requests/{lendingRequest}/handover', [LendingRequestController::class, 'handover'])
+        ->middleware('permission:lending-requests.handover')
+        ->name('lending-requests.handover');
+
+    Route::post('lending-requests/{lendingRequest}/return', [LendingRequestController::class, 'returnDocuments'])
+        ->middleware('permission:lending-requests.handover')
+        ->name('lending-requests.return');
 
     Route::middleware('permission:transactions.create')->group(function () {
         Route::get('transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
