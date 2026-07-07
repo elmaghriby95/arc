@@ -7,7 +7,7 @@
 @endphp
 
 @if ($statusEnum)
-    <span class="badge" style="background-color: {{ $statusEnum->color() }}; color: #fff;">
+    <span class="lending-status-badge" style="background-color: {{ $statusEnum->color() }};">
         {{ $statusEnum->label() }}
     </span>
 @else

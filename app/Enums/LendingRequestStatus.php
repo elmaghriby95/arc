@@ -12,7 +12,20 @@ enum LendingRequestStatus: string
 
     public function label(): string
     {
-        return __('lending_requests.status.'.$this->value);
+        $key = 'lending_requests.status_labels.'.$this->value;
+        $label = __($key);
+
+        if ($label !== $key) {
+            return $label;
+        }
+
+        return match ($this) {
+            self::PendingReview => 'بانتظار المراجعة',
+            self::PendingHandover => 'بانتظار التسليم',
+            self::OnLoan => 'معارة',
+            self::Returned => 'مُرجعة',
+            self::Rejected => 'مرفوضة',
+        };
     }
 
     public function color(): string
