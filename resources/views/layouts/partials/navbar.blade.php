@@ -4,9 +4,17 @@
     <div class="navbar-inner">
         <div class="navbar-start">
             <a href="{{ route('dashboard') }}" class="navbar-brand">
-                <span class="navbar-brand-icon" aria-hidden="true">
-                    @include('layouts.partials.system-brand-icon', ['variant' => 'navbar'])
-                </span>
+                @if ($systemSettings->hasLogo())
+                    <img
+                        src="{{ $systemSettings->logoUrl() }}"
+                        alt="{{ $systemSettings->appName() }}"
+                        class="navbar-brand-logo-img"
+                    >
+                @else
+                    <span class="navbar-brand-icon" aria-hidden="true">
+                        @include('layouts.partials.system-brand-icon', ['variant' => 'navbar'])
+                    </span>
+                @endif
                 <span class="navbar-brand-copy">
                     <span class="navbar-brand-text">{{ $systemSettings->appName() }}</span>
                     <span class="navbar-brand-tagline">{{ __('nav.tagline') }}</span>

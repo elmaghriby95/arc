@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class SystemSetting extends Model
 {
@@ -34,21 +33,35 @@ class SystemSetting extends Model
 
     public function hasLogo(): bool
     {
-        return filled($this->logo_path) && Storage::disk('public')->exists($this->logo_path);
+        return filled($this->logo_path);
     }
 
     public function logoUrl(): ?string
     {
-        return $this->hasLogo() ? Storage::disk('public')->url($this->logo_path) : null;
+        if (! $this->hasLogo()) {
+            return null;
+        }
+
+        $url = asset('storage/'.$this->logo_path);
+
+        if ($this->updated_at) {
+            $url .= '?v='.$this->updated_at->timestamp;
+        }
+
+        return $url;
     }
 
     public function hasFavicon(): bool
     {
-        return filled($this->favicon_path) && Storage::disk('public')->exists($this->favicon_path);
+        return filled($this->favicon_path);
     }
 
     public function faviconUrl(): ?string
     {
-        return $this->hasFavicon() ? Storage::disk('public')->url($this->favicon_path) : null;
+        if (! $this->hasFavicon()) {
+            return null;
+        }
+
+        return asset('storage/'.$this->favicon_path);
     }
 }

@@ -297,17 +297,13 @@ a:hover { color: var(--primary-dark); }
     height: 1.25rem;
 }
 
-.navbar-brand-icon .system-brand-img--navbar {
-    width: 100%;
-    height: 100%;
+.navbar-brand-logo-img {
+    height: 2.75rem;
+    width: auto;
+    max-width: 10rem;
     object-fit: contain;
-    border-radius: 0.65rem;
-}
-
-.navbar-brand-icon:has(.system-brand-img) {
-    background: #fff;
-    padding: 0.2rem;
-    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.15);
+    flex-shrink: 0;
+    border-radius: 0.5rem;
 }
 
 .navbar-brand-copy {
@@ -1960,16 +1956,14 @@ textarea.form-control:focus {
     height: 2.2rem;
 }
 
-.login-brand-logo .system-brand-img--login {
-    width: 100%;
-    height: 100%;
+.login-brand-logo-img {
+    display: block;
+    height: 4.5rem;
+    width: auto;
+    max-width: min(100%, 18rem);
     object-fit: contain;
+    margin-bottom: 1.5rem;
     border-radius: 0.75rem;
-}
-
-.login-brand-logo:has(.system-brand-img) {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.35rem;
 }
 
 .login-brand-title {

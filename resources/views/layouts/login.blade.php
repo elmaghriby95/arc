@@ -16,9 +16,17 @@
     <div class="login-page">
         <aside class="login-brand">
             <div class="login-brand-content">
-                <div class="login-brand-logo">
-                    @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
-                </div>
+                @if ($systemSettings->hasLogo())
+                    <img
+                        src="{{ $systemSettings->logoUrl() }}"
+                        alt="{{ $systemSettings->appName() }}"
+                        class="login-brand-logo-img"
+                    >
+                @else
+                    <div class="login-brand-logo">
+                        @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
+                    </div>
+                @endif
 
                 <h1 class="login-brand-title">{{ $systemSettings->appName() }}</h1>
                 <p class="login-brand-subtitle">{{ __('auth.brand_subtitle') }}</p>
