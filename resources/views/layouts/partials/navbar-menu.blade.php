@@ -28,7 +28,7 @@
 @endpermission
 
 @if ($hasArchiveMenu)
-    <div class="dropdown navbar-nav-group" data-dropdown>
+    <div class="dropdown navbar-nav-group" data-navbar-dropdown>
         <button type="button" class="navbar-link navbar-link--group {{ $archiveActive ? 'is-active' : '' }}" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
             <span class="navbar-link-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
@@ -81,7 +81,7 @@
 @endif
 
 @if ($hasStructureMenu)
-    <div class="dropdown navbar-nav-group" data-dropdown>
+    <div class="dropdown navbar-nav-group" data-navbar-dropdown>
         <button type="button" class="navbar-link navbar-link--group {{ $structureActive ? 'is-active' : '' }}" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
             <span class="navbar-link-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>

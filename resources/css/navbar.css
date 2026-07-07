@@ -1,17 +1,62 @@
 /* Navbar layout — loaded from resources via inline-css (deploy-safe) */
 
+.navbar-start {
+    overflow: visible;
+}
+
 .navbar-menu {
     flex: 1;
     min-width: 0;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    overflow: visible;
 }
 
-.navbar-menu::-webkit-scrollbar {
-    display: none;
+@media (min-width: 961px) {
+    .navbar-menu {
+        overflow-x: auto;
+        overflow-y: visible;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .navbar-menu::-webkit-scrollbar {
+        display: none;
+    }
+
+    .navbar-nav-group {
+        position: relative;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .navbar-nav-group.dropdown.is-open {
+        z-index: 120;
+    }
+
+    .navbar-nav-group .navbar-nav-submenu.dropdown-menu {
+        position: absolute;
+        top: calc(100% + 0.45rem);
+        left: auto;
+        right: auto;
+        inset-inline-start: 0;
+        inset-inline-end: auto;
+        display: none;
+        z-index: 130;
+        min-width: 13.5rem;
+        padding: 0.4rem;
+        border-radius: 0.85rem;
+        margin-top: 0;
+        background: var(--surface, #fff);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow:
+            0 20px 50px rgba(15, 23, 42, 0.14),
+            0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+        animation: navbar-dropdown-in 0.2s ease;
+    }
+
+    .navbar-nav-group.dropdown.is-open .navbar-nav-submenu.dropdown-menu {
+        display: block;
+    }
 }
 
 .navbar-nav-group {
@@ -50,7 +95,6 @@
     min-width: 13.5rem;
     padding: 0.4rem;
     border-radius: 0.85rem;
-    margin-top: 0.45rem;
 }
 
 .navbar-nav-subitem {

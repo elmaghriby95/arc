@@ -1,5 +1,9 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
+        if (dropdown.closest('[data-navbar-menu]')) {
+            return;
+        }
+
         const toggle = dropdown.querySelector('[data-dropdown-toggle]');
 
         toggle?.addEventListener('click', (event) => {
