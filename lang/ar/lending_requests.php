@@ -32,10 +32,15 @@ return [
     'to_status' => 'إلى حالة',
     'performer' => 'نفّذ بواسطة',
     'show_title' => 'تفاصيل طلب الإعارة',
+    'show_subtitle' => 'متابعة مراحل الإعارة وإجراءاتها',
     'transaction_info' => 'بيانات المعاملة',
     'request_info' => 'بيانات الطلب',
     'history_title' => 'سجل التتبع',
+    'history_subtitle' => 'جميع الإجراءات المنفّذة على هذا الطلب',
+    'workflow_title' => 'مسار الإعارة',
+    'workflow_subtitle' => 'المرحلة الحالية ومراحل الإنجاز',
     'attachments_count' => ':count مرفق',
+    'document_availability' => 'حالة المستندات',
     'on_loan_badge' => 'معارة',
     'available_badge' => 'متاحة',
     'approve_review' => 'اعتماد المراجعة',
@@ -45,11 +50,14 @@ return [
     'return_documents' => 'تأكيد الإرجاع',
     'reject_notes_required' => 'ملاحظات الرفض',
     'reject_notes_placeholder' => 'اذكر سبب الرفض...',
+    'review_notes_placeholder' => 'ملاحظات اختيارية للمراجع...',
+    'handover_notes_placeholder' => 'ملاحظات اختيارية عند التسليم...',
     'return_notes_placeholder' => 'ملاحظات الإرجاع (اختياري)',
     'review_notes' => 'ملاحظات المراجعة',
     'handover_notes' => 'ملاحظات التسليم',
     'return_notes' => 'ملاحظات الإرجاع',
     'pending_actions' => 'إجراءات مطلوبة',
+    'pending_actions_subtitle' => 'نفّذ الإجراء المناسب لإكمال المرحلة الحالية',
     'not_eligible_hint' => 'لا يمكن طلب الإعارة إلا للمعاملات في آخر مرحلتين من سير العمل، وعندما لا تكون معارة حالياً.',
 
     'actions' => [
@@ -69,7 +77,7 @@ return [
         'active_request' => 'يوجد طلب إعارة نشط لهذه المعاملة.',
     ],
 
-    'status' => [
+    'status_labels' => [
         'pending_review' => 'بانتظار المراجعة',
         'pending_handover' => 'بانتظار التسليم',
         'on_loan' => 'معارة',
@@ -77,7 +85,15 @@ return [
         'rejected' => 'مرفوضة',
     ],
 
-    'status' => [
+    'workflow' => [
+        'pending_review_hint' => 'الطلب بانتظار مراجعة المسؤول',
+        'pending_handover_hint' => 'بانتظار تسليم المستندات للطالب',
+        'on_loan_hint' => 'المستندات معارة حالياً',
+        'returned_hint' => 'تم إرجاع المستندات',
+        'rejected_hint' => 'تم رفض الطلب أو التسليم',
+    ],
+
+    'lending_status' => [
         'available' => 'متاحة للإعارة',
         'on_loan' => 'معارة',
     ],
