@@ -10,7 +10,7 @@
     @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <x-inline-css file="login.css" />
 </head>
 <body class="login-body">
     <div class="login-page">
@@ -36,12 +36,12 @@
                         <img
                             src="{{ $systemSettings->logoUrl() }}"
                             alt=""
-                            class="login-brand-logo-img login-brand-logo-img--centered"
+                            class="login-brand-logo-img"
                             style="{{ $systemSettings->loginLogoStyle() }}"
                             decoding="async"
                         >
                     @else
-                        <div class="login-brand-logo login-brand-logo--centered">
+                        <div class="login-brand-logo">
                             @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
                         </div>
                     @endif
@@ -58,7 +58,7 @@
                     @foreach (['feature_1', 'feature_2', 'feature_3'] as $featureKey)
                         @if (filled($systemSettings->loginText($featureKey)))
                         <li>
-                            <span class="login-feature-icon">✓</span>
+                            <span class="login-feature-icon" aria-hidden="true">✓</span>
                             <span>{{ $systemSettings->loginText($featureKey) }}</span>
                         </li>
                         @endif
@@ -73,6 +73,6 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
+    <x-inline-js file="login.js" />
 </body>
 </html>
