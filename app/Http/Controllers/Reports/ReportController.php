@@ -9,6 +9,7 @@ use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Services\Reports\ReportRunner;
 use App\Support\Reports\PdfFontRegistry;
+use App\Support\Reports\PdfHtmlProcessor;
 use App\Support\Reports\ReportFilter;
 use Barryvdh\DomPDF\PDF as DomPdf;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function exportPdf(Request $request, string $type, DomPdf $domPdf, PdfFontRegistry $pdfFonts): Response
+    public function exportPdf(Request $request, string $type, DomPdf $domPdf, PdfFontRegistry $pdfFonts, PdfHtmlProcessor $pdfHtml): Response
     {
         $this->ensurePdfExportAvailable();
 
@@ -64,9 +65,7 @@ class ReportController extends Controller
         $dompdfInstance = $domPdf->getDomPDF();
         $fontFamily = $pdfFonts->familyForPdf($dompdfInstance);
 
-        $pdf = $domPdf->setOption('default_font', $fontFamily)
-            ->setOption('enable_font_subsetting', true)
-            ->loadView($reportType->pdfView(), [
+        $viewData = [
             'reportType' => $reportType,
             'filter' => $filter,
             'data' => $data,
@@ -74,7 +73,14 @@ class ReportController extends Controller
             'generatedAt' => now()->format('Y-m-d H:i'),
             'generatedBy' => $user->name,
             'pdfFontFamily' => $fontFamily,
-        ])->setPaper('a4', 'landscape');
+        ];
+
+        $html = $pdfHtml->process(view($reportType->pdfView(), $viewData)->render());
+
+        $pdf = $domPdf->setOption('default_font', $fontFamily)
+            ->setOption('enable_font_subsetting', true)
+            ->loadHTML($html)
+            ->setPaper('a4', 'landscape');
 
         $filename = $reportType->value.'-'.now()->format('Y-m-d').'.pdf';
 

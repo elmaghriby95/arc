@@ -33,12 +33,30 @@ class LendingEligibilityService
     public function isTransactionEligible(Transaction $transaction): bool
     {
         $transaction->loadMissing('status');
+        $status = $transaction->status;
 
-        if (! $transaction->status) {
+        if (! $status) {
             return false;
         }
 
-        return in_array($transaction->transaction_status_id, $this->eligibleStatusIds(), true);
+        $eligible = $this->eligibleStatuses();
+
+        if ($eligible->isEmpty()) {
+            return false;
+        }
+
+        $statusId = (int) $status->id;
+
+        if ($eligible->contains(fn (TransactionStatus $candidate) => (int) $candidate->id === $statusId)) {
+            return true;
+        }
+
+        // Handle replaced/inactive status rows that keep the same workflow code.
+        if ($status->code !== null && $status->code !== '') {
+            return $eligible->contains(fn (TransactionStatus $candidate) => $candidate->code === $status->code);
+        }
+
+        return false;
     }
 
     public function isOnLoan(Transaction $transaction): bool
@@ -93,9 +111,11 @@ class LendingEligibilityService
 
         if (! $this->isTransactionEligible($transaction)) {
             $statusNames = $this->eligibleStatuses()->pluck('name')->implode('، ');
+            $currentStatus = $transaction->status?->name ?? '—';
 
             return __('lending_requests.block.status_not_eligible', [
                 'statuses' => $statusNames !== '' ? $statusNames : '—',
+                'current' => $currentStatus,
             ]);
         }
 
