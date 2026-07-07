@@ -4006,12 +4006,21 @@ textarea.form-control:focus {
     padding: 1.15rem 1.25rem;
     border-top: 1px solid var(--border);
     background: linear-gradient(180deg, var(--surface) 0%, #fafbff 100%);
+    text-align: center;
+}
+
+.txn-qr-print-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .txn-sidebar-qr-title {
     margin: 0 0 0.85rem;
     font-size: 0.95rem;
     font-weight: 800;
+    width: 100%;
+    text-align: center;
 }
 
 .txn-sidebar-qr-body {
@@ -4020,6 +4029,11 @@ textarea.form-control:focus {
     align-items: center;
     text-align: center;
     gap: 0.65rem;
+    width: 100%;
+}
+
+.txn-qr-print-btn {
+    margin-top: 0.85rem;
 }
 
 .txn-sidebar-qr-body .form-hint {

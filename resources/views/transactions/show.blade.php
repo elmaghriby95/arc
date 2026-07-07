@@ -240,5 +240,87 @@
         @if (is_readable($txAttachmentsJs))
             <script>{!! file_get_contents($txAttachmentsJs) !!}</script>
         @endif
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const printButton = document.querySelector('[data-txn-qr-print]');
+                const printArea = document.getElementById('txn-qr-print-area');
+
+                if (!printButton || !printArea) {
+                    return;
+                }
+
+                printButton.addEventListener('click', () => {
+                    const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+
+                    if (!printWindow) {
+                        return;
+                    }
+
+                    const direction = document.documentElement.getAttribute('dir') || 'rtl';
+                    const language = document.documentElement.getAttribute('lang') || 'ar';
+                    const title = printArea.querySelector('.txn-sidebar-qr-title')?.textContent?.trim() || '';
+
+                    printWindow.document.write(`<!DOCTYPE html>
+<html lang="${language}" dir="${direction}">
+<head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 2rem;
+            font-family: Cairo, sans-serif;
+            text-align: center;
+            color: #0f172a;
+        }
+        h1, h3 {
+            margin: 0 0 1.25rem;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+        img {
+            width: 240px;
+            height: 240px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #fff;
+            padding: 0.5rem;
+        }
+        p {
+            margin: 1rem 0 0.5rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        code {
+            display: block;
+            font-size: 0.85rem;
+            word-break: break-all;
+            color: #334155;
+        }
+    </style>
+</head>
+<body>
+    ${printArea.innerHTML}
+</body>
+</html>`);
+                    printWindow.document.close();
+                    printWindow.focus();
+
+                    const printWhenReady = () => {
+                        printWindow.print();
+                        printWindow.close();
+                    };
+
+                    const image = printWindow.document.querySelector('img');
+                    if (image && !image.complete) {
+                        image.addEventListener('load', printWhenReady, { once: true });
+                        image.addEventListener('error', printWhenReady, { once: true });
+                    } else {
+                        printWhenReady();
+                    }
+                });
+            });
+        </script>
     @endpush
 </x-app-layout>

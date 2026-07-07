@@ -119,12 +119,17 @@
         </div>
 
         <section class="txn-sidebar-qr">
-            <h3 class="txn-sidebar-qr-title">{{ __('transactions.qr_code_title') }}</h3>
-            <div class="txn-sidebar-qr-body">
-                <img src="{{ route('transactions.qr-code', $transaction) }}" alt="{{ __('transactions.qr_code_title') }}" width="160" height="160" class="txn-qr-image">
-                <p class="form-hint">{{ __('transactions.qr_code_hint') }}</p>
-                <code class="txn-qr-payload">{{ $qrPayload }}</code>
+            <div id="txn-qr-print-area" class="txn-qr-print-area">
+                <h3 class="txn-sidebar-qr-title">{{ __('transactions.qr_code_title') }}</h3>
+                <div class="txn-sidebar-qr-body">
+                    <img src="{{ url(route('transactions.qr-code', $transaction)) }}" alt="{{ __('transactions.qr_code_title') }}" width="200" height="200" class="txn-qr-image">
+                    <p class="form-hint">{{ __('transactions.qr_code_hint') }}</p>
+                    <code class="txn-qr-payload">{{ $qrPayload }}</code>
+                </div>
             </div>
+            <button type="button" class="btn btn-secondary btn-sm txn-qr-print-btn" data-txn-qr-print>
+                {{ __('transactions.qr_code_print') }}
+            </button>
         </section>
     </div>
 </aside>

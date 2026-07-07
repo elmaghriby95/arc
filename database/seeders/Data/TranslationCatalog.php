@@ -810,6 +810,7 @@ class TranslationCatalog
             ['group' => 'transactions', 'key' => 'archival_reference_hint', 'values' => ['ar' => 'حقل إلزامي — يُستخدم في رمز QR وفي البحث عن المعاملة', 'en' => 'Required — used in the QR code and transaction search', 'fr' => 'Obligatoire — utilisé dans le QR et la recherche']],
             ['group' => 'transactions', 'key' => 'qr_code_title', 'values' => ['ar' => 'رمز QR للمعاملة', 'en' => 'Transaction QR code', 'fr' => 'Code QR de la transaction']],
             ['group' => 'transactions', 'key' => 'qr_code_hint', 'values' => ['ar' => 'يتضمن: الرقم الإشاري | رقم الدولاب | رقم الصف | رقم الصندوق', 'en' => 'Contains: reference | cabinet | row | box', 'fr' => 'Contient : indicatif | armoire | rangée | boîte']],
+            ['group' => 'transactions', 'key' => 'qr_code_print', 'values' => ['ar' => 'طباعة رمز QR', 'en' => 'Print QR code', 'fr' => 'Imprimer le code QR']],
             ['group' => 'transactions', 'key' => 'step_basic', 'values' => ['ar' => 'البيانات الأساسية', 'en' => 'Basic information', 'fr' => 'Informations de base']],
             ['group' => 'transactions', 'key' => 'step_basic_desc', 'values' => ['ar' => 'عنوان المعاملة والوحدة التنظيمية ونوعها وتاريخها', 'en' => 'Title, organizational unit, type and date', 'fr' => 'Titre, unité, type et date']],
             ['group' => 'transactions', 'key' => 'step_folder', 'values' => ['ar' => 'المجلد والوصف', 'en' => 'Folder & description', 'fr' => 'Dossier et description']],
