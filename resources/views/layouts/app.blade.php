@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     <x-inline-css file="user-avatar.css" />
     <x-inline-css file="navbar.css" />
+    <x-inline-css file="notifications.css" />
     @stack('styles')
 </head>
 <body>

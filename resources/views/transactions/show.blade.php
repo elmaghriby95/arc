@@ -1,4 +1,8 @@
 <x-app-layout>
+    @push('styles')
+        <x-inline-css file="transaction-qr.css" />
+    @endpush
+
     <x-slot name="header">
         <div class="page-header txn-page-header">
             <div class="txn-page-header-main">

@@ -744,6 +744,8 @@ class TranslationCatalog
             'settings.folders.create' => ['ar' => 'إضافة مجلد', 'en' => 'Create folder', 'fr' => 'Créer un dossier'],
             'settings.folders.edit' => ['ar' => 'تعديل مجلد', 'en' => 'Edit folder', 'fr' => 'Modifier un dossier'],
             'settings.folders.delete' => ['ar' => 'حذف مجلد', 'en' => 'Delete folder', 'fr' => 'Supprimer un dossier'],
+            'settings.folders.location.view' => ['ar' => 'عرض موقع المجلد (الدولاب والصف والصندوق)', 'en' => 'View folder location (cabinet, row, box)', 'fr' => 'Voir l\'emplacement du dossier (armoire, rangée, boîte)'],
+            'settings.folders.location.edit' => ['ar' => 'تعديل موقع المجلد (الدولاب والصف والصندوق)', 'en' => 'Edit folder location (cabinet, row, box)', 'fr' => 'Modifier l\'emplacement du dossier (armoire, rangée, boîte)'],
             'settings.languages.view' => ['ar' => 'عرض اللغات', 'en' => 'View languages', 'fr' => 'Voir les langues'],
             'settings.languages.create' => ['ar' => 'إضافة لغة', 'en' => 'Add language', 'fr' => 'Ajouter une langue'],
             'settings.languages.edit' => ['ar' => 'تعديل لغة', 'en' => 'Edit language', 'fr' => 'Modifier une langue'],

@@ -52,21 +52,9 @@
                             <p class="form-hint">{{ __('settings.folders.org_unit_hint') }}</p>
                             @error('department_id')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
-                        <div class="form-group">
-                            <x-input-label for="cabinet_number" :value="__('settings.folders.cabinet_number')" />
-                            <x-text-input id="cabinet_number" name="cabinet_number" type="text" :value="old('cabinet_number')" required />
-                            @error('cabinet_number')<p class="form-error">{{ $message }}</p>@enderror
-                        </div>
-                        <div class="form-group">
-                            <x-input-label for="row_number" :value="__('settings.folders.row_number')" />
-                            <x-text-input id="row_number" name="row_number" type="text" :value="old('row_number')" required />
-                            @error('row_number')<p class="form-error">{{ $message }}</p>@enderror
-                        </div>
-                        <div class="form-group">
-                            <x-input-label for="box_number" :value="__('settings.folders.box_number')" />
-                            <x-text-input id="box_number" name="box_number" type="text" :value="old('box_number')" required />
-                            @error('box_number')<p class="form-error">{{ $message }}</p>@enderror
-                        </div>
+                        @permission('settings.folders.location.edit')
+                            @include('settings.partials.folder-location-fields', ['idPrefix' => ''])
+                        @endpermission
                         <div class="form-group">
                             <x-input-label for="color" :value="__('settings.folders.color')" />
                             <x-text-input id="color" name="color" type="text" :value="old('color')" placeholder="#4338ca" />

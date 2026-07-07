@@ -55,6 +55,8 @@ return [
     'settings_folders_create' => 'إضافة مجلد',
     'settings_folders_edit' => 'تعديل مجلد',
     'settings_folders_delete' => 'حذف مجلد',
+    'settings_folders_location_view' => 'عرض موقع المجلد (الدولاب والصف والصندوق)',
+    'settings_folders_location_edit' => 'تعديل موقع المجلد (الدولاب والصف والصندوق)',
     'settings_languages_view' => 'عرض اللغات',
     'settings_languages_create' => 'إضافة لغة',
     'settings_languages_edit' => 'تعديل لغة',

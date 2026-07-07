@@ -87,6 +87,8 @@ enum Permission: string
     case SettingsFoldersCreate = 'settings.folders.create';
     case SettingsFoldersEdit = 'settings.folders.edit';
     case SettingsFoldersDelete = 'settings.folders.delete';
+    case SettingsFoldersLocationView = 'settings.folders.location.view';
+    case SettingsFoldersLocationEdit = 'settings.folders.location.edit';
 
     // اللغات
     case SettingsLanguagesView = 'settings.languages.view';
@@ -187,7 +189,9 @@ enum Permission: string
             self::SettingsFoldersView,
             self::SettingsFoldersCreate,
             self::SettingsFoldersEdit,
-            self::SettingsFoldersDelete => 'folder_tree',
+            self::SettingsFoldersDelete,
+            self::SettingsFoldersLocationView,
+            self::SettingsFoldersLocationEdit => 'folder_tree',
 
             self::SettingsLanguagesView,
             self::SettingsLanguagesCreate,
