@@ -227,40 +227,4 @@
     <div class="navbar-mobile-backdrop" data-navbar-backdrop aria-hidden="true"></div>
 </nav>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-navbar-menu] [data-navbar-dropdown]').forEach((dropdown) => {
-        const toggle = dropdown.querySelector('[data-dropdown-toggle]');
-        if (!toggle) {
-            return;
-        }
-
-        toggle.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const willOpen = !dropdown.classList.contains('is-open');
-
-            document.querySelectorAll('.dropdown.is-open').forEach((openDropdown) => {
-                openDropdown.classList.remove('is-open');
-                openDropdown.querySelector('[data-dropdown-toggle]')?.setAttribute('aria-expanded', 'false');
-            });
-
-            if (willOpen) {
-                dropdown.classList.add('is-open');
-                toggle.setAttribute('aria-expanded', 'true');
-            }
-        });
-    });
-
-    document.querySelectorAll('[data-navbar-menu] .navbar-nav-subitem').forEach((link) => {
-        link.addEventListener('click', () => {
-            document.querySelector('[data-navbar-menu]')?.classList.remove('is-open');
-            document.querySelector('[data-navbar-toggle]')?.classList.remove('is-active');
-            document.querySelector('[data-navbar-toggle]')?.setAttribute('aria-expanded', 'false');
-            document.querySelector('[data-navbar-backdrop]')?.classList.remove('is-visible');
-            document.body.style.overflow = '';
-        });
-    });
-});
-</script>
+<x-inline-js file="navbar.js" />

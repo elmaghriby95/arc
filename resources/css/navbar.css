@@ -51,12 +51,27 @@
         box-shadow:
             0 20px 50px rgba(15, 23, 42, 0.14),
             0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-        animation: navbar-dropdown-in 0.2s ease;
+        animation: navbar-nav-dropdown-in 0.2s ease;
     }
 
     .navbar-nav-group.dropdown.is-open .navbar-nav-submenu.dropdown-menu {
-        display: block;
+        display: block !important;
     }
+}
+
+@keyframes navbar-nav-dropdown-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.navbar-inner {
+    overflow: visible;
 }
 
 .navbar-nav-group {
