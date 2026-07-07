@@ -31,12 +31,21 @@ class LendingNotificationService
             return;
         }
 
+        $toStatus = $history->toStatusEnum();
+        $action = $history->action instanceof LendingRequestAction
+            ? $history->action
+            : LendingRequestAction::tryFrom((string) $history->action);
+
+        if (! $toStatus || ! $action) {
+            return;
+        }
+
         $notification = new LendingRequestStatusChanged(
             $request,
             $performer,
-            $history->from_status,
-            $history->to_status,
-            $history->action,
+            $history->fromStatusEnum(),
+            $toStatus,
+            $action,
         );
 
         foreach ($recipients as $recipient) {
