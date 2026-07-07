@@ -26,9 +26,9 @@
                     <div class="login-brand-logo">
                         @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
                     </div>
+                    <h1 class="login-brand-title">{{ $systemSettings->appName() }}</h1>
                 @endif
 
-                <h1 class="login-brand-title">{{ $systemSettings->appName() }}</h1>
                 <p class="login-brand-subtitle">{{ __('auth.brand_subtitle') }}</p>
 
                 <ul class="login-features">

@@ -3,7 +3,7 @@
 
     <div class="navbar-inner">
         <div class="navbar-start">
-            <a href="{{ route('dashboard') }}" class="navbar-brand">
+            <a href="{{ route('dashboard') }}" class="navbar-brand{{ $systemSettings->hasLogo() ? ' navbar-brand--logo-only' : '' }}">
                 @if ($systemSettings->hasLogo())
                     <img
                         src="{{ $systemSettings->logoUrl() }}"
@@ -14,11 +14,11 @@
                     <span class="navbar-brand-icon" aria-hidden="true">
                         @include('layouts.partials.system-brand-icon', ['variant' => 'navbar'])
                     </span>
+                    <span class="navbar-brand-copy">
+                        <span class="navbar-brand-text">{{ $systemSettings->appName() }}</span>
+                        <span class="navbar-brand-tagline">{{ __('nav.tagline') }}</span>
+                    </span>
                 @endif
-                <span class="navbar-brand-copy">
-                    <span class="navbar-brand-text">{{ $systemSettings->appName() }}</span>
-                    <span class="navbar-brand-tagline">{{ __('nav.tagline') }}</span>
-                </span>
             </a>
 
             <div class="navbar-menu" data-navbar-menu>

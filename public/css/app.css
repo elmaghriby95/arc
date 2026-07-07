@@ -300,10 +300,14 @@ a:hover { color: var(--primary-dark); }
 .navbar-brand-logo-img {
     height: 2.75rem;
     width: auto;
-    max-width: 10rem;
+    max-width: 14rem;
     object-fit: contain;
     flex-shrink: 0;
     border-radius: 0.5rem;
+}
+
+.navbar-brand--logo-only {
+    gap: 0;
 }
 
 .navbar-brand-copy {
@@ -1958,9 +1962,10 @@ textarea.form-control:focus {
 
 .login-brand-logo-img {
     display: block;
-    height: 4.5rem;
+    height: auto;
+    max-height: 5.5rem;
     width: auto;
-    max-width: min(100%, 18rem);
+    max-width: min(100%, 20rem);
     object-fit: contain;
     margin-bottom: 1.5rem;
     border-radius: 0.75rem;

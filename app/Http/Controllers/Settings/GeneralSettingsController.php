@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
+use App\Services\BrandingStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\File;
 use Illuminate\View\View;
 
@@ -33,30 +33,22 @@ class GeneralSettingsController extends Controller
 
         $settings = SystemSetting::instance();
 
-        if ($request->boolean('remove_logo') && $settings->logo_path) {
-            Storage::disk('public')->delete($settings->logo_path);
+        if ($request->boolean('remove_logo')) {
+            BrandingStorage::delete($settings->logo_path);
             $settings->logo_path = null;
         }
 
-        if ($request->boolean('remove_favicon') && $settings->favicon_path) {
-            Storage::disk('public')->delete($settings->favicon_path);
+        if ($request->boolean('remove_favicon')) {
+            BrandingStorage::delete($settings->favicon_path);
             $settings->favicon_path = null;
         }
 
         if ($request->hasFile('logo')) {
-            if ($settings->logo_path) {
-                Storage::disk('public')->delete($settings->logo_path);
-            }
-
-            $settings->logo_path = $request->file('logo')->store('branding', 'public');
+            $settings->logo_path = BrandingStorage::store($request->file('logo'), 'logo', $settings->logo_path);
         }
 
         if ($request->hasFile('favicon')) {
-            if ($settings->favicon_path) {
-                Storage::disk('public')->delete($settings->favicon_path);
-            }
-
-            $settings->favicon_path = $request->file('favicon')->store('branding', 'public');
+            $settings->favicon_path = BrandingStorage::store($request->file('favicon'), 'favicon', $settings->favicon_path);
         }
 
         $settings->fill([

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\BrandingStorage;
 use Illuminate\Database\Eloquent\Model;
 
 class SystemSetting extends Model
@@ -33,35 +34,21 @@ class SystemSetting extends Model
 
     public function hasLogo(): bool
     {
-        return filled($this->logo_path);
+        return BrandingStorage::exists($this->logo_path);
     }
 
     public function logoUrl(): ?string
     {
-        if (! $this->hasLogo()) {
-            return null;
-        }
-
-        $url = asset('storage/'.$this->logo_path);
-
-        if ($this->updated_at) {
-            $url .= '?v='.$this->updated_at->timestamp;
-        }
-
-        return $url;
+        return BrandingStorage::url($this->logo_path, $this->updated_at?->timestamp);
     }
 
     public function hasFavicon(): bool
     {
-        return filled($this->favicon_path);
+        return BrandingStorage::exists($this->favicon_path);
     }
 
     public function faviconUrl(): ?string
     {
-        if (! $this->hasFavicon()) {
-            return null;
-        }
-
-        return asset('storage/'.$this->favicon_path);
+        return BrandingStorage::url($this->favicon_path, $this->updated_at?->timestamp);
     }
 }
