@@ -43,7 +43,17 @@ class LendingEligibilityService
 
     public function isOnLoan(Transaction $transaction): bool
     {
-        return $transaction->lending_status === TransactionLendingStatus::OnLoan;
+        $status = $transaction->lending_status;
+
+        if ($status === null) {
+            return false;
+        }
+
+        if ($status instanceof TransactionLendingStatus) {
+            return $status === TransactionLendingStatus::OnLoan;
+        }
+
+        return TransactionLendingStatus::tryFrom((string) $status) === TransactionLendingStatus::OnLoan;
     }
 
     public function hasActiveRequest(Transaction $transaction): bool
@@ -59,26 +69,44 @@ class LendingEligibilityService
 
     public function canUserRequest(User $user, Transaction $transaction): bool
     {
+        return $this->blockingReason($user, $transaction) === null;
+    }
+
+    public function canShowRequestButton(User $user, Transaction $transaction): bool
+    {
         if (! $user->hasPermission('lending-requests.request')) {
             return false;
         }
 
+        return $user->canAccessTransaction($transaction);
+    }
+
+    public function blockingReason(User $user, Transaction $transaction): ?string
+    {
+        if (! $user->hasPermission('lending-requests.request')) {
+            return __('lending_requests.block.no_permission');
+        }
+
         if (! $user->canAccessTransaction($transaction)) {
-            return false;
+            return __('lending_requests.block.no_access');
         }
 
         if (! $this->isTransactionEligible($transaction)) {
-            return false;
+            $statusNames = $this->eligibleStatuses()->pluck('name')->implode('، ');
+
+            return __('lending_requests.block.status_not_eligible', [
+                'statuses' => $statusNames !== '' ? $statusNames : '—',
+            ]);
         }
 
         if ($this->isOnLoan($transaction)) {
-            return false;
+            return __('lending_requests.block.on_loan');
         }
 
         if ($this->hasActiveRequest($transaction)) {
-            return false;
+            return __('lending_requests.block.active_request');
         }
 
-        return true;
+        return null;
     }
 }

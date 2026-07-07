@@ -93,9 +93,9 @@
                                 <td>{{ $transaction?->title ?? '—' }}</td>
                                 <td>{{ $transaction?->department?->name ?? '—' }}</td>
                                 <td>{{ $lendingRequest?->requester?->name ?? '—' }}</td>
-                                <td>{{ $entry->action->label() }}</td>
-                                <td>{{ $entry->from_status?->label() ?? '—' }}</td>
-                                <td><x-lending-status-badge :status="$entry->to_status" /></td>
+                                <td>{{ $entry->actionLabel() }}</td>
+                                <td>{{ $entry->fromStatusLabel() }}</td>
+                                <td><x-lending-status-badge :status="$entry->toStatusEnum()" /></td>
                                 <td>{{ $entry->performer?->name ?? '—' }}</td>
                                 <td>{{ $entry->notes ?? '—' }}</td>
                                 <td>{{ $entry->created_at?->format('Y-m-d H:i') }}</td>

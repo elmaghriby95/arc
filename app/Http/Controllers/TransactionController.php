@@ -231,7 +231,9 @@ class TransactionController extends Controller
             'workflowActions' => $workflow->availableActions($transaction, $user),
             'canManageAttachments' => $user->hasPermission('transactions.edit') && $transaction->canBeEdited(),
             'txnAttachmentsI18n' => $this->transactionAttachmentsJsI18n(),
+            'canShowLendingButton' => $lendingEligibility->canShowRequestButton($user, $transaction),
             'canRequestLending' => $lendingEligibility->canUserRequest($user, $transaction),
+            'lendingRequestBlockReason' => $lendingEligibility->blockingReason($user, $transaction),
             'qrPayload' => $qrCodes->payload($transaction),
         ]);
     }

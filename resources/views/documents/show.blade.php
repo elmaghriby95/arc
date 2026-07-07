@@ -18,7 +18,9 @@
                 @endpermission
                 @include('lending-requests.partials.request-modal', [
                     'transaction' => $attachment->transaction,
+                    'canShowLendingButton' => $canShowLendingButton ?? false,
                     'canRequestLending' => $canRequestLending ?? false,
+                    'lendingRequestBlockReason' => $lendingRequestBlockReason ?? null,
                 ])
             </div>
         </div>

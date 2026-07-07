@@ -160,9 +160,9 @@
                                 <tbody>
                                     @forelse ($lendingRequest->histories as $history)
                                         <tr>
-                                            <td>{{ $history->action->label() }}</td>
-                                            <td>{{ $history->from_status?->label() ?? '—' }}</td>
-                                            <td><x-lending-status-badge :status="$history->to_status" /></td>
+                                            <td>{{ $history->actionLabel() }}</td>
+                                            <td>{{ $history->fromStatusLabel() }}</td>
+                                            <td><x-lending-status-badge :status="$history->toStatusEnum()" /></td>
                                             <td>{{ $history->performer?->name ?? '—' }}</td>
                                             <td>{{ $history->notes ?? '—' }}</td>
                                             <td>{{ $history->created_at?->format('Y-m-d H:i') }}</td>

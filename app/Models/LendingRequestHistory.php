@@ -24,8 +24,6 @@ class LendingRequestHistory extends Model
     {
         return [
             'action' => LendingRequestAction::class,
-            'from_status' => LendingRequestStatus::class,
-            'to_status' => LendingRequestStatus::class,
             'created_at' => 'datetime',
         ];
     }
@@ -38,5 +36,34 @@ class LendingRequestHistory extends Model
     public function performer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    public function actionLabel(): string
+    {
+        if ($this->action instanceof LendingRequestAction) {
+            return $this->action->label();
+        }
+
+        return LendingRequestAction::tryFrom((string) $this->action)?->label()
+            ?? (string) $this->action;
+    }
+
+    public function fromStatusEnum(): ?LendingRequestStatus
+    {
+        return $this->from_status
+            ? LendingRequestStatus::tryFrom((string) $this->from_status)
+            : null;
+    }
+
+    public function toStatusEnum(): ?LendingRequestStatus
+    {
+        return $this->to_status
+            ? LendingRequestStatus::tryFrom((string) $this->to_status)
+            : null;
+    }
+
+    public function fromStatusLabel(): string
+    {
+        return $this->fromStatusEnum()?->label() ?? '—';
     }
 }

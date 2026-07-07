@@ -52,15 +52,7 @@ return [
     'pending_actions' => 'إجراءات مطلوبة',
     'not_eligible_hint' => 'لا يمكن طلب الإعارة إلا للمعاملات في آخر مرحلتين من سير العمل، وعندما لا تكون معارة حالياً.',
 
-    'status' => [
-        'pending_review' => 'بانتظار المراجعة',
-        'pending_handover' => 'بانتظار التسليم',
-        'on_loan' => 'معارة',
-        'returned' => 'مُرجعة',
-        'rejected' => 'مرفوضة',
-    ],
-
-    'action' => [
+    'actions' => [
         'requested' => 'طلب إعارة',
         'review_approved' => 'اعتماد المراجعة',
         'review_rejected' => 'رفض المراجعة',
@@ -69,7 +61,23 @@ return [
         'returned' => 'إرجاع المستندات',
     ],
 
-    'lending_status' => [
+    'block' => [
+        'no_permission' => 'ليس لديك صلاحية طلب الإعارة.',
+        'no_access' => 'لا يمكنك طلب إعارة لهذه المعاملة ضمن نطاق صلاحياتك.',
+        'status_not_eligible' => 'طلب الإعارة متاح فقط للمعاملات في الحالات: :statuses',
+        'on_loan' => 'المعاملة معارة حالياً ولا يمكن تقديم طلب جديد.',
+        'active_request' => 'يوجد طلب إعارة نشط لهذه المعاملة.',
+    ],
+
+    'status' => [
+        'pending_review' => 'بانتظار المراجعة',
+        'pending_handover' => 'بانتظار التسليم',
+        'on_loan' => 'معارة',
+        'returned' => 'مُرجعة',
+        'rejected' => 'مرفوضة',
+    ],
+
+    'status' => [
         'available' => 'متاحة للإعارة',
         'on_loan' => 'معارة',
     ],

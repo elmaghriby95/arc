@@ -13,6 +13,6 @@ enum LendingRequestAction: string
 
     public function label(): string
     {
-        return __('lending_requests.action.'.$this->value);
+        return __('lending_requests.actions.'.$this->value);
     }
 }

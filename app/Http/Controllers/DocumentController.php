@@ -69,11 +69,23 @@ class DocumentController extends Controller
         ]);
 
         $transaction = $attachment->transaction;
-        $canRequestLending = $transaction
-            ? $lendingEligibility->canUserRequest(auth()->user(), $transaction)
+        $user = auth()->user();
+        $canShowLendingButton = $transaction
+            ? $lendingEligibility->canShowRequestButton($user, $transaction)
             : false;
+        $canRequestLending = $transaction
+            ? $lendingEligibility->canUserRequest($user, $transaction)
+            : false;
+        $lendingRequestBlockReason = $transaction
+            ? $lendingEligibility->blockingReason($user, $transaction)
+            : null;
 
-        return view('documents.show', compact('attachment', 'canRequestLending'));
+        return view('documents.show', compact(
+            'attachment',
+            'canShowLendingButton',
+            'canRequestLending',
+            'lendingRequestBlockReason',
+        ));
     }
 
     public function preview(TransactionAttachment $attachment)

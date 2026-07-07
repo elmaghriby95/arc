@@ -312,9 +312,9 @@ class LendingRequestService
         ?string $notes = null,
     ): LendingRequestHistory {
         return $request->histories()->create([
-            'action' => $action,
-            'from_status' => $fromStatus,
-            'to_status' => $toStatus,
+            'action' => $action->value,
+            'from_status' => $fromStatus?->value,
+            'to_status' => $toStatus->value,
             'performed_by' => $user->id,
             'notes' => $notes,
         ]);

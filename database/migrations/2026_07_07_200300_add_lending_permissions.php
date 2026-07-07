@@ -18,6 +18,7 @@ return new class extends Migration
                 Permission::LendingRequestsLogView->value,
             ],
             'manager' => [
+                Permission::LendingRequestsRequest->value,
                 Permission::LendingRequestsView->value,
                 Permission::LendingRequestsReview->value,
                 Permission::LendingRequestsHandover->value,
