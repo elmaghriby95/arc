@@ -1,7 +1,7 @@
 <x-login-layout>
     <div class="login-form-header">
-        <h2 class="login-form-title">{{ __('auth.welcome_back') }}</h2>
-        <p class="login-form-desc">{{ __('auth.login_desc') }}</p>
+        <h2 class="login-form-title">{{ $systemSettings->loginText('welcome_back') }}</h2>
+        <p class="login-form-desc">{{ $systemSettings->loginText('login_desc') }}</p>
     </div>
 
     <x-auth-session-status :status="session('status')" />
@@ -18,7 +18,7 @@
         @csrf
 
         <div class="login-field">
-            <label for="email" class="login-label">{{ __('auth.email') }}</label>
+            <label for="email" class="login-label">{{ $systemSettings->loginText('email') }}</label>
             <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -31,7 +31,7 @@
                     name="email"
                     class="login-input"
                     value="{{ old('email') }}"
-                    placeholder="example@domain.com"
+                    placeholder="{{ $systemSettings->loginText('email_placeholder') }}"
                     required
                     autofocus
                     autocomplete="username"
@@ -41,7 +41,7 @@
         </div>
 
         <div class="login-field">
-            <label for="password" class="login-label">{{ __('auth.password') }}</label>
+            <label for="password" class="login-label">{{ $systemSettings->loginText('password') }}</label>
             <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -53,7 +53,7 @@
                     type="password"
                     name="password"
                     class="login-input"
-                    placeholder="••••••••"
+                    placeholder="{{ $systemSettings->loginText('password_placeholder') }}"
                     required
                     autocomplete="current-password"
                     data-password-input
@@ -74,16 +74,16 @@
         <div class="login-options">
             <label class="login-remember">
                 <input id="remember_me" type="checkbox" name="remember">
-                <span>{{ __('auth.remember_me') }}</span>
+                <span>{{ $systemSettings->loginText('remember_me') }}</span>
             </label>
 
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="login-forgot">{{ __('auth.forgot_password') }}</a>
+                <a href="{{ route('password.request') }}" class="login-forgot">{{ $systemSettings->loginText('forgot_password') }}</a>
             @endif
         </div>
 
         <button type="submit" class="login-submit">
-            <span>{{ __('auth.login') }}</span>
+            <span>{{ $systemSettings->loginText('login') }}</span>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
             </svg>
@@ -92,8 +92,8 @@
 
     @if (Route::has('register'))
         <p class="login-register">
-            {{ __('auth.no_account') }}
-            <a href="{{ route('register') }}">{{ __('auth.register') }}</a>
+            {{ $systemSettings->loginText('no_account') }}
+            <a href="{{ route('register') }}">{{ $systemSettings->loginText('register') }}</a>
         </p>
     @endif
 </x-login-layout>

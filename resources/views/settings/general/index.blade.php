@@ -131,6 +131,54 @@
                 </div>
             </div>
 
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ __('settings.general.login_texts_title') }}</h3>
+                    <p class="card-subtitle">{{ __('settings.general.login_texts_desc') }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="general-login-texts">
+                        @foreach ($languages as $language)
+                            <details class="general-login-lang" {{ $language->is_default ? 'open' : '' }}>
+                                <summary class="general-login-lang-summary">
+                                    <span>{{ $language->native_name }}</span>
+                                    <span class="general-login-lang-code">{{ strtoupper($language->code) }}</span>
+                                </summary>
+
+                                <div class="general-login-lang-fields">
+                                    @foreach (\App\Models\SystemSetting::LOGIN_TEXT_KEYS as $textKey => $labelKey)
+                                        <div class="form-group">
+                                            <x-input-label
+                                                :for="'login_texts_'.$language->code.'_'.$textKey"
+                                                :value="__('settings.general.'.$labelKey)"
+                                            />
+                                            @if (in_array($textKey, ['brand_subtitle', 'login_desc', 'feature_1', 'feature_2', 'feature_3'], true))
+                                                <textarea
+                                                    id="login_texts_{{ $language->code }}_{{ $textKey }}"
+                                                    name="login_texts[{{ $language->code }}][{{ $textKey }}]"
+                                                    class="form-control"
+                                                    rows="2"
+                                                    maxlength="500"
+                                                >{{ old('login_texts.'.$language->code.'.'.$textKey, $settings->loginTextValue($language->code, $textKey)) }}</textarea>
+                                            @else
+                                                <x-text-input
+                                                    :id="'login_texts_'.$language->code.'_'.$textKey"
+                                                    :name="'login_texts['.$language->code.']['.$textKey.']'"
+                                                    type="text"
+                                                    class="form-control"
+                                                    :value="old('login_texts.'.$language->code.'.'.$textKey, $settings->loginTextValue($language->code, $textKey))"
+                                                    maxlength="500"
+                                                />
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </details>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
             @permission('settings.general.edit')
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">{{ __('settings.general.save') }}</button>

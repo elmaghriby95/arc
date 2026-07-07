@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\Language;
 use App\Models\SystemSetting;
 use App\Services\BrandingStorage;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,11 @@ class GeneralSettingsController extends Controller
     {
         return view('settings.general.index', [
             'settings' => SystemSetting::instance(),
+            'languages' => Language::query()
+                ->where('is_active', true)
+                ->orderByDesc('is_default')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -33,6 +39,9 @@ class GeneralSettingsController extends Controller
             'logo_navbar_max_width' => ['required', 'integer', 'min:40', 'max:240'],
             'logo_login_height' => ['required', 'integer', 'min:24', 'max:120'],
             'logo_login_max_width' => ['required', 'integer', 'min:60', 'max:320'],
+            'login_texts' => ['nullable', 'array'],
+            'login_texts.*' => ['nullable', 'array'],
+            'login_texts.*.*' => ['nullable', 'string', 'max:500'],
         ]);
 
         $settings = SystemSetting::instance();
@@ -63,6 +72,7 @@ class GeneralSettingsController extends Controller
             'logo_navbar_max_width' => $validated['logo_navbar_max_width'],
             'logo_login_height' => $validated['logo_login_height'],
             'logo_login_max_width' => $validated['logo_login_max_width'],
+            'login_texts' => $this->normalizeLoginTexts($validated['login_texts'] ?? []),
         ]);
 
         $settings->save();
@@ -71,5 +81,31 @@ class GeneralSettingsController extends Controller
         return redirect()
             ->route('settings.general.index')
             ->with('success', __('messages.general.saved'));
+    }
+
+    /** @param  array<string, array<string, string|null>>  $loginTexts */
+    private function normalizeLoginTexts(array $loginTexts): ?array
+    {
+        $normalized = [];
+
+        foreach ($loginTexts as $locale => $fields) {
+            if (! is_array($fields)) {
+                continue;
+            }
+
+            foreach ($fields as $key => $value) {
+                if (! array_key_exists($key, SystemSetting::LOGIN_TEXT_KEYS)) {
+                    continue;
+                }
+
+                if ($value === null || trim((string) $value) === '') {
+                    continue;
+                }
+
+                $normalized[$locale][$key] = trim((string) $value);
+            }
+        }
+
+        return $normalized === [] ? null : $normalized;
     }
 }

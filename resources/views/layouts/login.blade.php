@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ __('auth.login_page_title') }} | {{ $systemSettings->appName() }}</title>
+    <title>{{ $systemSettings->loginText('login_page_title') }} | {{ $systemSettings->appName() }}</title>
     @if ($systemSettings->hasFavicon())
         <link rel="icon" href="{{ $systemSettings->faviconUrl() }}">
     @endif
@@ -14,47 +14,9 @@
 </head>
 <body class="login-body">
     <div class="login-page">
-        <aside class="login-brand">
-            <div class="login-brand-content">
-                @if ($systemSettings->hasLogo())
-                    <img
-                        src="{{ $systemSettings->logoUrl() }}"
-                        alt=""
-                        class="login-brand-logo-img"
-                        style="{{ $systemSettings->loginLogoStyle() }}"
-                        decoding="async"
-                    >
-                @else
-                    <div class="login-brand-logo">
-                        @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
-                    </div>
-                    <h1 class="login-brand-title">{{ $systemSettings->appName() }}</h1>
-                @endif
+        <div class="login-page-backdrop" aria-hidden="true"></div>
 
-                <p class="login-brand-subtitle">{{ __('auth.brand_subtitle') }}</p>
-
-                <ul class="login-features">
-                    <li>
-                        <span class="login-feature-icon">✓</span>
-                        <span>{{ __('auth.feature_1') }}</span>
-                    </li>
-                    <li>
-                        <span class="login-feature-icon">✓</span>
-                        <span>{{ __('auth.feature_2') }}</span>
-                    </li>
-                    <li>
-                        <span class="login-feature-icon">✓</span>
-                        <span>{{ __('auth.feature_3') }}</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="login-brand-footer">
-                <span>© {{ date('Y') }} {{ $systemSettings->appName() }}</span>
-            </div>
-        </aside>
-
-        <main class="login-main">
+        <div class="login-center">
             <div class="login-form-wrapper">
                 @if (($navbarLanguages ?? collect())->isNotEmpty())
                 <div class="login-language-switcher">
@@ -68,9 +30,47 @@
                     @endforeach
                 </div>
                 @endif
+
+                <div class="login-card-brand">
+                    @if ($systemSettings->hasLogo())
+                        <img
+                            src="{{ $systemSettings->logoUrl() }}"
+                            alt=""
+                            class="login-brand-logo-img login-brand-logo-img--centered"
+                            style="{{ $systemSettings->loginLogoStyle() }}"
+                            decoding="async"
+                        >
+                    @else
+                        <div class="login-brand-logo login-brand-logo--centered">
+                            @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
+                        </div>
+                    @endif
+
+                    @if (filled($systemSettings->loginText('brand_subtitle')))
+                        <p class="login-card-subtitle">{{ $systemSettings->loginText('brand_subtitle') }}</p>
+                    @endif
+                </div>
+
                 {{ $slot }}
+
+                @if (filled($systemSettings->loginText('feature_1')) || filled($systemSettings->loginText('feature_2')) || filled($systemSettings->loginText('feature_3')))
+                <ul class="login-features login-features--card">
+                    @foreach (['feature_1', 'feature_2', 'feature_3'] as $featureKey)
+                        @if (filled($systemSettings->loginText($featureKey)))
+                        <li>
+                            <span class="login-feature-icon">✓</span>
+                            <span>{{ $systemSettings->loginText($featureKey) }}</span>
+                        </li>
+                        @endif
+                    @endforeach
+                </ul>
+                @endif
             </div>
-        </main>
+
+            <footer class="login-page-footer">
+                <span>{{ $systemSettings->loginText('copyright') }}</span>
+            </footer>
+        </div>
     </div>
 
     <script src="{{ asset('js/app.js') }}"></script>
