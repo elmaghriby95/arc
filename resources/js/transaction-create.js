@@ -43,34 +43,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formatSize = (bytes) => bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
 
-    const maxFileBytes = Number(form.dataset.maxFileBytes) || (20480 * 1024);
-    const phpUploadBytes = Number(form.dataset.phpUploadBytes) || 0;
-    const phpPostBytes = Number(form.dataset.phpPostBytes) || 0;
+    const maxFileBytes = Number(form.dataset.maxFileBytes) || (65536 * 1024);
 
     const validateUploadLimits = () => {
         const oversized = selectedFiles.filter((file) => file.size > maxFileBytes);
 
         if (oversized.length) {
+            const limitMb = (maxFileBytes / 1048576).toFixed(0);
+
             alert(
-                (i18n.upload_too_large || 'File too large.')
+                (i18n.upload_too_large || `حجم الملف أكبر من المسموح (${limitMb} ميجابايت).`)
                     + `\n${oversized.map((f) => `${f.name} (${formatSize(f.size)})`).join('\n')}`,
             );
-
-            return false;
-        }
-
-        const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-        const formOverhead = 256 * 1024;
-        const largestFile = selectedFiles.reduce((max, file) => Math.max(max, file.size), 0);
-
-        if (phpUploadBytes > 0 && largestFile > phpUploadBytes) {
-            alert(i18n.upload_server_limit || 'Server upload limit is too low for this file.');
-
-            return false;
-        }
-
-        if (phpPostBytes > 0 && largestFile + formOverhead > phpPostBytes) {
-            alert(i18n.upload_server_limit || 'Server post limit is too low for this upload.');
 
             return false;
         }

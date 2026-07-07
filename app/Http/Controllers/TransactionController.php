@@ -101,9 +101,21 @@ class TransactionController extends Controller
             );
         }
 
+        $resumableDraft = $this->findResumableDraft($request);
+
+        $archivalReferenceRules = ['required', 'string', 'max:255'];
+
+        if ($resumableDraft) {
+            $archivalReferenceRules[] = Rule::unique('transactions', 'archival_reference')->ignore($resumableDraft->id);
+        } else {
+            $archivalReferenceRules[] = 'unique:transactions,archival_reference';
+        }
+
+        $maxFileKb = $this->maxUploadFileKb();
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'archival_reference' => ['required', 'string', 'max:255', 'unique:transactions,archival_reference'],
+            'archival_reference' => $archivalReferenceRules,
             'description' => ['nullable', 'string'],
             'transaction_type_id' => ['nullable', 'exists:transaction_types,id'],
             'department_id' => ['required', 'exists:departments,id'],
@@ -113,7 +125,7 @@ class TransactionController extends Controller
             'files' => ['nullable', 'array'],
             'files.*' => [
                 'file',
-                'max:20480',
+                'max:'.$maxFileKb,
                 File::types(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']),
             ],
             'titles' => ['nullable', 'array'],
@@ -128,6 +140,8 @@ class TransactionController extends Controller
             'original_document_numbers.*' => ['nullable', 'string', 'max:255'],
             'use_operational' => ['nullable', 'array'],
             'use_operational.*' => ['nullable', 'boolean'],
+        ], [
+            'archival_reference.unique' => __('validation.unique', ['attribute' => __('validation.attributes.archival_reference')]),
         ]);
 
         if (! $request->user()->canAccessDepartment($validated['department_id'])) {
@@ -144,7 +158,7 @@ class TransactionController extends Controller
             );
         }
 
-        $transaction = Transaction::create([
+        $transaction = $resumableDraft ?? Transaction::create([
             'reference_number' => $this->generateReferenceNumber(),
             'archival_reference' => $validated['archival_reference'],
             'title' => $validated['title'],
@@ -158,13 +172,25 @@ class TransactionController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        $transaction->statusHistories()->create([
-            'from_status_id' => null,
-            'to_status_id' => $initialStatus->id,
-            'changed_by' => $request->user()->id,
-            'action' => WorkflowAction::Create->value,
-            'notes' => __('messages.transaction.created_note'),
-        ]);
+        if ($resumableDraft) {
+            $transaction->update([
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'transaction_type_id' => $validated['transaction_type_id'] ?? null,
+                'department_id' => $validated['department_id'],
+                'folder_id' => $validated['folder_id'],
+                'transaction_date' => $validated['transaction_date'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+        } else {
+            $transaction->statusHistories()->create([
+                'from_status_id' => null,
+                'to_status_id' => $initialStatus->id,
+                'changed_by' => $request->user()->id,
+                'action' => WorkflowAction::Create->value,
+                'notes' => __('messages.transaction.created_note'),
+            ]);
+        }
 
         if (! empty($validated['files'])) {
             $sortOrder = 0;
@@ -480,11 +506,45 @@ class TransactionController extends Controller
     /** @return array{max_file_bytes: int, php_upload_bytes: int, php_post_bytes: int} */
     private function transactionUploadLimits(): array
     {
+        $maxFileBytes = $this->maxUploadFileKb() * 1024;
+        $phpUploadBytes = $this->iniSizeToBytes(ini_get('upload_max_filesize'));
+        $phpPostBytes = $this->iniSizeToBytes(ini_get('post_max_size'));
+
+        $effectiveMax = $maxFileBytes;
+
+        if ($phpUploadBytes > 0) {
+            $effectiveMax = min($effectiveMax, $phpUploadBytes);
+        }
+
         return [
-            'max_file_bytes' => 20480 * 1024,
-            'php_upload_bytes' => $this->iniSizeToBytes(ini_get('upload_max_filesize')),
-            'php_post_bytes' => $this->iniSizeToBytes(ini_get('post_max_size')),
+            'max_file_bytes' => $effectiveMax,
+            'php_upload_bytes' => $phpUploadBytes,
+            'php_post_bytes' => $phpPostBytes,
         ];
+    }
+
+    private function maxUploadFileKb(): int
+    {
+        return (int) config('uploads.max_file_kb', 65536);
+    }
+
+    private function findResumableDraft(Request $request): ?Transaction
+    {
+        if (! $request->expectsJson() || $request->hasFile('files')) {
+            return null;
+        }
+
+        $reference = trim((string) $request->input('archival_reference', ''));
+
+        if ($reference === '') {
+            return null;
+        }
+
+        return Transaction::query()
+            ->where('archival_reference', $reference)
+            ->where('created_by', $request->user()->id)
+            ->whereHas('status', fn ($query) => $query->where('is_initial', true))
+            ->first();
     }
 
     private function iniSizeToBytes(string|false $value): int
