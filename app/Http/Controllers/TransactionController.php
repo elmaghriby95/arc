@@ -12,6 +12,7 @@ use App\Models\TransactionType;
 use App\Models\User;
 use App\Services\LendingEligibilityService;
 use App\Services\ReferenceNumberService;
+use App\Services\TransactionAttachmentCreator;
 use App\Services\TransactionQrCodeService;
 use App\Services\TransactionScopeService;
 use App\Services\WorkflowService;
@@ -88,7 +89,7 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function store(Request $request, ReferenceNumberService $referenceNumbers): RedirectResponse|JsonResponse
+    public function store(Request $request, TransactionAttachmentCreator $attachmentCreator): RedirectResponse|JsonResponse
     {
         $initialStatus = TransactionStatus::initial();
 
@@ -165,46 +166,25 @@ class TransactionController extends Controller
             'notes' => __('messages.transaction.created_note'),
         ]);
 
-        $department = Department::findOrFail($validated['department_id']);
-        $transactionType = isset($validated['transaction_type_id'])
-            ? TransactionType::find($validated['transaction_type_id'])
-            : null;
-
         if (! empty($validated['files'])) {
             $sortOrder = 0;
 
             foreach ($validated['files'] as $index => $file) {
                 $sortOrder++;
-                $path = $file->store('transaction-attachments/'.$transaction->id, 'local');
-
-                $referenceData = $referenceNumbers->resolveForAttachment(
+                $attachmentCreator->create(
+                    $transaction,
+                    $file,
                     [
+                        'title' => $validated['titles'][$index] ?? null,
                         'reference_number' => $validated['reference_numbers'][$index] ?? null,
                         'reference_year' => $validated['reference_years'][$index] ?? null,
                         'reference_month' => $validated['reference_months'][$index] ?? null,
                         'original_document_number' => $validated['original_document_numbers'][$index] ?? null,
                         'use_operational' => $validated['use_operational'][$index] ?? false,
                     ],
-                    $department,
-                    $transactionType,
                     $request->user(),
+                    $sortOrder,
                 );
-
-                $transaction->attachments()->create([
-                    'title' => $validated['titles'][$index] ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-                    'reference_number' => $referenceData['reference_number'],
-                    'reference_year' => $referenceData['reference_year'],
-                    'reference_month' => $referenceData['reference_month'],
-                    'original_document_number' => $referenceData['original_document_number'],
-                    'is_operational_number' => $referenceData['is_operational_number'],
-                    'file_path' => $path,
-                    'file_name' => basename($path),
-                    'original_name' => $file->getClientOriginalName(),
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                    'uploaded_by' => $request->user()->id,
-                    'sort_order' => $sortOrder,
-                ]);
             }
         }
 
@@ -488,7 +468,10 @@ class TransactionController extends Controller
         $url = route('transactions.show', $transaction);
 
         if ($request->expectsJson()) {
-            return response()->json(['redirect' => $url]);
+            return response()->json([
+                'redirect' => $url,
+                'transaction_id' => $transaction->id,
+            ]);
         }
 
         return redirect($url)->with('success', __('messages.transaction.created'));
@@ -546,6 +529,8 @@ class TransactionController extends Controller
             'upload_failed' => __('transactions.js.upload_failed'),
             'upload_too_large' => __('transactions.js.upload_too_large'),
             'upload_server_limit' => __('transactions.js.upload_server_limit'),
+            'upload_creating' => __('transactions.js.upload_creating'),
+            'upload_partial' => __('transactions.js.upload_partial'),
             'validation_heading' => __('transactions.js.validation_heading'),
         ];
     }

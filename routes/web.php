@@ -145,6 +145,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:transactions.create')->group(function () {
         Route::get('transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
         Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
+        Route::post('transactions/{transaction}/attachments/create-upload', [TransactionAttachmentController::class, 'storeCreateUpload'])
+            ->name('transactions.attachments.create-upload');
 
         Route::prefix('scan-agent')->name('scan-agent.')->group(function () {
             Route::get('health', [ScanAgentProxyController::class, 'health'])->name('health');

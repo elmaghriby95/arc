@@ -61,14 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
         const formOverhead = 256 * 1024;
+        const largestFile = selectedFiles.reduce((max, file) => Math.max(max, file.size), 0);
 
-        if (phpUploadBytes > 0 && selectedFiles.some((file) => file.size > phpUploadBytes)) {
+        if (phpUploadBytes > 0 && largestFile > phpUploadBytes) {
             alert(i18n.upload_server_limit || 'Server upload limit is too low for this file.');
 
             return false;
         }
 
-        if (phpPostBytes > 0 && totalBytes + formOverhead > phpPostBytes) {
+        if (phpPostBytes > 0 && largestFile + formOverhead > phpPostBytes) {
             alert(i18n.upload_server_limit || 'Server post limit is too low for this upload.');
 
             return false;
@@ -446,85 +447,175 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const submitWithProgress = () => {
-        const formData = new FormData(form);
+    const csrfToken = form.querySelector('[name="_token"]')?.value
+        || document.querySelector('meta[name="csrf-token"]')?.content
+        || '';
+
+    const collectTransactionPayload = () => {
+        const payload = {};
+
+        new FormData(form).forEach((value, key) => {
+            if (
+                key === 'files[]'
+                || key.startsWith('titles[')
+                || key.startsWith('reference_')
+                || key.startsWith('use_operational[')
+            ) {
+                return;
+            }
+
+            if (key === 'transaction_type_id' && value === '') {
+                return;
+            }
+
+            payload[key] = value;
+        });
+
+        return payload;
+    };
+
+    const collectFileMeta = (index) => ({
+        title: form.querySelector(`[name="titles[${index}]"]`)?.value ?? '',
+        reference_number: form.querySelector(`[name="reference_numbers[${index}]"]`)?.value ?? '',
+        reference_year: form.querySelector(`[name="reference_years[${index}]"]`)?.value ?? '',
+        reference_month: form.querySelector(`[name="reference_months[${index}]"]`)?.value ?? '',
+        original_document_number: form.querySelector(`[name="original_document_numbers[${index}]"]`)?.value ?? '',
+        use_operational: form.querySelector(`[name="use_operational[${index}]"]`)?.checked ? '1' : '0',
+    });
+
+    const parseJsonResponse = (text) => {
+        try {
+            return JSON.parse(text);
+        } catch {
+            return null;
+        }
+    };
+
+    const uploadFileXHR = (url, file, meta, onProgress) => new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        const fd = new FormData();
 
-        uploadProgress?.classList.remove('is-hidden');
-        updateUploadProgress(0, selectedFiles.reduce((sum, file) => sum + file.size, 0));
+        fd.append('file', file);
+        fd.append('_token', csrfToken);
 
-        xhr.open('POST', form.action);
+        Object.entries(meta).forEach(([key, value]) => {
+            if (value !== '' && value !== null && value !== undefined) {
+                fd.append(key, value);
+            }
+        });
+
+        xhr.open('POST', url);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
 
         xhr.upload.addEventListener('progress', (event) => {
-            if (event.lengthComputable) {
-                updateUploadProgress(event.loaded, event.total);
+            if (event.lengthComputable && onProgress) {
+                onProgress(event.loaded, event.total);
             }
         });
 
         xhr.addEventListener('load', () => {
-            let data = null;
+            const data = parseJsonResponse(xhr.responseText);
 
-            try {
-                data = JSON.parse(xhr.responseText);
-            } catch {
-                data = null;
-            }
-
-            if (xhr.status === 422) {
-                setFormLocked(false);
-                resetUploadProgress();
-                showValidationErrors(data?.errors);
+            if (xhr.status === 422 || xhr.status === 413) {
+                reject(data || { errors: { files: [i18n.upload_failed || 'Upload failed.'] } });
 
                 return;
             }
 
-            if (xhr.status === 413) {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(data);
+
+                return;
+            }
+
+            reject(data || new Error('upload failed'));
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('network')));
+        xhr.send(fd);
+    });
+
+    const submitWithProgress = async () => {
+        const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+        let uploadedBytes = 0;
+
+        uploadProgress?.classList.remove('is-hidden');
+        updateUploadProgress(0, totalBytes);
+
+        if (progressStatus) {
+            progressStatus.textContent = i18n.upload_creating || 'Creating transaction…';
+        }
+
+        let createData;
+
+        try {
+            const createResponse = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify(collectTransactionPayload()),
+            });
+
+            createData = parseJsonResponse(await createResponse.text());
+
+            if (! createResponse.ok) {
                 setFormLocked(false);
                 resetUploadProgress();
-                showValidationErrors(data?.errors || {
-                    files: [data?.message || i18n.upload_server_limit || 'Upload too large for server.'],
+                showValidationErrors(createData?.errors);
+
+                return;
+            }
+        } catch {
+            setFormLocked(false);
+            resetUploadProgress();
+            alert(i18n.upload_failed || 'Upload failed.');
+
+            return;
+        }
+
+        const transactionId = createData?.transaction_id;
+        const showUrl = createData?.redirect;
+        const uploadUrlTemplate = form.dataset.attachmentUploadUrl || '';
+
+        if (! transactionId || ! uploadUrlTemplate || ! showUrl) {
+            setFormLocked(false);
+            resetUploadProgress();
+            alert(i18n.upload_failed || 'Upload failed.');
+
+            return;
+        }
+
+        const uploadUrl = uploadUrlTemplate.replace('__ID__', String(transactionId));
+
+        try {
+            for (let index = 0; index < selectedFiles.length; index++) {
+                const file = selectedFiles[index];
+                const fileStart = uploadedBytes;
+
+                await uploadFileXHR(uploadUrl, file, collectFileMeta(index), (loaded) => {
+                    updateUploadProgress(fileStart + loaded, totalBytes);
                 });
 
-                return;
+                uploadedBytes += file.size;
+                updateUploadProgress(uploadedBytes, totalBytes);
             }
-
-            if (xhr.status >= 200 && xhr.status < 300 && data?.redirect) {
-                window.location.assign(data.redirect);
-
-                return;
-            }
-
-            const responseUrl = xhr.responseURL || '';
-            const landedOnCreate = /\/transactions\/create\/?(?:\?|$)/.test(responseUrl);
-
-            if (xhr.status >= 200 && xhr.status < 400 && ! landedOnCreate) {
-                window.location.assign(responseUrl);
-
-                return;
-            }
-
-            if (landedOnCreate) {
-                setFormLocked(false);
-                resetUploadProgress();
-                window.location.assign(responseUrl);
-
-                return;
-            }
-
+        } catch (error) {
             setFormLocked(false);
             resetUploadProgress();
-            alert(i18n.upload_failed || 'Upload failed.');
-        });
+            showValidationErrors(error?.errors);
 
-        xhr.addEventListener('error', () => {
-            setFormLocked(false);
-            resetUploadProgress();
-            alert(i18n.upload_failed || 'Upload failed.');
-        });
+            alert(i18n.upload_partial || 'Transaction created but a document failed to upload.');
+            window.location.assign(showUrl);
 
-        xhr.send(formData);
+            return;
+        }
+
+        window.location.assign(showUrl);
     };
 
     form.addEventListener('submit', (event) => {

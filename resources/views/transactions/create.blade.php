@@ -73,6 +73,7 @@
                       data-max-file-bytes="{{ $uploadLimits['max_file_bytes'] }}"
                       data-php-upload-bytes="{{ $uploadLimits['php_upload_bytes'] }}"
                       data-php-post-bytes="{{ $uploadLimits['php_post_bytes'] }}"
+                      data-attachment-upload-url="{{ route('transactions.attachments.create-upload', ['transaction' => '__ID__']) }}"
                       data-initial-step="{{ $errors->has('folder_id') ? 2 : 1 }}">
                     @csrf
 
