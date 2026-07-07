@@ -421,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.open('POST', form.action);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Accept', 'application/json');
 
         xhr.upload.addEventListener('progress', (event) => {
             if (event.lengthComputable) {
@@ -429,21 +430,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         xhr.addEventListener('load', () => {
+            let data = null;
+
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch {
+                data = null;
+            }
+
             if (xhr.status === 422) {
                 setFormLocked(false);
                 resetUploadProgress();
-
-                try {
-                    showValidationErrors(JSON.parse(xhr.responseText)?.errors);
-                } catch {
-                    alert(i18n.upload_failed || 'Upload failed.');
-                }
+                showValidationErrors(data?.errors);
 
                 return;
             }
 
-            if (xhr.status >= 200 && xhr.status < 400) {
-                window.location.href = xhr.responseURL || form.action;
+            if (xhr.status >= 200 && xhr.status < 300 && data?.redirect) {
+                window.location.assign(data.redirect);
+
+                return;
+            }
+
+            const responseUrl = xhr.responseURL || '';
+            const landedOnCreate = /\/transactions\/create\/?(?:\?|$)/.test(responseUrl);
+
+            if (xhr.status >= 200 && xhr.status < 400 && ! landedOnCreate) {
+                window.location.assign(responseUrl);
+
+                return;
+            }
+
+            if (landedOnCreate) {
+                setFormLocked(false);
+                resetUploadProgress();
+                window.location.assign(responseUrl);
+
                 return;
             }
 

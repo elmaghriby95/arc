@@ -15,6 +15,7 @@ use App\Services\ReferenceNumberService;
 use App\Services\TransactionQrCodeService;
 use App\Services\TransactionScopeService;
 use App\Services\WorkflowService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -86,14 +87,16 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function store(Request $request, ReferenceNumberService $referenceNumbers): RedirectResponse
+    public function store(Request $request, ReferenceNumberService $referenceNumbers): RedirectResponse|JsonResponse
     {
         $initialStatus = TransactionStatus::initial();
 
         if (! $initialStatus) {
-            return back()
-                ->withInput()
-                ->with('error', __('messages.transaction.statuses_required'));
+            return $this->storeFailureResponse(
+                $request,
+                ['transaction_status' => [__('messages.transaction.statuses_required')]],
+                __('messages.transaction.statuses_required'),
+            );
         }
 
         $validated = $request->validate([
@@ -126,15 +129,17 @@ class TransactionController extends Controller
         ]);
 
         if (! $request->user()->canAccessDepartment($validated['department_id'])) {
-            return back()
-                ->withInput()
-                ->withErrors(['department_id' => __('messages.transaction.department_create_denied')]);
+            return $this->storeFailureResponse(
+                $request,
+                ['department_id' => [__('messages.transaction.department_create_denied')]],
+            );
         }
 
         if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user())) {
-            return back()
-                ->withInput()
-                ->withErrors(['folder_id' => $folderError]);
+            return $this->storeFailureResponse(
+                $request,
+                ['folder_id' => [$folderError]],
+            );
         }
 
         $transaction = Transaction::create([
@@ -202,9 +207,7 @@ class TransactionController extends Controller
             }
         }
 
-        return redirect()
-            ->route('transactions.show', $transaction)
-            ->with('success', __('messages.transaction.created'));
+        return $this->storeSuccessResponse($request, $transaction);
     }
 
     public function show(Transaction $transaction, WorkflowService $workflow, LendingEligibilityService $lendingEligibility, TransactionQrCodeService $qrCodes): View
@@ -458,6 +461,36 @@ class TransactionController extends Controller
         if (! auth()->user()?->canAccessTransaction($transaction)) {
             abort(403, __('messages.transaction.access_denied'));
         }
+    }
+
+    /** @param  array<string, list<string>>  $errors */
+    private function storeFailureResponse(Request $request, array $errors, ?string $message = null): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message ?? __('transactions.validation_heading'),
+                'errors' => $errors,
+            ], 422);
+        }
+
+        $response = back()->withInput()->withErrors($errors);
+
+        if ($message) {
+            $response = $response->with('error', $message);
+        }
+
+        return $response;
+    }
+
+    private function storeSuccessResponse(Request $request, Transaction $transaction): RedirectResponse|JsonResponse
+    {
+        $url = route('transactions.show', $transaction);
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => $url]);
+        }
+
+        return redirect($url)->with('success', __('messages.transaction.created'));
     }
 
     /** @return array<string, string> */
