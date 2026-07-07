@@ -297,6 +297,19 @@ a:hover { color: var(--primary-dark); }
     height: 1.25rem;
 }
 
+.navbar-brand-icon .system-brand-img--navbar {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0.65rem;
+}
+
+.navbar-brand-icon:has(.system-brand-img) {
+    background: #fff;
+    padding: 0.2rem;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.15);
+}
+
 .navbar-brand-copy {
     display: flex;
     flex-direction: column;
@@ -1947,6 +1960,18 @@ textarea.form-control:focus {
     height: 2.2rem;
 }
 
+.login-brand-logo .system-brand-img--login {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0.75rem;
+}
+
+.login-brand-logo:has(.system-brand-img) {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.35rem;
+}
+
 .login-brand-title {
     margin: 0 0 0.75rem;
     font-size: 1.75rem;
@@ -2382,6 +2407,7 @@ textarea.form-control:focus {
 }
 
 .settings-module--users::before { background: #0ea5e9; }
+.settings-module--general::before { background: #6366f1; }
 .settings-module--roles::before { background: #8b5cf6; }
 .settings-module--org::before { background: #10b981; }
 .settings-module--doctypes::before { background: #f59e0b; }
@@ -2410,6 +2436,11 @@ textarea.form-control:focus {
 .settings-module--users .settings-module-icon {
     background: #e0f2fe;
     color: #0284c7;
+}
+
+.settings-module--general .settings-module-icon {
+    background: #eef2ff;
+    color: #4f46e5;
 }
 
 .settings-module--roles .settings-module-icon {
@@ -3850,6 +3881,36 @@ textarea.form-control:focus {
     margin: 0;
     font-size: 0.9rem;
     line-height: 1.5;
+}
+
+.general-brand-preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.35rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+}
+
+.general-brand-preview--favicon {
+    width: 3rem;
+    height: 3rem;
+}
+
+.general-brand-preview-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.general-brand-preview-favicon {
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: contain;
 }
 
 .ref-settings-grid {

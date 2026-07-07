@@ -21,6 +21,7 @@ class TranslationCatalog
             self::settingsTxnTypes(),
             self::settingsDocTypes(),
             self::settingsRefNumbers(),
+            self::settingsGeneral(),
             self::dashboard(),
             self::languages(),
             self::translations(),
@@ -214,6 +215,7 @@ class TranslationCatalog
             ['group' => 'messages', 'key' => 'organization.deleted', 'values' => ['ar' => 'تم حذف الوحدة التنظيمية بنجاح.', 'en' => 'Organizational unit deleted successfully.', 'fr' => 'Unité organisationnelle supprimée avec succès.']],
             ['group' => 'messages', 'key' => 'reference_number.saved', 'values' => ['ar' => 'تم حفظ إعدادات الرقم الإشاري بنجاح.', 'en' => 'Reference number settings saved successfully.', 'fr' => 'Paramètres du numéro de référence enregistrés avec succès.']],
             ['group' => 'messages', 'key' => 'transaction_qr.saved', 'values' => ['ar' => 'تم حفظ إعدادات رمز QR بنجاح.', 'en' => 'QR code settings saved successfully.', 'fr' => 'Paramètres du QR enregistrés avec succès.']],
+            ['group' => 'messages', 'key' => 'general.saved', 'values' => ['ar' => 'تم حفظ الإعدادات العامة بنجاح.', 'en' => 'General settings saved successfully.', 'fr' => 'Paramètres généraux enregistrés avec succès.']],
             ['group' => 'messages', 'key' => 'role.created', 'values' => ['ar' => 'تم إنشاء الدور بنجاح.', 'en' => 'Role created successfully.', 'fr' => 'Rôle créé avec succès.']],
             ['group' => 'messages', 'key' => 'role.updated', 'values' => ['ar' => 'تم تحديث الدور بنجاح.', 'en' => 'Role updated successfully.', 'fr' => 'Rôle mis à jour avec succès.']],
             ['group' => 'messages', 'key' => 'role.deleted', 'values' => ['ar' => 'تم حذف الدور بنجاح.', 'en' => 'Role deleted successfully.', 'fr' => 'Rôle supprimé avec succès.']],
@@ -577,6 +579,35 @@ class TranslationCatalog
     }
 
     /** @return list<array{group: string, key: string, description?: string, values: array<string, string>}> */
+    private static function settingsGeneral(): array
+    {
+        return [
+            ['group' => 'settings', 'key' => 'general_title', 'values' => ['ar' => 'الإعدادات العامة', 'en' => 'General Settings', 'fr' => 'Paramètres généraux']],
+            ['group' => 'settings', 'key' => 'general_desc', 'values' => ['ar' => 'اسم المنظومة والشعار والأيقونة وإعدادات التواصل', 'en' => 'System name, logo, favicon and contact settings', 'fr' => 'Nom du système, logo, favicon et contact']],
+            ['group' => 'settings', 'key' => 'general_badge', 'values' => ['ar' => 'الهوية البصرية', 'en' => 'Branding', 'fr' => 'Identité visuelle']],
+            ['group' => 'settings.general', 'key' => 'title', 'values' => ['ar' => 'الإعدادات العامة للنظام', 'en' => 'General System Settings', 'fr' => 'Paramètres généraux du système']],
+            ['group' => 'settings.general', 'key' => 'subtitle', 'values' => ['ar' => 'تخصيص اسم المنظومة والشعار وإعدادات العرض في الواجهة وصفحة تسجيل الدخول', 'en' => 'Customize system name, logo and display settings across the app and login page', 'fr' => 'Personnaliser le nom, le logo et l\'affichage dans l\'application et la page de connexion']],
+            ['group' => 'settings.general', 'key' => 'info', 'values' => ['ar' => 'تُطبَّق هذه الإعدادات على شريط التنقل وصفحة تسجيل الدخول وعناوين الصفحات. نصوص الوصف والميزات في صفحة الدخول قابلة للتعديل من إعدادات اللغات → الترجمات.', 'en' => 'These settings apply to the navbar, login page and page titles. Login descriptions and feature texts can be edited under Languages → Translations.', 'fr' => 'Ces paramètres s\'appliquent à la barre de navigation, la page de connexion et les titres. Les textes de la page de connexion se modifient dans Langues → Traductions.']],
+            ['group' => 'settings.general', 'key' => 'identity_title', 'values' => ['ar' => 'هوية المنظومة', 'en' => 'System identity', 'fr' => 'Identité du système']],
+            ['group' => 'settings.general', 'key' => 'app_name', 'values' => ['ar' => 'اسم المنظومة', 'en' => 'System name', 'fr' => 'Nom du système']],
+            ['group' => 'settings.general', 'key' => 'app_name_desc', 'values' => ['ar' => 'يظهر في شريط التنقل وصفحة تسجيل الدخول وعناوين الصفحات', 'en' => 'Shown in the navbar, login page and page titles', 'fr' => 'Affiché dans la barre de navigation, la page de connexion et les titres']],
+            ['group' => 'settings.general', 'key' => 'app_name_placeholder', 'values' => ['ar' => 'اتركه فارغاً لاستخدام القيمة الافتراضية من ملف الإعدادات', 'en' => 'Leave empty to use the default from configuration', 'fr' => 'Laisser vide pour utiliser la valeur par défaut']],
+            ['group' => 'settings.general', 'key' => 'branding_title', 'values' => ['ar' => 'الشعار والأيقونة', 'en' => 'Logo & favicon', 'fr' => 'Logo et favicon']],
+            ['group' => 'settings.general', 'key' => 'logo', 'values' => ['ar' => 'شعار المنظومة', 'en' => 'System logo', 'fr' => 'Logo du système']],
+            ['group' => 'settings.general', 'key' => 'logo_desc', 'values' => ['ar' => 'يظهر في شريط التنقل وصفحة تسجيل الدخول. الصيغ: PNG, JPG, WEBP, SVG — بحد أقصى 2 ميغابايت', 'en' => 'Shown in the navbar and login page. Formats: PNG, JPG, WEBP, SVG — max 2 MB', 'fr' => 'Affiché dans la barre de navigation et la page de connexion. Formats : PNG, JPG, WEBP, SVG — max 2 Mo']],
+            ['group' => 'settings.general', 'key' => 'favicon', 'values' => ['ar' => 'أيقونة المتصفح (Favicon)', 'en' => 'Browser favicon', 'fr' => 'Favicon du navigateur']],
+            ['group' => 'settings.general', 'key' => 'favicon_desc', 'values' => ['ar' => 'تظهر في تبويب المتصفح. الصيغ: PNG, JPG, WEBP, ICO — بحد أقصى 1 ميغابايت', 'en' => 'Shown in the browser tab. Formats: PNG, JPG, WEBP, ICO — max 1 MB', 'fr' => 'Affiché dans l\'onglet du navigateur. Formats : PNG, JPG, WEBP, ICO — max 1 Mo']],
+            ['group' => 'settings.general', 'key' => 'remove_logo', 'values' => ['ar' => 'إزالة الشعار الحالي', 'en' => 'Remove current logo', 'fr' => 'Supprimer le logo actuel']],
+            ['group' => 'settings.general', 'key' => 'remove_favicon', 'values' => ['ar' => 'إزالة الأيقونة الحالية', 'en' => 'Remove current favicon', 'fr' => 'Supprimer le favicon actuel']],
+            ['group' => 'settings.general', 'key' => 'contact_title', 'values' => ['ar' => 'معلومات التواصل', 'en' => 'Contact information', 'fr' => 'Coordonnées']],
+            ['group' => 'settings.general', 'key' => 'support_email', 'values' => ['ar' => 'البريد الإلكتروني للدعم', 'en' => 'Support email', 'fr' => 'E-mail de support']],
+            ['group' => 'settings.general', 'key' => 'support_phone', 'values' => ['ar' => 'هاتف الدعم', 'en' => 'Support phone', 'fr' => 'Téléphone de support']],
+            ['group' => 'settings.general', 'key' => 'save', 'values' => ['ar' => 'حفظ الإعدادات', 'en' => 'Save settings', 'fr' => 'Enregistrer les paramètres']],
+            ['group' => 'settings.general', 'key' => 'readonly', 'values' => ['ar' => 'لديك صلاحية العرض فقط — لا يمكنك تعديل هذه الإعدادات.', 'en' => 'View-only access — you cannot edit these settings.', 'fr' => 'Accès lecture seule — modification impossible.']],
+        ];
+    }
+
+    /** @return list<array{group: string, key: string, description?: string, values: array<string, string>}> */
     private static function dashboard(): array
     {
         return [
@@ -769,6 +800,8 @@ class TranslationCatalog
             'settings.reference-numbers.edit' => ['ar' => 'تعديل إعدادات الرقم الإشاري', 'en' => 'Edit reference number settings', 'fr' => 'Modifier les numéros de référence'],
             'settings.qr-code.view' => ['ar' => 'عرض إعدادات رمز QR', 'en' => 'View QR code settings', 'fr' => 'Voir les paramètres QR'],
             'settings.qr-code.edit' => ['ar' => 'تعديل إعدادات رمز QR', 'en' => 'Edit QR code settings', 'fr' => 'Modifier les paramètres QR'],
+            'settings.general.view' => ['ar' => 'عرض الإعدادات العامة', 'en' => 'View general settings', 'fr' => 'Voir les paramètres généraux'],
+            'settings.general.edit' => ['ar' => 'تعديل الإعدادات العامة', 'en' => 'Edit general settings', 'fr' => 'Modifier les paramètres généraux'],
             'documents.reference-number.duplicate-override' => ['ar' => 'السماح بتكرار الرقم الإشاري', 'en' => 'Allow duplicate reference numbers', 'fr' => 'Autoriser les numéros en double'],
             'profile.view' => ['ar' => 'عرض الملف الشخصي', 'en' => 'View profile', 'fr' => 'Voir le profil'],
             'profile.edit' => ['ar' => 'تعديل الملف الشخصي', 'en' => 'Edit profile', 'fr' => 'Modifier le profil'],
@@ -796,6 +829,8 @@ class TranslationCatalog
             ['group' => 'permissions.groups', 'key' => 'folder_tree', 'values' => ['ar' => 'شجرة المجلدات', 'en' => 'Folder tree', 'fr' => 'Arborescence des dossiers']],
             ['group' => 'permissions.groups', 'key' => 'languages', 'values' => ['ar' => 'اللغات', 'en' => 'Languages', 'fr' => 'Langues']],
             ['group' => 'permissions.groups', 'key' => 'reference_numbers', 'values' => ['ar' => 'إعدادات الرقم الإشاري', 'en' => 'Reference number settings', 'fr' => 'Paramètres des numéros de référence']],
+            ['group' => 'permissions.groups', 'key' => 'qr_code', 'values' => ['ar' => 'إعدادات رمز QR', 'en' => 'QR code settings', 'fr' => 'Paramètres du code QR']],
+            ['group' => 'permissions.groups', 'key' => 'general_settings', 'values' => ['ar' => 'الإعدادات العامة', 'en' => 'General settings', 'fr' => 'Paramètres généraux']],
             ['group' => 'permissions.groups', 'key' => 'profile', 'values' => ['ar' => 'الملف الشخصي', 'en' => 'Profile', 'fr' => 'Profil']],
             ['group' => 'permissions.groups', 'key' => 'workflow_stages', 'values' => ['ar' => 'سير عمل المعاملات (مراحل)', 'en' => 'Transaction workflow (stages)', 'fr' => 'Workflow des transactions (étapes)']],
         ];

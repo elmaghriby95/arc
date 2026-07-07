@@ -17,6 +17,7 @@ use App\Http\Controllers\Settings\DocumentTypeController;
 use App\Http\Controllers\Settings\FolderTreeController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\Settings\OrganizationController;
+use App\Http\Controllers\Settings\GeneralSettingsController;
 use App\Http\Controllers\Settings\ReferenceNumberSettingsController;
 use App\Http\Controllers\Settings\TransactionQrSettingsController;
 use App\Http\Controllers\Settings\RoleManagementController;
@@ -353,6 +354,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:settings.qr-code.edit')->group(function () {
             Route::put('/qr-code', [TransactionQrSettingsController::class, 'update'])->name('qr-code.update');
             Route::patch('/qr-code', [TransactionQrSettingsController::class, 'update']);
+        });
+
+        Route::middleware('permission:settings.general.view')->group(function () {
+            Route::get('/general', [GeneralSettingsController::class, 'index'])->name('general.index');
+        });
+
+        Route::middleware('permission:settings.general.edit')->group(function () {
+            Route::put('/general', [GeneralSettingsController::class, 'update'])->name('general.update');
+            Route::patch('/general', [GeneralSettingsController::class, 'update']);
         });
     });
 });

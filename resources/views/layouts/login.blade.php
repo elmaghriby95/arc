@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ __('auth.login_page_title') }} | {{ config('app.name') }}</title>
+    <title>{{ __('auth.login_page_title') }} | {{ $systemSettings->appName() }}</title>
+    @if ($systemSettings->hasFavicon())
+        <link rel="icon" href="{{ $systemSettings->faviconUrl() }}">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -14,13 +17,10 @@
         <aside class="login-brand">
             <div class="login-brand-content">
                 <div class="login-brand-logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6M9 11h6M9 15h4"/>
-                    </svg>
+                    @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
                 </div>
 
-                <h1 class="login-brand-title">{{ config('app.name') }}</h1>
+                <h1 class="login-brand-title">{{ $systemSettings->appName() }}</h1>
                 <p class="login-brand-subtitle">{{ __('auth.brand_subtitle') }}</p>
 
                 <ul class="login-features">
@@ -40,7 +40,7 @@
             </div>
 
             <div class="login-brand-footer">
-                <span>© {{ date('Y') }} {{ config('app.name') }}</span>
+                <span>© {{ date('Y') }} {{ $systemSettings->appName() }}</span>
             </div>
         </aside>
 

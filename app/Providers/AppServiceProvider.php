@@ -53,6 +53,10 @@ class AppServiceProvider extends ServiceProvider
                     ->where('code', app()->getLocale())
                     ->first());
             }
+
+            if (! isset($view->getData()['systemSettings'])) {
+                $view->with('systemSettings', \App\Models\SystemSetting::instance());
+            }
         });
 
         \Illuminate\Support\Facades\Blade::if('permission', function (string ...$permissions) {

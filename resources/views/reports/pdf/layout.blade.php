@@ -106,7 +106,7 @@
 <body dir="rtl">
     <div class="pdf-header">
         <h1>{{ $reportType->label() }}</h1>
-        <p>{{ config('app.name') }} — {{ __('reports.pdf_subtitle') }}</p>
+        <p>{{ $systemSettings->appName() }} — {{ __('reports.pdf_subtitle') }}</p>
     </div>
 
     <div class="pdf-meta">
@@ -120,7 +120,7 @@
     @yield('content')
 
     <div class="pdf-footer">
-        {{ config('app.name') }} — {{ $reportType->label() }} — {{ $generatedAt }}
+        {{ $systemSettings->appName() }} — {{ $reportType->label() }} — {{ $generatedAt }}
     </div>
 </body>
 </html>

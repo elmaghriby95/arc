@@ -5,13 +5,10 @@
         <div class="navbar-start">
             <a href="{{ route('dashboard') }}" class="navbar-brand">
                 <span class="navbar-brand-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6M9 11h6M9 15h4"/>
-                    </svg>
+                    @include('layouts.partials.system-brand-icon', ['variant' => 'navbar'])
                 </span>
                 <span class="navbar-brand-copy">
-                    <span class="navbar-brand-text">{{ config('app.name') }}</span>
+                    <span class="navbar-brand-text">{{ $systemSettings->appName() }}</span>
                     <span class="navbar-brand-tagline">{{ __('nav.tagline') }}</span>
                 </span>
             </a>
