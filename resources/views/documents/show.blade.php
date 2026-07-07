@@ -36,9 +36,9 @@
                     @if ($attachment->isImage() || $attachment->fileKind() === 'pdf')
                         <div class="doc-preview-controls">
                             <label class="doc-preview-control">
-                                <span class="doc-preview-control-label">{{ __('documents.preview_width') }}</span>
-                                <input type="range" class="doc-preview-range" data-doc-preview-width min="40" max="100" value="100" step="1">
-                                <output class="doc-preview-control-value" data-doc-preview-width-value>100%</output>
+                                <span class="doc-preview-control-label">{{ __('documents.preview_zoom') }}</span>
+                                <input type="range" class="doc-preview-range" data-doc-preview-zoom min="50" max="300" value="100" step="5">
+                                <output class="doc-preview-control-value" data-doc-preview-zoom-value>100%</output>
                             </label>
                             <label class="doc-preview-control">
                                 <span class="doc-preview-control-label">{{ __('documents.preview_height') }}</span>
@@ -52,11 +52,19 @@
                 <div class="card-body doc-preview-body">
                     @if ($attachment->isImage())
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            <img src="{{ route('documents.preview', $attachment) }}" alt="{{ $attachment->displayName() }}" class="doc-preview-image">
+                            <div class="doc-preview-content" data-doc-preview-content>
+                                <img src="{{ route('documents.preview', $attachment) }}" alt="{{ $attachment->displayName() }}" class="doc-preview-image">
+                            </div>
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            <iframe src="{{ route('documents.preview', $attachment) }}" title="{{ $attachment->displayName() }}" class="doc-preview-frame"></iframe>
+                            <iframe
+                                src="{{ route('documents.preview', $attachment) }}#zoom=page-width"
+                                data-doc-preview-frame
+                                data-doc-preview-src="{{ route('documents.preview', $attachment) }}"
+                                title="{{ $attachment->displayName() }}"
+                                class="doc-preview-frame"
+                            ></iframe>
                         </div>
                     @else
                         <div class="doc-preview-fallback">
@@ -113,95 +121,88 @@
                 document.addEventListener('DOMContentLoaded', () => {
                     const root = document.querySelector('[data-doc-preview]');
                     const viewport = root?.querySelector('[data-doc-preview-viewport]');
-                    const widthInput = root?.querySelector('[data-doc-preview-width]');
+                    const zoomInput = root?.querySelector('[data-doc-preview-zoom]');
                     const heightInput = root?.querySelector('[data-doc-preview-height]');
-                    const widthOutput = root?.querySelector('[data-doc-preview-width-value]');
+                    const zoomOutput = root?.querySelector('[data-doc-preview-zoom-value]');
                     const heightOutput = root?.querySelector('[data-doc-preview-height-value]');
                     const resetButton = root?.querySelector('[data-doc-preview-reset]');
+                    const frame = root?.querySelector('[data-doc-preview-frame]');
+                    const content = root?.querySelector('[data-doc-preview-content]');
 
-                    if (!root || !viewport || !widthInput || !heightInput) {
+                    if (!root || !viewport || !zoomInput || !heightInput) {
                         return;
                     }
 
-                    const storageKey = 'doc-preview-size';
-                    const defaults = { width: 100, height: 850 };
-                    let syncingFromResize = false;
+                    const storageKey = 'doc-preview-settings';
+                    const defaults = { zoom: 100, height: 850 };
 
                     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-                    const applySize = (widthPercent, heightPx) => {
-                        const width = clamp(widthPercent, Number(widthInput.min), Number(widthInput.max));
-                        const height = clamp(heightPx, Number(heightInput.min), Number(heightInput.max));
+                    const applyZoom = (zoom) => {
+                        const value = clamp(zoom, Number(zoomInput.min), Number(zoomInput.max));
+                        zoomInput.value = String(value);
+                        zoomOutput.textContent = `${value}%`;
 
-                        viewport.style.width = `${width}%`;
-                        viewport.style.height = `${height}px`;
-                        widthInput.value = String(Math.round(width));
-                        heightInput.value = String(Math.round(height));
-                        widthOutput.textContent = `${Math.round(width)}%`;
-                        heightOutput.textContent = `${Math.round(height)}px`;
+                        if (frame) {
+                            const baseSrc = frame.dataset.docPreviewSrc;
+                            const zoomParam = value === 100 ? 'page-width' : value;
+                            frame.src = `${baseSrc}#zoom=${zoomParam}`;
+                        }
+
+                        if (content) {
+                            content.style.width = `${value}%`;
+                        }
                     };
 
-                    const saveSize = () => {
+                    const applyHeight = (heightPx) => {
+                        const value = clamp(heightPx, Number(heightInput.min), Number(heightInput.max));
+                        viewport.style.height = `${value}px`;
+                        heightInput.value = String(value);
+                        heightOutput.textContent = `${value}px`;
+                    };
+
+                    const saveSettings = () => {
                         localStorage.setItem(storageKey, JSON.stringify({
-                            width: Number(widthInput.value),
+                            zoom: Number(zoomInput.value),
                             height: Number(heightInput.value),
                         }));
                     };
 
-                    const loadSize = () => {
+                    const loadSettings = () => {
+                        let zoom = defaults.zoom;
+                        let height = defaults.height;
+
                         try {
                             const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-                            if (saved && typeof saved.width === 'number' && typeof saved.height === 'number') {
-                                applySize(saved.width, saved.height);
-                                return;
+                            if (saved && typeof saved.zoom === 'number' && typeof saved.height === 'number') {
+                                zoom = saved.zoom;
+                                height = saved.height;
                             }
                         } catch (error) {
                             // Ignore invalid saved values.
                         }
 
-                        applySize(defaults.width, defaults.height);
+                        applyZoom(zoom);
+                        applyHeight(height);
                     };
 
-                    widthInput.addEventListener('input', () => {
-                        applySize(Number(widthInput.value), Number(heightInput.value));
-                        saveSize();
+                    zoomInput.addEventListener('input', () => {
+                        applyZoom(Number(zoomInput.value));
+                        saveSettings();
                     });
 
                     heightInput.addEventListener('input', () => {
-                        applySize(Number(widthInput.value), Number(heightInput.value));
-                        saveSize();
+                        applyHeight(Number(heightInput.value));
+                        saveSettings();
                     });
 
                     resetButton?.addEventListener('click', () => {
-                        applySize(defaults.width, defaults.height);
-                        saveSize();
+                        applyZoom(defaults.zoom);
+                        applyHeight(defaults.height);
+                        saveSettings();
                     });
 
-                    if (typeof ResizeObserver !== 'undefined') {
-                        const observer = new ResizeObserver(() => {
-                            if (syncingFromResize) {
-                                return;
-                            }
-
-                            syncingFromResize = true;
-                            const parentWidth = viewport.parentElement?.clientWidth || viewport.offsetWidth;
-                            const widthPercent = parentWidth > 0
-                                ? clamp(Math.round((viewport.offsetWidth / parentWidth) * 100), Number(widthInput.min), Number(widthInput.max))
-                                : Number(widthInput.value);
-                            const heightPx = clamp(viewport.offsetHeight, Number(heightInput.min), Number(heightInput.max));
-
-                            widthInput.value = String(widthPercent);
-                            heightInput.value = String(heightPx);
-                            widthOutput.textContent = `${widthPercent}%`;
-                            heightOutput.textContent = `${heightPx}px`;
-                            saveSize();
-                            syncingFromResize = false;
-                        });
-
-                        observer.observe(viewport);
-                    }
-
-                    loadSize();
+                    loadSettings();
                 });
             </script>
         @endpush
