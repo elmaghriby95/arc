@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'tagline' => 'إدارة الوثائق والأرشفة',
+    'dashboard' => 'لوحة التحكم',
+    'documents' => 'الوثائق',
+    'archive' => 'الأرشفة',
+    'transactions' => 'المعاملات',
+    'review_log' => 'سجل المراجعة',
+    'lending_requests' => 'طلبات الإعارة',
+    'reports' => 'التقارير',
+    'structure' => 'الهيكل',
+    'departments' => 'الأقسام',
+    'categories' => 'التصنيفات',
+    'settings' => 'الإعدادات',
+    'notifications' => 'الإشعارات',
+    'unread_count' => ':count غير مقروء',
+    'no_new_notifications' => 'لا إشعارات جديدة',
+    'mark_all_read' => 'تعليم الكل',
+    'no_notifications' => 'لا توجد إشعارات',
+    'notifications_empty_hint' => 'ستظهر هنا تحديثات حالة المعاملات والأرشفة فور حدوثها.',
+    'last_notifications' => 'آخر :count إشعار',
+    'profile' => 'الملف الشخصي',
+    'logout' => 'تسجيل الخروج',
+    'menu' => 'القائمة',
+    'language' => 'اللغة',
+    'more' => 'المزيد',
+];

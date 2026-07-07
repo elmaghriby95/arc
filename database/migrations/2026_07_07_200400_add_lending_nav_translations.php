@@ -16,6 +16,21 @@ return new class extends Migration
                 'en' => 'Lending requests',
                 'fr' => 'Demandes de prêt',
             ]],
+            ['group' => 'nav', 'key' => 'archive', 'values' => [
+                'ar' => 'الأرشفة',
+                'en' => 'Archive',
+                'fr' => 'Archives',
+            ]],
+            ['group' => 'nav', 'key' => 'structure', 'values' => [
+                'ar' => 'الهيكل',
+                'en' => 'Structure',
+                'fr' => 'Structure',
+            ]],
+            ['group' => 'nav', 'key' => 'more', 'values' => [
+                'ar' => 'المزيد',
+                'en' => 'More',
+                'fr' => 'Plus',
+            ]],
         ];
     }
 
