@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\TransactionAttachment;
 use App\Models\User;
+use App\Services\DocumentAccessService;
 use App\Services\LendingEligibilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
@@ -88,15 +91,9 @@ class DocumentController extends Controller
         ));
     }
 
-    public function preview(TransactionAttachment $attachment)
+    public function preview(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|Response
     {
         $this->authorizeAttachmentAccess($attachment);
-
-        $path = $attachment->effectiveFilePath();
-
-        if (! $path || ! Storage::disk('local')->exists($path)) {
-            abort(404);
-        }
 
         $kind = $attachment->fileKind();
 
@@ -104,24 +101,50 @@ class DocumentController extends Controller
             abort(404);
         }
 
-        return response()->file(Storage::disk('local')->path($path), [
-            'Content-Type' => $attachment->effectiveMimeType() ?? 'application/octet-stream',
-            'Content-Disposition' => 'inline',
-        ]);
+        return $accessService->preview($attachment, $request->user(), $request);
     }
 
-    public function download(TransactionAttachment $attachment): StreamedResponse|RedirectResponse
+    public function download(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
     {
         $this->authorizeAttachmentAccess($attachment);
 
         $path = $attachment->effectiveFilePath();
-        $name = $attachment->effectiveFileName() ?? $attachment->displayName();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
             return back()->with('error', __('messages.file_not_found'));
         }
 
-        return Storage::disk('local')->download($path, $name);
+        return $accessService->download($attachment, $request->user(), $request);
+    }
+
+    public function print(TransactionAttachment $attachment): View
+    {
+        $this->authorizeAttachmentAccess($attachment);
+
+        $kind = $attachment->fileKind();
+
+        if ($kind !== 'image' && $kind !== 'pdf') {
+            abort(404);
+        }
+
+        return view('documents.print', [
+            'attachment' => $attachment,
+            'printUrl' => route('documents.print.file', $attachment),
+            'isPdf' => $kind === 'pdf',
+        ]);
+    }
+
+    public function printFile(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|Response
+    {
+        $this->authorizeAttachmentAccess($attachment);
+
+        $kind = $attachment->fileKind();
+
+        if ($kind !== 'image' && $kind !== 'pdf') {
+            abort(404);
+        }
+
+        return $accessService->print($attachment, $request->user(), $request);
     }
 
     private function scopedAttachmentsQuery(User $user)

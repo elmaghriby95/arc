@@ -29,6 +29,11 @@ class LendingRequest extends Model
     protected function casts(): array
     {
         return [
+            'transaction_id' => 'integer',
+            'requested_by' => 'integer',
+            'reviewed_by' => 'integer',
+            'handed_over_by' => 'integer',
+            'returned_by' => 'integer',
             'status' => LendingRequestStatus::class,
             'due_date' => 'date',
             'reviewed_at' => 'datetime',

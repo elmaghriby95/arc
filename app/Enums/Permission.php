@@ -104,6 +104,10 @@ enum Permission: string
     case SettingsQrCodeView = 'settings.qr-code.view';
     case SettingsQrCodeEdit = 'settings.qr-code.edit';
 
+    // إعدادات العلامة المائية
+    case SettingsWatermarkView = 'settings.watermark.view';
+    case SettingsWatermarkEdit = 'settings.watermark.edit';
+
     // الإعدادات العامة
     case SettingsGeneralView = 'settings.general.view';
     case SettingsGeneralEdit = 'settings.general.edit';
@@ -211,6 +215,9 @@ enum Permission: string
 
             self::SettingsQrCodeView,
             self::SettingsQrCodeEdit => 'qr_code',
+
+            self::SettingsWatermarkView,
+            self::SettingsWatermarkEdit => 'watermark',
 
             self::SettingsGeneralView,
             self::SettingsGeneralEdit => 'general_settings',

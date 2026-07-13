@@ -108,7 +108,7 @@ class LendingRequestController extends Controller
         }
 
         return redirect()
-            ->route('lending-requests.show', $lendingRequest)
+            ->route('transactions.show', $transaction)
             ->with('success', __('lending_requests.messages.request_created'));
     }
 

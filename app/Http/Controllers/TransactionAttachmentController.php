@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\TransactionAttachment;
 use App\Models\Transaction;
+use App\Services\DocumentAccessService;
 use App\Services\TransactionAttachmentCreator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\File;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionAttachmentController extends Controller
@@ -118,22 +121,21 @@ class TransactionAttachmentController extends Controller
             ->with('success', __('messages.transaction_attachment.deleted'));
     }
 
-    public function download(Transaction $transaction, TransactionAttachment $attachment): StreamedResponse|RedirectResponse
+    public function download(Transaction $transaction, TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
     {
         $this->authorizeAccess($transaction);
         $this->ensureAttachmentBelongsToTransaction($transaction, $attachment);
 
         $path = $attachment->effectiveFilePath();
-        $name = $attachment->effectiveFileName() ?? $attachment->displayName();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
             return back()->with('error', __('messages.file_not_found'));
         }
 
-        return Storage::disk('local')->download($path, $name);
+        return $accessService->download($attachment, $request->user(), $request);
     }
 
-    public function preview(Transaction $transaction, TransactionAttachment $attachment)
+    public function preview(Transaction $transaction, TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|Response
     {
         $this->authorizeAccess($transaction);
         $this->ensureAttachmentBelongsToTransaction($transaction, $attachment);
@@ -142,15 +144,7 @@ class TransactionAttachmentController extends Controller
             abort(404);
         }
 
-        $path = $attachment->effectiveFilePath();
-
-        if (! $path || ! Storage::disk('local')->exists($path)) {
-            abort(404);
-        }
-
-        return response()->file(Storage::disk('local')->path($path), [
-            'Content-Type' => $attachment->effectiveMimeType() ?? 'image/jpeg',
-        ]);
+        return $accessService->preview($attachment, $request->user(), $request);
     }
 
     private function authorizeAccess(Transaction $transaction): void

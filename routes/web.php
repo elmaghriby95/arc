@@ -21,6 +21,7 @@ use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\GeneralSettingsController;
 use App\Http\Controllers\Settings\ReferenceNumberSettingsController;
 use App\Http\Controllers\Settings\TransactionQrSettingsController;
+use App\Http\Controllers\Settings\WatermarkSettingsController;
 use App\Http\Controllers\Settings\RoleManagementController;
 use App\Http\Controllers\Settings\SettingsController;
 use App\Http\Controllers\Settings\TransactionStatusController;
@@ -67,6 +68,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('permission:documents.view')->group(function () {
         Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
         Route::get('documents/{attachment}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
+        Route::get('documents/{attachment}/print', [DocumentController::class, 'print'])->name('documents.print');
+        Route::get('documents/{attachment}/print-file', [DocumentController::class, 'printFile'])->name('documents.print.file');
         Route::get('documents/{attachment}', [DocumentController::class, 'show'])->name('documents.show');
     });
 
@@ -116,7 +119,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('transactions/review-log', [TransactionReviewLogController::class, 'index'])->name('transactions.review-log');
     });
 
-    Route::middleware('permission:lending-requests.view')->group(function () {
+    Route::middleware('permission:lending-requests.view,lending-requests.request')->group(function () {
         Route::get('lending-requests', [LendingRequestController::class, 'index'])->name('lending-requests.index');
     });
 
@@ -361,6 +364,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:settings.qr-code.edit')->group(function () {
             Route::put('/qr-code', [TransactionQrSettingsController::class, 'update'])->name('qr-code.update');
             Route::patch('/qr-code', [TransactionQrSettingsController::class, 'update']);
+        });
+
+        Route::middleware('permission:settings.watermark.view')->group(function () {
+            Route::get('/watermark', [WatermarkSettingsController::class, 'index'])->name('watermark.index');
+        });
+
+        Route::middleware('permission:settings.watermark.edit')->group(function () {
+            Route::put('/watermark', [WatermarkSettingsController::class, 'update'])->name('watermark.update');
+            Route::patch('/watermark', [WatermarkSettingsController::class, 'update']);
         });
 
         Route::middleware('permission:settings.general.view')->group(function () {

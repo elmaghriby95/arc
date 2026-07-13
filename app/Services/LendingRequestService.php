@@ -15,6 +15,7 @@ class LendingRequestService
 {
     public function __construct(
         private LendingEligibilityService $eligibility,
+        private LendingScopeService $scope,
     ) {}
 
     public function request(
@@ -77,7 +78,7 @@ class LendingRequestService
 
         $request->loadMissing('transaction');
 
-        if (! $request->transaction || ! $user->canAccessTransaction($request->transaction)) {
+        if (! $request->transaction || ! $this->scope->canAccessLendingTransaction($user, $request->transaction)) {
             return false;
         }
 
@@ -149,7 +150,7 @@ class LendingRequestService
 
         $request->loadMissing('transaction');
 
-        if (! $request->transaction || ! $user->canAccessTransaction($request->transaction)) {
+        if (! $request->transaction || ! $this->scope->canAccessLendingTransaction($user, $request->transaction)) {
             return false;
         }
 
@@ -227,7 +228,7 @@ class LendingRequestService
 
         $request->loadMissing('transaction');
 
-        if (! $request->transaction || ! $user->canAccessTransaction($request->transaction)) {
+        if (! $request->transaction || ! $this->scope->canAccessLendingTransaction($user, $request->transaction)) {
             return false;
         }
 
@@ -300,7 +301,8 @@ class LendingRequestService
     {
         $request->loadMissing('transaction');
 
-        return $request->transaction && $user->canAccessTransaction($request->transaction);
+        return $request->transaction
+            && $this->scope->canAccessLendingTransaction($user, $request->transaction);
     }
 
     private function recordHistory(

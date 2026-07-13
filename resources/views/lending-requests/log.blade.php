@@ -5,7 +5,7 @@
                 <h1 class="page-title">{{ __('lending_requests.log_title') }}</h1>
                 <p class="page-subtitle">{{ __('lending_requests.log_subtitle') }}</p>
             </div>
-            @permission('lending-requests.view')
+            @permission('lending-requests.view', 'lending-requests.request')
                 <a href="{{ route('lending-requests.index') }}" class="btn btn-secondary btn-lg">{{ __('lending_requests.title') }}</a>
             @endpermission
         </div>
