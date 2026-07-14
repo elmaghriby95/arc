@@ -36,8 +36,7 @@ class DocumentAccessService
     }
 
     /**
-     * Prepare current-user watermark payload for client-side PDF/image viewing.
-     * View never rebuilds the file on the server — that is what broke large documents.
+     * Prepare current-user watermark payload for client-side viewing overlay.
      *
      * @return array{audit: DocumentAccessAudit, context: array<string, mixed>}|null
      */
@@ -74,17 +73,21 @@ class DocumentAccessService
         }
 
         $settings = WatermarkSetting::instance();
-        $shouldWatermark = $settings->shouldApplyFor($action)
-            && $this->watermarkService->supportsBurnIn($attachment);
+        $wantsWatermark = $settings->shouldApplyFor($action);
+        $canBurnIn = $this->watermarkService->supportsBurnIn($attachment);
 
         $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
         $absolute = Storage::disk('local')->path($path);
         $mime = $attachment->effectiveMimeType() ?? 'application/octet-stream';
 
-        // VIEW: always stream the original so large files open instantly.
-        // Live watermark overlay (current user) is rendered by the document show page.
+        // VIEW: stream original instantly; live overlay handles display watermark.
         if ($action === 'view') {
-            $audit = $this->resolveViewAudit($attachment, $user, $request, $shouldWatermark);
+            $audit = $this->resolveViewAudit(
+                $attachment,
+                $user,
+                $request,
+                $wantsWatermark && $this->watermarkService->supports($attachment),
+            );
 
             return $this->streamOriginal(
                 $absolute,
@@ -97,21 +100,36 @@ class DocumentAccessService
 
         $audit = $this->auditService->createPending($user, $attachment, $action, $request);
 
-        if (! $shouldWatermark) {
-            $this->auditService->markSuccess($audit, false);
+        // DOWNLOAD / PRINT: watermark is mandatory whenever enabled in settings.
+        if ($wantsWatermark) {
+            if (! $canBurnIn) {
+                $this->auditService->markFailure($audit, 'Watermark burn-in not supported for this file type.');
 
-            return $this->streamOriginal(
-                $absolute,
-                $mime,
-                $downloadName,
-                $disposition,
-                $audit->transaction_id,
-            );
-        }
+                abort(422, __('messages.watermark.unsupported_type'));
+            }
 
-        try {
-            // DOWNLOAD / PRINT: burn watermark onto every page.
-            $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
+            try {
+                $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
+            } catch (Throwable $first) {
+                report($first);
+
+                // One retry with a lighter stamp (no QR) before failing the download.
+                try {
+                    $copy = $this->watermarkService->createWatermarkedCopy(
+                        $attachment,
+                        $user,
+                        $audit,
+                        reduceFeatures: true,
+                    );
+                } catch (Throwable $second) {
+                    $this->auditService->markFailure($audit, $second->getMessage());
+                    report($second);
+
+                    // Never hand out a clean unwatermarked file when watermark is required.
+                    abort(500, __('messages.watermark.download_required'));
+                }
+            }
+
             $this->auditService->markSuccess($audit, true);
 
             $name = pathinfo($downloadName, PATHINFO_FILENAME).'-wm.'.$copy['extension'];
@@ -135,22 +153,17 @@ class DocumentAccessService
             }
 
             return $response;
-        } catch (Throwable $e) {
-            // Never block download/print with a hard 500 — fall back to the original file.
-            $this->auditService->markFailure($audit, $e->getMessage());
-            report($e);
-
-            $fallbackAudit = $this->auditService->createPending($user, $attachment, $action, $request);
-            $this->auditService->markSuccess($fallbackAudit, false);
-
-            return $this->streamOriginal(
-                $absolute,
-                $mime,
-                $downloadName,
-                $disposition,
-                $fallbackAudit->transaction_id,
-            );
         }
+
+        $this->auditService->markSuccess($audit, false);
+
+        return $this->streamOriginal(
+            $absolute,
+            $mime,
+            $downloadName,
+            $disposition,
+            $audit->transaction_id,
+        );
     }
 
     private function resolveViewAudit(

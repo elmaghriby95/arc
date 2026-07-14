@@ -46,6 +46,7 @@ class DocumentWatermarkService
         TransactionAttachment $attachment,
         User $user,
         DocumentAccessAudit $audit,
+        bool $reduceFeatures = false,
     ): array {
         $sourcePath = $attachment->effectiveFilePath();
 
@@ -57,9 +58,14 @@ class DocumentWatermarkService
         $kind = $attachment->fileKind();
         $context = $this->buildContext($user, $audit);
 
-        // Burn-in paths (download/print).
-        @ini_set('memory_limit', '512M');
-        @ini_set('max_execution_time', '300');
+        if ($reduceFeatures) {
+            $context['show_qr_code'] = false;
+            $context['qr_payload'] = null;
+        }
+
+        // DOWNLOAD / PRINT burn-in — raise limits for multi-page scanned PDFs.
+        @ini_set('memory_limit', '1024M');
+        @ini_set('max_execution_time', '600');
 
         $dir = storage_path('app/temp/watermarks');
         if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
@@ -117,6 +123,12 @@ class DocumentWatermarkService
             $parts[] = $audit->transaction_id;
         }
 
+        // Always keep at least one visible line so every page is stamped.
+        if ($parts === []) {
+            $parts[] = $user->name;
+            $parts[] = $audit->transaction_id;
+        }
+
         return [
             'center_lines' => $parts,
             'footer' => implode(' | ', $parts),
@@ -125,8 +137,8 @@ class DocumentWatermarkService
             'opacity' => $settings->alpha(),
             'font_size' => $settings->font_size,
             'angle' => $settings->angle,
-            'show_center_text' => $settings->show_center_text,
-            'show_footer' => $settings->show_footer,
+            'show_center_text' => $settings->show_center_text || $parts !== [],
+            'show_footer' => $settings->show_footer || $parts !== [],
             'show_qr_code' => $settings->show_qr_code && filled($audit->transaction_id),
         ];
     }
@@ -209,13 +221,22 @@ class DocumentWatermarkService
 
             $pageCount = $pdf->setSourceFile($sourcePath);
 
+            if ($pageCount < 1) {
+                throw new RuntimeException('PDF has no pages to watermark.');
+            }
+
             for ($page = 1; $page <= $pageCount; $page++) {
                 $templateId = $pdf->importPage($page);
                 $size = $pdf->getTemplateSize($templateId);
                 $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
                 $pdf->AddPage($orientation, [$size['width'], $size['height']]);
                 $pdf->useTemplate($templateId);
+                // Stamp every imported page — required for all download/print operations.
                 $this->stampPdfPage($pdf, (float) $size['width'], (float) $size['height'], $context);
+
+                if (($page % 10) === 0) {
+                    gc_collect_cycles();
+                }
             }
 
             $pdf->Output($output, 'F');
