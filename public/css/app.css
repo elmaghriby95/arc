@@ -3435,7 +3435,20 @@ textarea.form-control:focus {
     background: #e0e7ff;
     color: #3730a3;
 }
-    margin-top: 1rem;
+
+.txn-history-action--lending,
+.txn-history-action--requested,
+.txn-history-action--review_approved,
+.txn-history-action--handover_confirmed,
+.txn-history-action--returned {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+.txn-history-action--review_rejected,
+.txn-history-action--handover_rejected {
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 .table-empty {

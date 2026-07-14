@@ -49,9 +49,9 @@ class DocumentWatermarkService
         $kind = $attachment->fileKind();
         $context = $this->buildContext($user, $audit);
 
-        // Burn-in paths (view/download/print) need headroom for multi-page scanned PDFs.
-        @ini_set('memory_limit', '1024M');
-        @ini_set('max_execution_time', '300');
+        // Burn-in paths (download/print) — page pipeline with higher limits.
+        @ini_set('memory_limit', '512M');
+        @ini_set('max_execution_time', '600');
 
         $dir = storage_path('app/temp/watermarks');
         if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
@@ -139,41 +139,81 @@ class DocumentWatermarkService
     private function watermarkPdf(string $sourcePath, array $context, string $dir): array
     {
         $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
+        $pageDir = $dir.DIRECTORY_SEPARATOR.Str::uuid().'-pages';
+        $pageFiles = [];
+        $tempMerges = [];
+
+        if (! is_dir($pageDir) && ! mkdir($pageDir, 0755, true) && ! is_dir($pageDir)) {
+            throw new RuntimeException('Unable to create watermark page directory.');
+        }
 
         try {
-            $pdf = new Fpdi;
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetAutoPageBreak(false, 0);
-            $pdf->SetCreator('ARC Watermark');
-            $pdf->SetAuthor('ARC');
+            // Peek page count with a short-lived reader, then free it.
+            $reader = new Fpdi;
+            $reader->setPrintHeader(false);
+            $reader->setPrintFooter(false);
+            $pageCount = $reader->setSourceFile($sourcePath);
+            unset($reader);
 
-            $pdf->setFontSubsetting(false);
-
-            $pageCount = $pdf->setSourceFile($sourcePath);
-
+            // Stamp one page at a time and write each to disk (keeps peak memory low).
             for ($page = 1; $page <= $pageCount; $page++) {
-                $templateId = $pdf->importPage($page);
-                $size = $pdf->getTemplateSize($templateId);
+                $pagePdf = new Fpdi;
+                $pagePdf->setPrintHeader(false);
+                $pagePdf->setPrintFooter(false);
+                $pagePdf->SetAutoPageBreak(false, 0);
+                $pagePdf->SetCreator('ARC Watermark');
+                $pagePdf->SetAuthor('ARC');
+                $pagePdf->setFontSubsetting(false);
+                $pagePdf->setSourceFile($sourcePath);
+
+                $templateId = $pagePdf->importPage($page);
+                $size = $pagePdf->getTemplateSize($templateId);
                 $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
-                $pdf->AddPage($orientation, [$size['width'], $size['height']]);
-                $pdf->useTemplate($templateId);
+                $pagePdf->AddPage($orientation, [$size['width'], $size['height']]);
+                $pagePdf->useTemplate($templateId);
+                $this->stampPdfPage($pagePdf, (float) $size['width'], (float) $size['height'], $context);
 
-                $this->stampPdfPage($pdf, (float) $size['width'], (float) $size['height'], $context);
+                $pageFile = $pageDir.DIRECTORY_SEPARATOR.sprintf('%05d.pdf', $page);
+                $pagePdf->Output($pageFile, 'F');
+                unset($pagePdf);
+                gc_collect_cycles();
 
-                if (($page % 5) === 0) {
-                    gc_collect_cycles();
-                }
+                $pageFiles[] = $pageFile;
             }
 
-            $pdf->Output($output, 'F');
-            unset($pdf);
+            if ($pageFiles === []) {
+                throw new RuntimeException('PDF has no pages to watermark.');
+            }
+
+            if (count($pageFiles) === 1) {
+                if (! @rename($pageFiles[0], $output) && ! @copy($pageFiles[0], $output)) {
+                    throw new RuntimeException('Unable to finalize watermarked PDF.');
+                }
+            } else {
+                $this->mergePdfFilesPairwise($pageFiles, $output, $dir, $tempMerges);
+            }
         } catch (Throwable $e) {
             if (is_file($output)) {
                 @unlink($output);
             }
 
             throw $e;
+        } finally {
+            foreach ($pageFiles as $pageFile) {
+                if (is_file($pageFile)) {
+                    @unlink($pageFile);
+                }
+            }
+
+            foreach ($tempMerges as $mergeFile) {
+                if (is_file($mergeFile)) {
+                    @unlink($mergeFile);
+                }
+            }
+
+            if (is_dir($pageDir)) {
+                @rmdir($pageDir);
+            }
         }
 
         return [
@@ -181,6 +221,70 @@ class DocumentWatermarkService
             'mime' => 'application/pdf',
             'extension' => 'pdf',
         ];
+    }
+
+    /**
+     * Tournament-style merge: never hold more than two PDFs in memory at once.
+     *
+     * @param  list<string>  $files
+     * @param  list<string>  $tempMerges
+     */
+    private function mergePdfFilesPairwise(array $files, string $output, string $dir, array &$tempMerges): void
+    {
+        $queue = array_values($files);
+
+        while (count($queue) > 1) {
+            $left = array_shift($queue);
+            $right = array_shift($queue);
+            $merged = $dir.DIRECTORY_SEPARATOR.Str::uuid().'-merge.pdf';
+            $this->mergeTwoPdfFiles($left, $right, $merged);
+            $tempMerges[] = $merged;
+
+            if (! in_array($left, $files, true) && is_file($left)) {
+                @unlink($left);
+            }
+
+            if (! in_array($right, $files, true) && is_file($right)) {
+                @unlink($right);
+            }
+
+            $queue[] = $merged;
+            gc_collect_cycles();
+        }
+
+        $final = $queue[0];
+
+        if (! @rename($final, $output) && ! @copy($final, $output)) {
+            throw new RuntimeException('Unable to finalize merged watermarked PDF.');
+        }
+
+        if (is_file($final) && realpath($final) !== realpath($output)) {
+            @unlink($final);
+        }
+    }
+
+    private function mergeTwoPdfFiles(string $left, string $right, string $destination): void
+    {
+        $pdf = new Fpdi;
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetAutoPageBreak(false, 0);
+        $pdf->setFontSubsetting(false);
+
+        foreach ([$left, $right] as $file) {
+            $count = $pdf->setSourceFile($file);
+
+            for ($page = 1; $page <= $count; $page++) {
+                $templateId = $pdf->importPage($page);
+                $size = $pdf->getTemplateSize($templateId);
+                $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
+                $pdf->AddPage($orientation, [$size['width'], $size['height']]);
+                $pdf->useTemplate($templateId);
+            }
+        }
+
+        $pdf->Output($destination, 'F');
+        unset($pdf);
     }
 
     /**

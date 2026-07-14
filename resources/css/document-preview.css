@@ -136,6 +136,16 @@
     display: block;
 }
 
+.doc-wm-center--alt-a {
+    left: 32%;
+    top: 28%;
+}
+
+.doc-wm-center--alt-b {
+    left: 68%;
+    top: 72%;
+}
+
 .doc-wm-bottom {
     position: absolute;
     left: 0.75rem;
@@ -159,18 +169,31 @@
     user-select: none;
 }
 
-.doc-wm-qr {
-    flex: 0 0 auto;
-    width: 56px;
-    height: 56px;
-    padding: 2px;
-    background: #fff;
-    border-radius: 2px;
-    opacity: 0.92;
+.doc-pdf-pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: 100%;
 }
 
-.doc-wm-qr svg {
+.doc-pdf-page-slot {
+    background: #f8fafc;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.18);
+}
+
+.doc-pdf-page {
     display: block;
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    height: auto;
+    background: #fff;
+}
+
+.doc-pdf-status {
+    margin: 0;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
 }

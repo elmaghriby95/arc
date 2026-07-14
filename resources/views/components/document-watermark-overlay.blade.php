@@ -9,10 +9,9 @@
     $footer = $context['footer'] ?? '';
     $showCenter = ($context['show_center_text'] ?? false) && $lines !== [];
     $showFooter = ($context['show_footer'] ?? false) && $footer !== '';
-    $showQr = ($context['show_qr_code'] ?? false) && filled($context['qr_svg'] ?? null);
 @endphp
 
-@if ($showCenter || $showFooter || $showQr)
+@if ($showCenter || $showFooter)
     <div
         class="doc-wm-overlay"
         aria-hidden="true"
@@ -24,18 +23,21 @@
                     <span>{{ $line }}</span>
                 @endforeach
             </div>
+            <div class="doc-wm-center doc-wm-center--alt-a">
+                @foreach ($lines as $line)
+                    <span>{{ $line }}</span>
+                @endforeach
+            </div>
+            <div class="doc-wm-center doc-wm-center--alt-b">
+                @foreach ($lines as $line)
+                    <span>{{ $line }}</span>
+                @endforeach
+            </div>
         @endif
 
-        @if ($showFooter || $showQr)
+        @if ($showFooter)
             <div class="doc-wm-bottom">
-                @if ($showFooter)
-                    <div class="doc-wm-footer">{{ $footer }}</div>
-                @endif
-                @if ($showQr && filled($context['qr_svg'] ?? null))
-                    <div class="doc-wm-qr">
-                        {!! $context['qr_svg'] !!}
-                    </div>
-                @endif
+                <div class="doc-wm-footer">{{ $footer }}</div>
             </div>
         @endif
     </div>

@@ -66,4 +66,9 @@ class LendingRequestHistory extends Model
     {
         return $this->fromStatusEnum()?->label() ?? '—';
     }
+
+    public function toStatusLabel(): string
+    {
+        return $this->toStatusEnum()?->label() ?? '—';
+    }
 }

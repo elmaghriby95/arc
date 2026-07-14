@@ -231,12 +231,14 @@ class TransactionController extends Controller
             'statusHistories.fromStatus',
             'statusHistories.toStatus',
             'statusHistories.changedBy',
+            'lendingRequests.histories.performer',
         ]);
 
         $user = auth()->user();
 
         return view('transactions.show', [
             'transaction' => $transaction,
+            'statusTimeline' => $transaction->statusTimeline(),
             'workflow' => TransactionStatus::workflowSequence(),
             'workflowActions' => $workflow->availableActions($transaction, $user),
             'canManageAttachments' => $user->hasPermission('transactions.edit') && $transaction->canBeEdited(),

@@ -184,7 +184,7 @@
                     </section>
                 </div>
 
-                @if ($transaction->statusHistories->isNotEmpty())
+                @if (($statusTimeline ?? collect())->isNotEmpty())
                     <section class="card">
                         <div class="card-header">
                             <h3 class="card-title">{{ __('transactions.status_history') }}</h3>
@@ -203,23 +203,32 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($transaction->statusHistories as $history)
+                                        @foreach ($statusTimeline as $entry)
                                             <tr>
                                                 <td>
-                                                    @if ($history->action)
-                                                        @php $historyAction = \App\Enums\WorkflowAction::tryFrom($history->action); @endphp
-                                                        <span class="txn-history-action txn-history-action--{{ $history->action }}">
-                                                            {{ $historyAction?->label() ?? $history->action }}
+                                                    @if ($entry->action)
+                                                        <span @class([
+                                                            'txn-history-action',
+                                                            'txn-history-action--'.$entry->action,
+                                                            'txn-history-action--lending' => $entry->kind === 'lending',
+                                                        ])>
+                                                            {{ $entry->action_label }}
                                                         </span>
                                                     @else
                                                         —
                                                     @endif
                                                 </td>
-                                                <td>{{ $history->fromStatus?->name ?? '—' }}</td>
-                                                <td><x-transaction-status-badge :status="$history->toStatus" /></td>
-                                                <td>{{ $history->changedBy?->name ?? '—' }}</td>
-                                                <td>{{ $history->notes ?? '—' }}</td>
-                                                <td>{{ $history->created_at?->format('Y-m-d H:i') }}</td>
+                                                <td>{{ $entry->from_label }}</td>
+                                                <td>
+                                                    @if ($entry->kind === 'lending')
+                                                        <x-lending-status-badge :status="$entry->to_lending_status" />
+                                                    @else
+                                                        <x-transaction-status-badge :status="$entry->to_workflow_status" />
+                                                    @endif
+                                                </td>
+                                                <td>{{ $entry->by }}</td>
+                                                <td>{{ $entry->notes ?? '—' }}</td>
+                                                <td>{{ $entry->created_at?->format('Y-m-d H:i') }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
