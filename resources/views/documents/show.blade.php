@@ -80,26 +80,23 @@
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            <div
-                                class="doc-pdf-viewer"
-                                data-doc-pdf-viewer
-                                data-pdf-url="{{ $docPreviewUrl }}"
-                                data-pdf-worker="{{ asset('vendor/pdfjs/pdf.worker.min.js') }}"
-                                data-pdf-error="{{ __('documents.preview_unavailable') }}"
-                                @if ($docWmContext)
-                                    data-watermark="{{ e(json_encode($docWmContext, JSON_UNESCAPED_UNICODE)) }}"
-                                @endif
-                            >
-                                <p class="doc-pdf-status" data-doc-pdf-status hidden></p>
-                                <div class="doc-pdf-pages" data-doc-pdf-pages></div>
-                            </div>
+                            @if ($docWmContext)
+                                <x-document-watermark-overlay :context="$docWmContext" />
+                            @endif
+                            <iframe
+                                src="{{ $docPreviewUrl }}#zoom=page-width"
+                                data-doc-preview-frame
+                                data-doc-preview-src="{{ $docPreviewUrl }}"
+                                title="{{ $attachment->displayName() }}"
+                                class="doc-preview-frame"
+                            ></iframe>
                         </div>
                     @else
                         <div class="doc-preview-fallback">
                             <x-transaction-file-icon :kind="$attachment->fileKind()" />
                             <p>{{ __('documents.preview_unavailable') }}</p>
                             @permission('documents.download')
-                                <a href="{{ route('documents.download', $attachment) }}" class="btn btn-secondary btn-sm">{{ __('documents.download_file') }}</a>
+                                <a href="{{ route('documents.download', ['attachment' => $attachment, 'u' => auth()->id(), 'n' => (string) \Illuminate\Support\Str::uuid()]) }}" class="btn btn-secondary btn-sm">{{ __('documents.download_file') }}</a>
                             @endpermission
                         </div>
                     @endif
@@ -143,7 +140,7 @@
         </div>
     </div>
 
-    @if ($attachment->fileExists() && $attachment->isImage())
+    @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
         @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
@@ -154,6 +151,7 @@
                     const zoomOutput = root?.querySelector('[data-doc-preview-zoom-value]');
                     const heightOutput = root?.querySelector('[data-doc-preview-height-value]');
                     const resetButton = root?.querySelector('[data-doc-preview-reset]');
+                    const frame = root?.querySelector('[data-doc-preview-frame]');
                     const content = root?.querySelector('[data-doc-preview-content]');
 
                     if (!root || !viewport || !zoomInput || !heightInput) {
@@ -168,6 +166,13 @@
                         const value = clamp(zoom, Number(zoomInput.min), Number(zoomInput.max));
                         zoomInput.value = String(value);
                         zoomOutput.textContent = `${value}%`;
+
+                        if (frame) {
+                            const baseSrc = frame.dataset.docPreviewSrc;
+                            const zoomParam = value === 100 ? 'page-width' : value;
+                            frame.src = `${baseSrc}#zoom=${zoomParam}`;
+                        }
+
                         if (content) {
                             content.style.width = `${value}%`;
                         }
@@ -217,11 +222,6 @@
                     loadSettings();
                 });
             </script>
-        @endpush
-    @elseif ($attachment->fileExists() && $attachment->fileKind() === 'pdf')
-        @push('scripts')
-            <script src="{{ asset('vendor/pdfjs/pdf.min.js') }}"></script>
-            <x-inline-js file="document-pdf-preview.js" />
         @endpush
     @endif
 </x-app-layout>

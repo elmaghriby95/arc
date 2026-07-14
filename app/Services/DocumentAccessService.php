@@ -80,7 +80,7 @@ class DocumentAccessService
         $mime = $attachment->effectiveMimeType() ?? 'application/octet-stream';
 
         // VIEW: always stream the original so large files open instantly.
-        // Watermark is applied per-page in the browser (PDF.js / image overlay).
+        // Live watermark overlay (current user) is rendered by the document show page.
         if ($action === 'view') {
             $audit = $this->resolveViewAudit($attachment, $user, $request, $shouldWatermark);
 

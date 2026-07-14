@@ -470,6 +470,16 @@ select.txnw-input {
     white-space: nowrap;
 }
 
+.txnw-folder-unit {
+    flex: 0 1 auto;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    color: #64748b;
+}
+
 /* Upload */
 .txnw-upload {
     border: 2px dashed #a5b4fc;
@@ -515,6 +525,20 @@ select.txnw-input {
 .txnw-upload-sub {
     font-size: 0.82rem;
     color: #94a3b8;
+}
+
+.txnw-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+}
+
+.txnw-upload-actions .txnw-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 .txnw-upload-empty small {
@@ -614,6 +638,60 @@ select.txnw-input {
 }
 
 .txnw-upload-ref-official.is-hidden { display: none; }
+
+/* Upload progress */
+.txnw-upload-progress {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+}
+
+.txnw-upload-progress.is-hidden {
+    display: none;
+}
+
+.txnw-upload-progress-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.txnw-upload-progress-track {
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.txnw-upload-progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #6366f1, #818cf8, #a5b4fc, #6366f1);
+    background-size: 200% 100%;
+    border-radius: 999px;
+    transition: width 0.15s ease-out;
+    animation: txnw-progress-shimmer 1.4s linear infinite;
+}
+
+@keyframes txnw-progress-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.txnw-form.is-uploading {
+    pointer-events: none;
+}
+
+.txnw-form.is-uploading [data-txn-upload-progress] {
+    pointer-events: auto;
+}
 
 /* Buttons */
 .txnw-step-foot {

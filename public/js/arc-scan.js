@@ -51,8 +51,9 @@
         if (error instanceof TypeError) {
             return new Error(
                 'تعذّر الاتصال بـ ARC Scan Agent على جهازك.\n\n'
-                + '• Windows: شغّل scan-agent/start-windows.bat\n'
-                + '• Ubuntu: cd ~/scan-agent && ./install-ubuntu.sh (مع ARC_URL=https://arc.fwit.ly)\n'
+                + '• Windows: double-click scan-agent/START.bat\n'
+                + '• First run installs Python automatically (needs internet)\n'
+                + '• Ubuntu: curl -fsSL https://arc.fwit.ly/scan-agent/install.sh | bash\n'
                 + '• ثم: curl http://127.0.0.1:8765/health',
             );
         }
@@ -73,10 +74,11 @@
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     format: 'pdf',
-                    resolution: options.resolution ?? 120,
-                    quality: options.quality ?? 48,
+                    resolution: options.resolution ?? 85,
+                    quality: options.quality ?? 30,
                     mode: options.mode ?? 'Gray',
-                    source: options.source ?? 'auto',
+                    source: options.source ?? 'feeder',
+                    profile: options.profile ?? 'fast',
                     device: options.device ?? null,
                 }),
             });
@@ -110,7 +112,9 @@
         const idleLabel = button.dataset.scanIdleLabel || button.textContent.trim();
         const scanningLabel = button.dataset.scanningLabel || 'Scanning...';
         const processingLabel = button.dataset.scanProcessingLabel || scanningLabel;
+        const largeBatchLabel = button.dataset.scanLargeLabel || 'جاري مسح دفعة كبيرة... قد يستغرق عدة دقائق';
         let processingTimer = null;
+        let largeBatchTimer = null;
 
         button.addEventListener('click', async () => {
             button.disabled = true;
@@ -119,7 +123,11 @@
 
             processingTimer = window.setTimeout(() => {
                 button.textContent = processingLabel;
-            }, 4000);
+            }, 15000);
+
+            largeBatchTimer = window.setTimeout(() => {
+                button.textContent = largeBatchLabel;
+            }, 45000);
 
             try {
                 const agentUrl = resolveAgentUrl(button);
@@ -130,6 +138,7 @@
                 callbacks.onError?.(normalizeError(error));
             } finally {
                 window.clearTimeout(processingTimer);
+                window.clearTimeout(largeBatchTimer);
                 button.disabled = false;
                 button.textContent = idleLabel;
                 callbacks.onStateChange?.('idle');

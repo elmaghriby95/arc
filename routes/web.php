@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BrandingAssetController;
+use App\Http\Controllers\PdfJsAssetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
@@ -33,6 +34,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/brand/{file}', [BrandingAssetController::class, 'show'])
     ->where('file', '[A-Za-z0-9_\-\.]+')
     ->name('branding.file');
+
+Route::get('/assets/pdfjs/{file}', [PdfJsAssetController::class, 'show'])
+    ->where('file', 'pdf\.min\.js|pdf\.worker\.min\.js')
+    ->name('assets.pdfjs');
 
 Route::post('locale/{language}', [\App\Http\Controllers\LocaleController::class, 'switch'])
     ->name('locale.switch');

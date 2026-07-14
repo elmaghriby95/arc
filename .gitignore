@@ -17,6 +17,9 @@
 /.zed
 /auth.json
 /node_modules
+# Source of truth for UI assets is resources/{js,css} (+ resources/js/vendor).
+# After git pull on the server run: php artisan assets:sync
+# Never ignore public/js or public/css — only Vite/hot build outputs below.
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
