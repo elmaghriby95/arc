@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\LendingRequest;
 use App\Models\Transaction;
-use App\Models\TransactionStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -29,8 +28,8 @@ class LendingScopeService
             return;
         }
 
-        // Workflow-stage actors (review/archive) with global visibility manage the full lending queue.
-        if ($this->isWorkflowOnlyActor($user) && $this->hasGlobalLendingQueueScope($user)) {
+        // Review/archive (workflow-only) with lending queue access see all units' requests.
+        if ($this->isWorkflowOnlyActor($user) && $this->isLendingQueueActor($user)) {
             return;
         }
 
@@ -75,7 +74,8 @@ class LendingScopeService
 
     /**
      * Lending queue access: keep every existing canAccessTransaction path intact,
-     * and only add a path for workflow-stage roles (review/archive) that hold lending permissions.
+     * and only add a path for workflow-stage roles (review/archive) that hold lending permissions —
+     * they manage the lending queue across all units.
      */
     public function canAccessLendingTransaction(User $user, Transaction $transaction): bool
     {
@@ -88,11 +88,7 @@ class LendingScopeService
             return false;
         }
 
-        if (! $this->isLendingQueueActor($user)) {
-            return false;
-        }
-
-        return $this->transactionInLendingQueueScope($user, $transaction);
+        return $this->isLendingQueueActor($user);
     }
 
     private function isWorkflowOnlyActor(User $user): bool
@@ -106,41 +102,5 @@ class LendingScopeService
         return $user->hasPermission('lending-requests.view')
             || $user->hasPermission('lending-requests.review')
             || $user->hasPermission('lending-requests.handover');
-    }
-
-    private function hasGlobalLendingQueueScope(User $user): bool
-    {
-        return TransactionStatus::query()
-            ->where('is_active', true)
-            ->where('is_initial', false)
-            ->whereNotNull('required_permission')
-            ->get()
-            ->contains(
-                fn (TransactionStatus $status) => $status->isGlobalScope()
-                    && $user->hasPermission($status->required_permission),
-            );
-    }
-
-    private function transactionInLendingQueueScope(User $user, Transaction $transaction): bool
-    {
-        if ($this->hasGlobalLendingQueueScope($user)) {
-            return true;
-        }
-
-        $departmentIds = $user->orgScopeDepartmentIds();
-
-        if ($departmentIds === null) {
-            return true;
-        }
-
-        if ($departmentIds === []) {
-            return false;
-        }
-
-        return in_array(
-            (int) $transaction->department_id,
-            array_map(intval(...), $departmentIds),
-            true,
-        );
     }
 }
