@@ -16,7 +16,9 @@ class DatabaseLoader extends FileLoader
     {
         $lines = parent::load($locale, $group, $namespace);
 
-        if ($this->shouldSkipDatabaseLoad($group, $namespace) || ! Schema::hasTable('translation_keys')) {
+        if ($this->shouldSkipDatabaseLoad($group, $namespace)
+            || ! Schema::hasTable('translation_keys')
+            || ! Schema::hasTable('translations')) {
             return $lines;
         }
 

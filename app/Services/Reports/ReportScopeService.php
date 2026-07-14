@@ -193,6 +193,78 @@ class ReportScopeService
             $lines[] = __('reports.scope.stale_days', ['days' => $filter->staleDays]);
         }
 
+        if ($filter->userId) {
+            $filterUser = User::find($filter->userId);
+            $lines[] = __('reports.scope.user', [
+                'name' => $filterUser?->name ?? '#'.$filter->userId,
+            ]);
+        }
+
+        if ($filter->folderId) {
+            $folder = \App\Models\Folder::find($filter->folderId);
+            $lines[] = __('reports.scope.folder', [
+                'name' => $folder?->name ?? '#'.$filter->folderId,
+            ]);
+        }
+
+        if ($filter->transactionSearch) {
+            $lines[] = __('reports.scope.transaction_search', [
+                'q' => $filter->transactionSearch,
+            ]);
+        }
+
+        if ($filter->eventType) {
+            $lines[] = __('reports.scope.event_type', [
+                'type' => __('reports.event_type.'.$filter->eventType),
+            ]);
+        }
+
+        if ($filter->viewMode !== 'timeline') {
+            $lines[] = __('reports.scope.view_mode', [
+                'mode' => __('reports.view_mode.'.$filter->viewMode),
+            ]);
+        }
+
         return $lines;
+    }
+
+    /**
+     * Scope transactions for system-operations (no date filter on transaction created_at —
+     * dates apply to individual events instead).
+     *
+     * @param  Builder<Transaction>  $query
+     */
+    public function applySystemOperationsTransactionFilters(Builder $query, ReportFilter $filter): Builder
+    {
+        if ($ids = $this->user->transactionOrgScopeDepartmentIds()) {
+            $query->whereIn('department_id', $ids);
+        }
+
+        if ($filter->departmentId && $this->user->canAccessDepartment($filter->departmentId)) {
+            $query->where('department_id', $filter->departmentId);
+        }
+
+        if ($filter->transactionTypeId) {
+            $query->where('transaction_type_id', $filter->transactionTypeId);
+        }
+
+        if ($filter->transactionStatusId) {
+            $query->where('transaction_status_id', $filter->transactionStatusId);
+        }
+
+        if ($filter->folderId) {
+            $query->where('folder_id', $filter->folderId);
+        }
+
+        if ($filter->transactionSearch) {
+            $search = $filter->transactionSearch;
+            $query->where(function (Builder $inner) use ($search) {
+                $inner->where('reference_number', 'like', '%'.$search.'%')
+                    ->orWhere('title', 'like', '%'.$search.'%')
+                    ->orWhere('archival_reference', 'like', '%'.$search.'%');
+            });
+        }
+
+        return $query;
     }
 }

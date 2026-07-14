@@ -14,6 +14,11 @@ readonly class ReportFilter
         public ?int $transactionTypeId,
         public ?int $transactionStatusId,
         public int $staleDays = 7,
+        public ?int $userId = null,
+        public ?int $folderId = null,
+        public ?string $transactionSearch = null,
+        public ?string $eventType = null,
+        public string $viewMode = 'timeline',
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -26,6 +31,25 @@ readonly class ReportFilter
             ? Carbon::parse($request->string('date_to'))->endOfDay()
             : null;
 
+        $viewMode = (string) $request->string('view_mode', 'timeline');
+        if (! in_array($viewMode, ['timeline', 'by_user', 'by_transaction'], true)) {
+            $viewMode = 'timeline';
+        }
+
+        $eventType = $request->filled('event_type')
+            ? (string) $request->string('event_type')
+            : null;
+
+        if ($eventType !== null && ! in_array($eventType, [
+            'created', 'workflow', 'attachment', 'audit', 'access', 'lending',
+        ], true)) {
+            $eventType = null;
+        }
+
+        $transactionSearch = $request->filled('transaction_search')
+            ? trim((string) $request->string('transaction_search'))
+            : null;
+
         return new self(
             dateFrom: $dateFrom,
             dateTo: $dateTo,
@@ -33,6 +57,11 @@ readonly class ReportFilter
             transactionTypeId: $request->filled('transaction_type_id') ? $request->integer('transaction_type_id') : null,
             transactionStatusId: $request->filled('transaction_status_id') ? $request->integer('transaction_status_id') : null,
             staleDays: max(1, $request->integer('stale_days', 7)),
+            userId: $request->filled('user_id') ? $request->integer('user_id') : null,
+            folderId: $request->filled('folder_id') ? $request->integer('folder_id') : null,
+            transactionSearch: $transactionSearch !== '' ? $transactionSearch : null,
+            eventType: $eventType,
+            viewMode: $viewMode,
         );
     }
 
@@ -46,6 +75,11 @@ readonly class ReportFilter
             'transaction_type_id' => $this->transactionTypeId,
             'transaction_status_id' => $this->transactionStatusId,
             'stale_days' => $this->staleDays,
+            'user_id' => $this->userId,
+            'folder_id' => $this->folderId,
+            'transaction_search' => $this->transactionSearch,
+            'event_type' => $this->eventType,
+            'view_mode' => $this->viewMode !== 'timeline' ? $this->viewMode : null,
         ], fn ($value) => $value !== null && $value !== '');
     }
 

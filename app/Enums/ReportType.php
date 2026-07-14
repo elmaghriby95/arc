@@ -14,6 +14,7 @@ enum ReportType: string
     case ReferenceNumbers = 'reference-numbers';
     case FolderDistribution = 'folder-distribution';
     case ConfidentialDocuments = 'confidential-documents';
+    case SystemOperations = 'system-operations';
 
     public function label(): string
     {
@@ -33,6 +34,7 @@ enum ReportType: string
             self::DepartmentProductivity,
             self::DocumentsAttachments,
             self::StatusHistory => 1,
+            self::SystemOperations => 3,
             default => 2,
         };
     }
@@ -50,7 +52,13 @@ enum ReportType: string
             self::ReferenceNumbers => 'reports-module--orange',
             self::FolderDistribution => 'reports-module--teal',
             self::ConfidentialDocuments => 'reports-module--rose',
+            self::SystemOperations => 'reports-module--navy',
         };
+    }
+
+    public function isAdminOnly(): bool
+    {
+        return $this === self::SystemOperations;
     }
 
     public function permission(): string

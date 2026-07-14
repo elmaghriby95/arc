@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    @foreach ([1, 2] as $phase)
+    @foreach ([1, 2, 3] as $phase)
         @php($phaseReports = \App\Enums\ReportType::accessibleForPhase(auth()->user(), $phase))
         @if ($phaseReports === [])
             @continue

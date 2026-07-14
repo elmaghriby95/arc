@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Reports;
 use App\Enums\ReportType;
 use App\Exports\ReportWorkbookExport;
 use App\Http\Controllers\Controller;
+use App\Models\Folder;
 use App\Models\TransactionStatus;
 use App\Models\TransactionType;
+use App\Models\User;
 use App\Services\Reports\ReportRunner;
+use App\Services\Reports\ReportScopeService;
 use App\Support\Reports\PdfFontRegistry;
 use App\Support\Reports\PdfHtmlProcessor;
 use App\Support\Reports\ReportFilter;
@@ -40,7 +43,7 @@ class ReportController extends Controller
         $scope = $this->runner->scope($user);
         $data = $this->runner->run($reportType, $user, $filter);
 
-        return view($reportType->view(), [
+        return view($reportType->view(), array_merge([
             'reportType' => $reportType,
             'filter' => $filter,
             'data' => $data,
@@ -48,7 +51,7 @@ class ReportController extends Controller
             'orgUnits' => $scope->orgUnitOptions(),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
             'statuses' => TransactionStatus::where('is_active', true)->orderBy('sort_order')->get(),
-        ]);
+        ], $this->systemOperationsExtras($reportType, $scope)));
     }
 
     public function exportPdf(Request $request, string $type, DomPdf $domPdf, PdfFontRegistry $pdfFonts, PdfHtmlProcessor $pdfHtml): Response
@@ -60,7 +63,7 @@ class ReportController extends Controller
         $user = $request->user();
         $filter = ReportFilter::fromRequest($request);
         $scope = $this->runner->scope($user);
-        $data = $this->runner->run($reportType, $user, $filter);
+        $data = $this->runner->run($reportType, $user, $filter, forExport: true);
 
         $dompdfInstance = $domPdf->getDomPDF();
         $fontFamily = $pdfFonts->familyForPdf($dompdfInstance);
@@ -95,7 +98,7 @@ class ReportController extends Controller
         $this->authorizeReport($reportType);
         $user = $request->user();
         $filter = ReportFilter::fromRequest($request);
-        $data = $this->runner->run($reportType, $user, $filter);
+        $data = $this->runner->run($reportType, $user, $filter, forExport: true);
 
         $filename = $reportType->value.'-'.now()->format('Y-m-d').'.xlsx';
 
@@ -103,6 +106,29 @@ class ReportController extends Controller
             ReportWorkbookExport::forType($reportType, $data),
             $filename
         );
+    }
+
+    /** @return array<string, mixed> */
+    private function systemOperationsExtras(ReportType $reportType, ReportScopeService $scope): array
+    {
+        if ($reportType !== ReportType::SystemOperations) {
+            return [];
+        }
+
+        $users = User::query()
+            ->with('department:id,name')
+            ->orderBy('name')
+            ->get(['id', 'name', 'department_id']);
+
+        $folders = Folder::scopedQuery($scope->scopedDepartmentIds())
+            ->with('department:id,name')
+            ->orderBy('name')
+            ->get(['id', 'name', 'department_id', 'parent_id']);
+
+        return [
+            'filterUsers' => $users,
+            'filterFolders' => $folders,
+        ];
     }
 
     private function resolveType(string $type): ReportType

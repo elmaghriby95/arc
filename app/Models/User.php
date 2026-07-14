@@ -102,6 +102,10 @@ class User extends Authenticatable
 
     public function canViewReport(\App\Enums\ReportType $type): bool
     {
+        if ($type->isAdminOnly() && ! $this->isAdmin()) {
+            return false;
+        }
+
         if ($this->hasPermission(\App\Enums\Permission::ReportsView->value)) {
             return true;
         }

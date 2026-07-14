@@ -19,6 +19,7 @@ class ReportRunner
         private readonly ReferenceNumbersReportService $referenceNumbers,
         private readonly FolderDistributionReportService $folderDistribution,
         private readonly ConfidentialDocumentsReportService $confidentialDocuments,
+        private readonly SystemOperationsReportService $systemOperations,
     ) {}
 
     public function scope(User $user): ReportScopeService
@@ -27,7 +28,7 @@ class ReportRunner
     }
 
     /** @return array<string, mixed> */
-    public function run(ReportType $type, User $user, ReportFilter $filter): array
+    public function run(ReportType $type, User $user, ReportFilter $filter, bool $forExport = false): array
     {
         return match ($type) {
             ReportType::TransactionPipeline => $this->pipeline->generate($filter),
@@ -40,6 +41,11 @@ class ReportRunner
             ReportType::ReferenceNumbers => $this->referenceNumbers->generate($filter),
             ReportType::FolderDistribution => $this->folderDistribution->generate($filter),
             ReportType::ConfidentialDocuments => $this->confidentialDocuments->generate($filter),
+            ReportType::SystemOperations => $this->systemOperations->generate(
+                $filter,
+                $user,
+                $forExport ? SystemOperationsReportService::EXPORT_LIMIT : SystemOperationsReportService::DISPLAY_LIMIT
+            ),
         };
     }
 }

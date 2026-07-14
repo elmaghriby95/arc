@@ -32,6 +32,7 @@ class ReportWorkbookExport implements WithMultipleSheets
             ReportType::ReferenceNumbers => self::referenceNumbers($data),
             ReportType::FolderDistribution => self::folderDistribution($data),
             ReportType::ConfidentialDocuments => self::confidentialDocuments($data),
+            ReportType::SystemOperations => self::systemOperations($data),
         };
     }
 
@@ -349,6 +350,46 @@ class ReportWorkbookExport implements WithMultipleSheets
                 __('reports.uploader'),
                 __('common.date'),
             ], $rows),
+        ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function systemOperations(array $data): self
+    {
+        $summaryRows = collect($data['by_type'] ?? [])->map(fn ($row) => [
+            $row['label'], $row['count'],
+        ])->all();
+
+        $detailRows = collect($data['events'] ?? [])->map(fn ($row) => [
+            $row['occurred_at_display'],
+            $row['event_type'],
+            $row['label'],
+            $row['actor'],
+            $row['department'],
+            $row['folder'],
+            $row['transaction_ref'],
+            $row['transaction_title'],
+            $row['details'],
+            $row['notes'] ?? '',
+        ])->all();
+
+        return new self([
+            new ReportSheetExport(__('reports.export.sheet.by_event_type'), [
+                __('reports.event_type_label'),
+                __('reports.count'),
+            ], $summaryRows),
+            new ReportSheetExport(__('reports.export.sheet.operations_log'), [
+                __('common.date'),
+                __('reports.event_type_label'),
+                __('reports.export.col.action'),
+                __('reports.user'),
+                __('common.department'),
+                __('reports.export.col.folder'),
+                __('common.reference_number'),
+                __('common.title'),
+                __('reports.export.col.details'),
+                __('reports.export.col.notes'),
+            ], $detailRows),
         ]);
     }
 }

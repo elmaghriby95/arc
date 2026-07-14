@@ -1220,6 +1220,10 @@ class TranslationCatalog
             ['group' => 'reports', 'key' => 'permission.reference_numbers', 'values' => ['ar' => 'تقرير: الأرقام الإشارية', 'en' => 'Report: Reference numbers', 'fr' => 'Rapport : Numéros de référence']],
             ['group' => 'reports', 'key' => 'permission.folder_distribution', 'values' => ['ar' => 'تقرير: توزيع المعاملات حسب المجلد', 'en' => 'Report: Folder distribution', 'fr' => 'Rapport : Répartition par dossier']],
             ['group' => 'reports', 'key' => 'permission.confidential_documents', 'values' => ['ar' => 'تقرير: الوثائق السرية', 'en' => 'Report: Confidential documents', 'fr' => 'Rapport : Documents confidentiels']],
+            ['group' => 'reports', 'key' => 'phase_3', 'values' => ['ar' => 'تقارير مدير النظام', 'en' => 'System admin reports', 'fr' => 'Rapports administrateur système']],
+            ['group' => 'reports', 'key' => 'system_operations.label', 'values' => ['ar' => 'عمليات المنظومة', 'en' => 'System operations', 'fr' => 'Opérations du système']],
+            ['group' => 'reports', 'key' => 'system_operations.description', 'values' => ['ar' => 'سجل تتبّع شامل لكل عمليات الأرشفة والمراجعة والإجراءات عبر الإدارات والمستخدمين والمعاملات', 'en' => 'Complete audit trail of archive, review, and actions across departments, users, and transactions', 'fr' => 'Journal complet des opérations d\'archivage, de révision et des actions']],
+            ['group' => 'reports', 'key' => 'permission.system_operations', 'values' => ['ar' => 'تقرير: عمليات المنظومة (مدير النظام)', 'en' => 'Report: System operations (admin only)', 'fr' => 'Rapport : Opérations système (admin uniquement)']],
         ];
     }
 
