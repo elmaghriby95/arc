@@ -95,6 +95,19 @@ class DocumentController extends Controller
             'n' => (string) \Illuminate\Support\Str::uuid(),
         ]));
 
+        $downloadUrl = route('documents.download', [
+            'attachment' => $attachment,
+            'u' => $user->id,
+            'n' => (string) \Illuminate\Support\Str::uuid(),
+        ]);
+
+        $clientPdfDownload = $attachment->fileKind() === 'pdf'
+            && \App\Models\WatermarkSetting::instance()->shouldApplyFor('download');
+
+        $downloadWatermarkContext = $clientPdfDownload
+            ? app(\App\Services\DocumentWatermarkService::class)->buildLiveContext($user, 'download')
+            : null;
+
         return view('documents.show', compact(
             'attachment',
             'canShowLendingButton',
@@ -102,6 +115,9 @@ class DocumentController extends Controller
             'lendingRequestBlockReason',
             'viewWatermark',
             'previewUrl',
+            'downloadUrl',
+            'clientPdfDownload',
+            'downloadWatermarkContext',
         ));
     }
 

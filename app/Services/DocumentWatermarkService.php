@@ -123,6 +123,32 @@ class DocumentWatermarkService
     }
 
     /**
+     * Build watermark context for the current user without persisting an audit row yet.
+     *
+     * @return array{
+     *     center_lines: list<string>,
+     *     footer: string,
+     *     qr_payload: string|null,
+     *     opacity: float,
+     *     font_size: int,
+     *     angle: int,
+     *     show_center_text: bool,
+     *     show_footer: bool,
+     *     show_qr_code: bool
+     * }
+     */
+    public function buildLiveContext(User $user, string $actionType): array
+    {
+        $audit = new DocumentAccessAudit([
+            'transaction_id' => (string) Str::uuid(),
+            'action_type' => $actionType,
+            'created_at' => now(),
+        ]);
+
+        return $this->buildContext($user, $audit);
+    }
+
+    /**
      * @param  array{
      *     center_lines: list<string>,
      *     footer: string,
@@ -147,7 +173,8 @@ class DocumentWatermarkService
             $pdf->SetAutoPageBreak(false, 0);
             $pdf->SetCreator('ARC Watermark');
             $pdf->SetAuthor('ARC');
-            $pdf->setFontSubsetting(false);
+            $pdf->setFontSubsetting(true);
+            $pdf->SetCompression(true);
 
             $pageCount = $pdf->setSourceFile($sourcePath);
 

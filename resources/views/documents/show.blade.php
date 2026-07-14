@@ -19,7 +19,24 @@
             </div>
             <div class="form-actions">
                 @permission('documents.download')
-                    <a href="{{ route('documents.download', ['attachment' => $attachment, 'u' => auth()->id(), 'n' => (string) \Illuminate\Support\Str::uuid()]) }}" class="btn btn-secondary">{{ __('common.download') }}</a>
+                    @php
+                        $docDownloadUrl = $downloadUrl ?? route('documents.download', [
+                            'attachment' => $attachment,
+                            'u' => auth()->id(),
+                            'n' => (string) \Illuminate\Support\Str::uuid(),
+                        ]);
+                    @endphp
+                    <a
+                        href="{{ $docDownloadUrl }}"
+                        class="btn btn-secondary"
+                        @if (! empty($clientPdfDownload) && ! empty($downloadWatermarkContext))
+                            data-wm-client-download
+                            data-wm-pdf-url="{{ $previewUrl }}"
+                            data-wm-pdf-worker="{{ route('assets.pdfjs', ['file' => 'pdf.worker.min.js']) }}"
+                            data-wm-filename="{{ $attachment->effectiveFileName() ?? $attachment->displayName() }}"
+                            data-wm-context="{{ e(json_encode($downloadWatermarkContext, JSON_UNESCAPED_UNICODE)) }}"
+                        @endif
+                    >{{ __('common.download') }}</a>
                 @endpermission
                 @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
                     <a href="{{ route('documents.print', $attachment) }}" target="_blank" rel="noopener" class="btn btn-secondary">{{ __('documents.print') }}</a>
@@ -80,23 +97,26 @@
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            @if ($docWmContext)
-                                <x-document-watermark-overlay :context="$docWmContext" />
-                            @endif
-                            <iframe
-                                src="{{ $docPreviewUrl }}#zoom=page-width"
-                                data-doc-preview-frame
-                                data-doc-preview-src="{{ $docPreviewUrl }}"
-                                title="{{ $attachment->displayName() }}"
-                                class="doc-preview-frame"
-                            ></iframe>
+                            <div
+                                class="doc-pdf-viewer"
+                                data-doc-pdf-viewer
+                                data-pdf-url="{{ $docPreviewUrl }}"
+                                data-pdf-worker="{{ route('assets.pdfjs', ['file' => 'pdf.worker.min.js']) }}"
+                                data-pdf-error="{{ __('documents.preview_unavailable') }}"
+                                @if ($docWmContext)
+                                    data-watermark="{{ e(json_encode($docWmContext, JSON_UNESCAPED_UNICODE)) }}"
+                                @endif
+                            >
+                                <p class="doc-pdf-status" data-doc-pdf-status hidden></p>
+                                <div class="doc-pdf-pages" data-doc-pdf-pages></div>
+                            </div>
                         </div>
                     @else
                         <div class="doc-preview-fallback">
                             <x-transaction-file-icon :kind="$attachment->fileKind()" />
                             <p>{{ __('documents.preview_unavailable') }}</p>
                             @permission('documents.download')
-                                <a href="{{ route('documents.download', ['attachment' => $attachment, 'u' => auth()->id(), 'n' => (string) \Illuminate\Support\Str::uuid()]) }}" class="btn btn-secondary btn-sm">{{ __('documents.download_file') }}</a>
+                                <a href="{{ $downloadUrl ?? route('documents.download', $attachment) }}" class="btn btn-secondary btn-sm">{{ __('documents.download_file') }}</a>
                             @endpermission
                         </div>
                     @endif
@@ -140,7 +160,7 @@
         </div>
     </div>
 
-    @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
+    @if ($attachment->fileExists() && $attachment->isImage())
         @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
@@ -151,77 +171,51 @@
                     const zoomOutput = root?.querySelector('[data-doc-preview-zoom-value]');
                     const heightOutput = root?.querySelector('[data-doc-preview-height-value]');
                     const resetButton = root?.querySelector('[data-doc-preview-reset]');
-                    const frame = root?.querySelector('[data-doc-preview-frame]');
                     const content = root?.querySelector('[data-doc-preview-content]');
-
-                    if (!root || !viewport || !zoomInput || !heightInput) {
-                        return;
-                    }
-
+                    if (!root || !viewport || !zoomInput || !heightInput) return;
                     const storageKey = 'doc-preview-settings';
                     const defaults = { zoom: 100, height: 850 };
                     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
                     const applyZoom = (zoom) => {
                         const value = clamp(zoom, Number(zoomInput.min), Number(zoomInput.max));
                         zoomInput.value = String(value);
                         zoomOutput.textContent = `${value}%`;
-
-                        if (frame) {
-                            const baseSrc = frame.dataset.docPreviewSrc;
-                            const zoomParam = value === 100 ? 'page-width' : value;
-                            frame.src = `${baseSrc}#zoom=${zoomParam}`;
-                        }
-
-                        if (content) {
-                            content.style.width = `${value}%`;
-                        }
+                        if (content) content.style.width = `${value}%`;
                     };
-
                     const applyHeight = (heightPx) => {
                         const value = clamp(heightPx, Number(heightInput.min), Number(heightInput.max));
                         viewport.style.height = `${value}px`;
                         heightInput.value = String(value);
                         heightOutput.textContent = `${value}px`;
                     };
-
-                    const saveSettings = () => {
-                        localStorage.setItem(storageKey, JSON.stringify({
-                            zoom: Number(zoomInput.value),
-                            height: Number(heightInput.value),
-                        }));
-                    };
-
+                    const saveSettings = () => localStorage.setItem(storageKey, JSON.stringify({
+                        zoom: Number(zoomInput.value),
+                        height: Number(heightInput.value),
+                    }));
                     const loadSettings = () => {
-                        let zoom = defaults.zoom;
-                        let height = defaults.height;
+                        let zoom = defaults.zoom, height = defaults.height;
                         try {
                             const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
                             if (saved && typeof saved.zoom === 'number' && typeof saved.height === 'number') {
-                                zoom = saved.zoom;
-                                height = saved.height;
+                                zoom = saved.zoom; height = saved.height;
                             }
-                        } catch (error) {}
-                        applyZoom(zoom);
-                        applyHeight(height);
+                        } catch (e) {}
+                        applyZoom(zoom); applyHeight(height);
                     };
-
-                    zoomInput.addEventListener('input', () => {
-                        applyZoom(Number(zoomInput.value));
-                        saveSettings();
-                    });
-                    heightInput.addEventListener('input', () => {
-                        applyHeight(Number(heightInput.value));
-                        saveSettings();
-                    });
-                    resetButton?.addEventListener('click', () => {
-                        applyZoom(defaults.zoom);
-                        applyHeight(defaults.height);
-                        saveSettings();
-                    });
+                    zoomInput.addEventListener('input', () => { applyZoom(Number(zoomInput.value)); saveSettings(); });
+                    heightInput.addEventListener('input', () => { applyHeight(Number(heightInput.value)); saveSettings(); });
+                    resetButton?.addEventListener('click', () => { applyZoom(defaults.zoom); applyHeight(defaults.height); saveSettings(); });
                     loadSettings();
                 });
             </script>
+        @endpush
+    @elseif ($attachment->fileExists() && $attachment->fileKind() === 'pdf')
+        @push('scripts')
+            <script src="{{ route('assets.pdfjs', ['file' => 'pdf.min.js']) }}"></script>
+            <x-inline-js file="document-pdf-preview.js" />
+            @if (! empty($clientPdfDownload))
+                <x-inline-js file="document-wm-download.js" />
+            @endif
         @endpush
     @endif
 </x-app-layout>
