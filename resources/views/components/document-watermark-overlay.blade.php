@@ -23,16 +23,6 @@
                     <span>{{ $line }}</span>
                 @endforeach
             </div>
-            <div class="doc-wm-center doc-wm-center--alt-a">
-                @foreach ($lines as $line)
-                    <span>{{ $line }}</span>
-                @endforeach
-            </div>
-            <div class="doc-wm-center doc-wm-center--alt-b">
-                @foreach ($lines as $line)
-                    <span>{{ $line }}</span>
-                @endforeach
-            </div>
         @endif
 
         @if ($showFooter)

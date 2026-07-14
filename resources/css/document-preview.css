@@ -136,16 +136,6 @@
     display: block;
 }
 
-.doc-wm-center--alt-a {
-    left: 32%;
-    top: 28%;
-}
-
-.doc-wm-center--alt-b {
-    left: 68%;
-    top: 72%;
-}
-
 .doc-wm-bottom {
     position: absolute;
     left: 0.75rem;

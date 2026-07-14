@@ -108,19 +108,25 @@ class DocumentAccessService
         }
 
         try {
-            // DOWNLOAD / PRINT: burn watermark onto every page using low-memory page pipeline.
+            // DOWNLOAD / PRINT: burn watermark onto every page.
             $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
             $this->auditService->markSuccess($audit, true);
 
             $name = pathinfo($downloadName, PATHINFO_FILENAME).'-wm.'.$copy['extension'];
 
-            $response = response()->file($copy['path'], $this->fileHeaders(
-                $copy['mime'],
-                $disposition === 'attachment'
-                    ? 'attachment; filename="'.$this->safeFilename($name).'"'
-                    : 'inline',
-                $audit->transaction_id,
-            ));
+            if ($disposition === 'attachment') {
+                $response = response()->download(
+                    $copy['path'],
+                    $this->safeFilename($name),
+                    $this->fileHeaders($copy['mime'], null, $audit->transaction_id),
+                );
+            } else {
+                $response = response()->file($copy['path'], $this->fileHeaders(
+                    $copy['mime'],
+                    'inline',
+                    $audit->transaction_id,
+                ));
+            }
 
             if ($response instanceof BinaryFileResponse) {
                 $response->deleteFileAfterSend(true);
@@ -128,11 +134,20 @@ class DocumentAccessService
 
             return $response;
         } catch (Throwable $e) {
+            // Never block download/print with a hard 500 — fall back to the original file.
             $this->auditService->markFailure($audit, $e->getMessage());
-
             report($e);
 
-            abort(500, __('messages.watermark.failed'));
+            $fallbackAudit = $this->auditService->createPending($user, $attachment, $action, $request);
+            $this->auditService->markSuccess($fallbackAudit, false);
+
+            return $this->streamOriginal(
+                $absolute,
+                $mime,
+                $downloadName,
+                $disposition,
+                $fallbackAudit->transaction_id,
+            );
         }
     }
 
