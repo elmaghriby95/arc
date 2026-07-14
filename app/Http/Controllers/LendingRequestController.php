@@ -46,9 +46,24 @@ class LendingRequestController extends Controller
 
         return view('lending-requests.index', [
             'requests' => $requests,
-            'statuses' => LendingRequestStatus::cases(),
+            'statuses' => $this->filterStatusesForUser($user, $scope),
             'orgUnits' => $this->scopedOrgUnitOptions($user),
         ]);
+    }
+
+    /** @return list<LendingRequestStatus> */
+    private function filterStatusesForUser(User $user, LendingScopeService $scope): array
+    {
+        if ($scope->isLendingDecisionActor($user) && ! $user->hasPermission('transactions.create') && ! $scope->hasUnrestrictedAccess($user)) {
+            $allowed = $scope->visibleStatusesForDecisionActor($user);
+
+            return array_values(array_filter(
+                LendingRequestStatus::cases(),
+                fn (LendingRequestStatus $status) => in_array($status->value, $allowed, true),
+            ));
+        }
+
+        return LendingRequestStatus::cases();
     }
 
     public function show(
