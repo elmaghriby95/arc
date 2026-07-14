@@ -24,15 +24,12 @@ class LendingScopeService
             return;
         }
 
-        if ($this->hasUnrestrictedAccess($user)) {
+        // Review / handover actors always see the full lending queue across all units.
+        if ($this->hasUnrestrictedAccess($user) || $this->isLendingDecisionActor($user)) {
             return;
         }
 
-        // Review/archive (workflow-only) with lending queue access see all units' requests.
-        if ($this->isWorkflowOnlyActor($user)) {
-            return;
-        }
-
+        // lending-requests.view only (e.g. unit managers): department scope.
         $departmentIds = $user->orgScopeDepartmentIds();
 
         $query->where(function (Builder $outer) use ($user, $departmentIds) {
@@ -59,7 +56,7 @@ class LendingScopeService
             return false;
         }
 
-        if ($this->hasUnrestrictedAccess($user)) {
+        if ($this->hasUnrestrictedAccess($user) || $this->isLendingDecisionActor($user)) {
             return true;
         }
 
@@ -73,34 +70,32 @@ class LendingScopeService
     }
 
     /**
-     * Lending queue access: keep every existing canAccessTransaction path intact,
-     * and only add a path for workflow-stage roles (review/archive) that hold lending permissions —
-     * they manage the lending queue across all units.
+     * Lending queue access for approve / handover / return actions.
      */
     public function canAccessLendingTransaction(User $user, Transaction $transaction): bool
     {
+        if ($this->hasUnrestrictedAccess($user) || $this->isLendingDecisionActor($user)) {
+            return true;
+        }
+
         if ($user->canAccessTransaction($transaction)) {
             return true;
         }
 
-        // Unit creators / admins already resolved above — do not broaden them.
-        if (! $this->isWorkflowOnlyActor($user)) {
-            return false;
-        }
-
-        return $this->isLendingQueueActor($user);
-    }
-
-    private function isWorkflowOnlyActor(User $user): bool
-    {
-        return ! $user->hasPermission('transactions.create')
-            && ! $this->hasUnrestrictedAccess($user);
+        return false;
     }
 
     public function isLendingQueueActor(User $user): bool
     {
         return $user->hasPermission('lending-requests.view')
             || $user->hasPermission('lending-requests.review')
+            || $user->hasPermission('lending-requests.handover');
+    }
+
+    /** Actors who approve or hand over — they manage the queue across all units. */
+    public function isLendingDecisionActor(User $user): bool
+    {
+        return $user->hasPermission('lending-requests.review')
             || $user->hasPermission('lending-requests.handover');
     }
 }
