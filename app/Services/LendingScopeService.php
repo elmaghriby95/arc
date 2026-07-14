@@ -17,8 +17,8 @@ class LendingScopeService
     /** @param Builder<LendingRequest> $query */
     public function applyScopeToQuery(Builder $query, User $user): void
     {
-        // Requesters without the queue-view permission only see their own requests.
-        if (! $user->hasPermission('lending-requests.view')) {
+        // Employee/requester without queue permissions only sees their own requests.
+        if (! $this->isLendingQueueActor($user)) {
             $query->where('requested_by', $user->id);
 
             return;
@@ -29,7 +29,7 @@ class LendingScopeService
         }
 
         // Review/archive (workflow-only) with lending queue access see all units' requests.
-        if ($this->isWorkflowOnlyActor($user) && $this->isLendingQueueActor($user)) {
+        if ($this->isWorkflowOnlyActor($user)) {
             return;
         }
 
@@ -55,7 +55,7 @@ class LendingScopeService
             return true;
         }
 
-        if (! $user->hasPermission('lending-requests.view')) {
+        if (! $this->isLendingQueueActor($user)) {
             return false;
         }
 
@@ -97,7 +97,7 @@ class LendingScopeService
             && ! $this->hasUnrestrictedAccess($user);
     }
 
-    private function isLendingQueueActor(User $user): bool
+    public function isLendingQueueActor(User $user): bool
     {
         return $user->hasPermission('lending-requests.view')
             || $user->hasPermission('lending-requests.review')

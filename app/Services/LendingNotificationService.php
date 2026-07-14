@@ -147,6 +147,11 @@ class LendingNotificationService
                     return true;
                 }
 
+                // Workflow-stage actors (review/archive) handle lending across all units.
+                if (! $user->hasPermission('transactions.create')) {
+                    return true;
+                }
+
                 return $user->canAccessDepartment($departmentId);
             })
             ->each(fn (User $user) => $recipients->put($user->id, $user));

@@ -5,7 +5,9 @@
     $hasArchiveMenu = auth()->user()?->hasPermission('transactions.view')
         || auth()->user()?->hasPermission('transactions.review-log.view')
         || auth()->user()?->hasPermission('lending-requests.view')
-        || auth()->user()?->hasPermission('lending-requests.request');
+        || auth()->user()?->hasPermission('lending-requests.request')
+        || auth()->user()?->hasPermission('lending-requests.review')
+        || auth()->user()?->hasPermission('lending-requests.handover');
 
     $structureActive = request()->routeIs('departments.*', 'categories.*');
     $hasStructureMenu = auth()->user()?->hasPermission('departments.view')
@@ -58,7 +60,7 @@
                     </a>
                 @endif
             @endpermission
-            @permission('lending-requests.view', 'lending-requests.request')
+            @permission('lending-requests.view', 'lending-requests.request', 'lending-requests.review', 'lending-requests.handover')
                 @if (Route::has('lending-requests.index'))
                     <a href="{{ route('lending-requests.index') }}" class="navbar-nav-subitem {{ request()->routeIs('lending-requests.*') ? 'is-active' : '' }}">
                         <span class="navbar-nav-subitem-icon" aria-hidden="true">

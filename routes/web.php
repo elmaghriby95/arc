@@ -119,7 +119,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('transactions/review-log', [TransactionReviewLogController::class, 'index'])->name('transactions.review-log');
     });
 
-    Route::middleware('permission:lending-requests.view,lending-requests.request')->group(function () {
+    Route::middleware('permission:lending-requests.view,lending-requests.request,lending-requests.review,lending-requests.handover')->group(function () {
         Route::get('lending-requests', [LendingRequestController::class, 'index'])->name('lending-requests.index');
     });
 
