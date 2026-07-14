@@ -25,8 +25,13 @@ class LendingScopeService
             return;
         }
 
-        // Stage actors (review / handover) without full queue view: only their workflow statuses, all units.
-        if ($this->isLendingDecisionActor($user) && ! $this->hasFullLendingQueueView($user)) {
+        if ($this->hasUnrestrictedAccess($user)) {
+            return;
+        }
+
+        // Pure review/handover stage actors: all units, but only their workflow statuses.
+        // Do NOT apply department scope here — that was wiping the queue for accounts without a unit.
+        if ($this->isStageLimitedActor($user)) {
             $statuses = $this->visibleStatusesForDecisionActor($user);
 
             if ($statuses !== []) {
@@ -36,19 +41,16 @@ class LendingScopeService
             return;
         }
 
-        if ($this->hasUnrestrictedAccess($user)) {
-            return;
-        }
-
-        // lending-requests.view (e.g. unit managers): department scope, all statuses.
+        // Managers / unit actors with lending-requests.view (+ usually transactions.create).
         $departmentIds = $user->orgScopeDepartmentIds();
 
         $query->where(function (Builder $outer) use ($user, $departmentIds) {
             $outer->where('requested_by', $user->id);
 
-            if ($departmentIds === null) {
+            // null = unrestricted; empty = no assigned unit — still show queue rather than wipe it.
+            if ($departmentIds === null || $departmentIds === []) {
                 $outer->orWhereHas('transaction');
-            } elseif ($departmentIds !== []) {
+            } else {
                 $outer->orWhereHas(
                     'transaction',
                     fn (Builder $transactionQuery) => $transactionQuery->whereIn('department_id', $departmentIds),
@@ -67,16 +69,16 @@ class LendingScopeService
             return false;
         }
 
-        if ($this->isLendingDecisionActor($user) && ! $this->hasFullLendingQueueView($user)) {
+        if ($this->hasUnrestrictedAccess($user)) {
+            return true;
+        }
+
+        if ($this->isStageLimitedActor($user)) {
             $status = $request->status instanceof LendingRequestStatus
                 ? $request->status->value
                 : (string) $request->status;
 
             return in_array($status, $this->visibleStatusesForDecisionActor($user), true);
-        }
-
-        if ($this->hasUnrestrictedAccess($user)) {
-            return true;
         }
 
         $request->loadMissing('transaction');
@@ -88,9 +90,6 @@ class LendingScopeService
         return $this->canAccessLendingTransaction($user, $request->transaction);
     }
 
-    /**
-     * Lending queue access for approve / handover / return actions.
-     */
     public function canAccessLendingTransaction(User $user, Transaction $transaction): bool
     {
         if ($this->hasUnrestrictedAccess($user) || $this->isLendingDecisionActor($user)) {
@@ -130,15 +129,14 @@ class LendingScopeService
             || $user->hasPermission('lending-requests.handover');
     }
 
-    private function hasFullLendingQueueView(User $user): bool
+    /**
+     * Review/archive actors who should only see their lending stage —
+     * not unit managers who also happen to have review/handover.
+     */
+    public function isStageLimitedActor(User $user): bool
     {
-        if ($this->hasUnrestrictedAccess($user)) {
-            return true;
-        }
-
-        // Unit managers (create + view) keep the full status history in their unit.
-        // Pure review/archive stage actors stay limited to their workflow statuses.
-        return $user->hasPermission('lending-requests.view')
-            && $user->hasPermission('transactions.create');
+        return $this->isLendingDecisionActor($user)
+            && ! $user->hasPermission('transactions.create')
+            && ! $this->hasUnrestrictedAccess($user);
     }
 }

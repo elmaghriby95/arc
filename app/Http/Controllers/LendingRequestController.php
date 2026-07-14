@@ -54,7 +54,7 @@ class LendingRequestController extends Controller
     /** @return list<LendingRequestStatus> */
     private function filterStatusesForUser(User $user, LendingScopeService $scope): array
     {
-        if ($scope->isLendingDecisionActor($user) && ! $user->hasPermission('transactions.create') && ! $scope->hasUnrestrictedAccess($user)) {
+        if ($scope->isStageLimitedActor($user)) {
             $allowed = $scope->visibleStatusesForDecisionActor($user);
 
             return array_values(array_filter(
