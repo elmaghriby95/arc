@@ -62,7 +62,6 @@ class DocumentController extends Controller
     public function show(
         TransactionAttachment $attachment,
         LendingEligibilityService $lendingEligibility,
-        DocumentAccessService $accessService,
         Request $request,
     ): View {
         $this->authorizeAttachmentAccess($attachment);
@@ -87,20 +86,19 @@ class DocumentController extends Controller
             ? $lendingEligibility->blockingReason($user, $transaction)
             : null;
 
-        $watermarkOverlay = $accessService->prepareViewOverlay($attachment, $user, $request);
-        $previewUrl = route('documents.preview', array_filter([
+        // Bust browser/PDF-viewer caches so each open gets a freshly watermarked copy
+        // for the current user (never a previous viewer's burned-in watermark).
+        $previewUrl = route('documents.preview', [
             'attachment' => $attachment,
-            'wm' => $watermarkOverlay['audit']->transaction_id ?? null,
             'u' => $user->id,
             'n' => (string) \Illuminate\Support\Str::uuid(),
-        ]));
+        ]);
 
         return view('documents.show', compact(
             'attachment',
             'canShowLendingButton',
             'canRequestLending',
             'lendingRequestBlockReason',
-            'watermarkOverlay',
             'previewUrl',
         ));
     }

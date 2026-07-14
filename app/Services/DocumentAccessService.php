@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\DocumentAccessAudit;
 use App\Models\TransactionAttachment;
 use App\Models\User;
 use App\Models\WatermarkSetting;
@@ -35,30 +34,6 @@ class DocumentAccessService
         return $this->serve($attachment, $user, $request, 'print', 'inline');
     }
 
-    /**
-     * Prepare a live overlay for in-app viewing (no PDF rebuild).
-     *
-     * @return array{audit: DocumentAccessAudit, context: array<string, mixed>}|null
-     */
-    public function prepareViewOverlay(TransactionAttachment $attachment, User $user, Request $request): ?array
-    {
-        $settings = WatermarkSetting::instance();
-
-        if (! $settings->shouldApplyFor('view') || ! $this->watermarkService->supports($attachment)) {
-            return null;
-        }
-
-        $audit = $this->auditService->createPending($user, $attachment, 'view', $request);
-        $this->auditService->markSuccess($audit, true);
-
-        return [
-            'audit' => $audit,
-            'context' => $this->watermarkService->withOverlayAssets(
-                $this->watermarkService->buildContext($user, $audit)
-            ),
-        ];
-    }
-
     private function serve(
         TransactionAttachment $attachment,
         User $user,
@@ -72,6 +47,7 @@ class DocumentAccessService
             abort(404);
         }
 
+        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
         $settings = WatermarkSetting::instance();
         $shouldWatermark = $settings->shouldApplyFor($action)
             && $this->watermarkService->supports($attachment);
@@ -79,22 +55,6 @@ class DocumentAccessService
         $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
         $absolute = Storage::disk('local')->path($path);
         $mime = $attachment->effectiveMimeType() ?? 'application/octet-stream';
-
-        // View: stream the original file and rely on a live HTML overlay for the current user.
-        // This avoids rebuilding large PDFs/images in memory and prevents stale cached watermarks.
-        if ($action === 'view') {
-            $audit = $this->resolveViewAudit($attachment, $user, $request, $shouldWatermark);
-
-            return $this->streamOriginal(
-                $absolute,
-                $mime,
-                $downloadName,
-                $disposition,
-                $audit->transaction_id,
-            );
-        }
-
-        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
 
         if (! $shouldWatermark) {
             $this->auditService->markSuccess($audit, false);
@@ -109,6 +69,8 @@ class DocumentAccessService
         }
 
         try {
+            // Always burn the watermark into a temporary copy so every PDF page
+            // (and the full image) carries the current user's data for view/download/print.
             $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
             $this->auditService->markSuccess($audit, true);
 
@@ -134,33 +96,6 @@ class DocumentAccessService
 
             abort(500, __('messages.watermark.failed'));
         }
-    }
-
-    private function resolveViewAudit(
-        TransactionAttachment $attachment,
-        User $user,
-        Request $request,
-        bool $watermarkApplied,
-    ): DocumentAccessAudit {
-        $token = (string) $request->query('wm', '');
-
-        if ($token !== '') {
-            $existing = DocumentAccessAudit::query()
-                ->where('transaction_id', $token)
-                ->where('user_id', $user->id)
-                ->where('attachment_id', $attachment->id)
-                ->where('action_type', 'view')
-                ->first();
-
-            if ($existing) {
-                return $existing;
-            }
-        }
-
-        $audit = $this->auditService->createPending($user, $attachment, 'view', $request);
-        $this->auditService->markSuccess($audit, $watermarkApplied);
-
-        return $audit;
     }
 
     private function streamOriginal(

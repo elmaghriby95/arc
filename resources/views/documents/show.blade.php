@@ -19,7 +19,7 @@
             </div>
             <div class="form-actions">
                 @permission('documents.download')
-                    <a href="{{ route('documents.download', $attachment) }}" class="btn btn-secondary">{{ __('common.download') }}</a>
+                    <a href="{{ route('documents.download', ['attachment' => $attachment, 'u' => auth()->id(), 'n' => (string) \Illuminate\Support\Str::uuid()]) }}" class="btn btn-secondary">{{ __('common.download') }}</a>
                 @endpermission
                 @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
                     <a href="{{ route('documents.print', $attachment) }}" target="_blank" rel="noopener" class="btn btn-secondary">{{ __('documents.print') }}</a>
@@ -62,23 +62,20 @@
                 </div>
                 <div class="card-body doc-preview-body">
                     @php
-                        $docPreviewUrl = $previewUrl ?? route('documents.preview', $attachment);
-                        $docWmContext = $watermarkOverlay['context'] ?? null;
+                        $docPreviewUrl = $previewUrl ?? route('documents.preview', [
+                            'attachment' => $attachment,
+                            'u' => auth()->id(),
+                            'n' => (string) \Illuminate\Support\Str::uuid(),
+                        ]);
                     @endphp
                     @if ($attachment->isImage())
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            @if ($docWmContext)
-                                <x-document-watermark-overlay :context="$docWmContext" />
-                            @endif
                             <div class="doc-preview-content" data-doc-preview-content>
                                 <img src="{{ $docPreviewUrl }}" alt="{{ $attachment->displayName() }}" class="doc-preview-image">
                             </div>
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            @if ($docWmContext)
-                                <x-document-watermark-overlay :context="$docWmContext" />
-                            @endif
                             <iframe
                                 src="{{ $docPreviewUrl }}#zoom=page-width"
                                 data-doc-preview-frame

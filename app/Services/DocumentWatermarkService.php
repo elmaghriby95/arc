@@ -49,8 +49,8 @@ class DocumentWatermarkService
         $kind = $attachment->fileKind();
         $context = $this->buildContext($user, $audit);
 
-        // Burn-in paths (download/print) need headroom for large scanned PDFs/images.
-        @ini_set('memory_limit', '512M');
+        // Burn-in paths (view/download/print) need headroom for multi-page scanned PDFs.
+        @ini_set('memory_limit', '1024M');
         @ini_set('max_execution_time', '300');
 
         $dir = storage_path('app/temp/watermarks');
@@ -113,7 +113,6 @@ class DocumentWatermarkService
             'center_lines' => $parts,
             'footer' => implode(' | ', $parts),
             'qr_payload' => $settings->show_qr_code ? $audit->transaction_id : null,
-            'qr_svg' => null,
             'opacity' => $settings->alpha(),
             'font_size' => $settings->font_size,
             'angle' => $settings->angle,
@@ -121,48 +120,6 @@ class DocumentWatermarkService
             'show_footer' => $settings->show_footer,
             'show_qr_code' => $settings->show_qr_code && filled($audit->transaction_id),
         ];
-    }
-
-    /**
-     * @param  array{
-     *     center_lines: list<string>,
-     *     footer: string,
-     *     qr_payload: string|null,
-     *     qr_svg: string|null,
-     *     opacity: float,
-     *     font_size: int,
-     *     angle: int,
-     *     show_center_text: bool,
-     *     show_footer: bool,
-     *     show_qr_code: bool
-     * }  $context
-     * @return array{
-     *     center_lines: list<string>,
-     *     footer: string,
-     *     qr_payload: string|null,
-     *     qr_svg: string|null,
-     *     opacity: float,
-     *     font_size: int,
-     *     angle: int,
-     *     show_center_text: bool,
-     *     show_footer: bool,
-     *     show_qr_code: bool
-     * }
-     */
-    public function withOverlayAssets(array $context): array
-    {
-        if ($context['show_qr_code'] && filled($context['qr_payload'])) {
-            try {
-                $context['qr_svg'] = (string) (new \SimpleSoftwareIO\QrCode\Generator)
-                    ->size(56)
-                    ->margin(0)
-                    ->generate((string) $context['qr_payload']);
-            } catch (Throwable) {
-                $context['qr_svg'] = null;
-            }
-        }
-
-        return $context;
     }
 
     /**
@@ -247,26 +204,40 @@ class DocumentWatermarkService
             $pdf->SetAlpha($context['opacity']);
 
             $text = implode("\n", $context['center_lines']);
-            $pdf->StartTransform();
-            $pdf->Rotate($context['angle'], $width / 2, $height / 2);
-            $pdf->MultiCell(
-                $width * 0.75,
-                max(4, $context['font_size'] * 0.45),
-                $text,
-                0,
-                'C',
-                false,
-                1,
-                $width * 0.125,
-                $height / 2 - (count($context['center_lines']) * $context['font_size'] * 0.25),
-                true,
-                0,
-                false,
-                true,
-                0,
-                'M'
-            );
-            $pdf->StopTransform();
+            $lineHeight = max(4, $context['font_size'] * 0.45);
+            $blockHeight = count($context['center_lines']) * $context['font_size'] * 0.5;
+            $cellWidth = $width * 0.75;
+
+            // Stamp the same diagonal block in several positions so every page is clearly marked.
+            $anchors = [
+                [$width / 2, $height / 2],
+                [$width * 0.32, $height * 0.28],
+                [$width * 0.68, $height * 0.72],
+            ];
+
+            foreach ($anchors as [$cx, $cy]) {
+                $pdf->StartTransform();
+                $pdf->Rotate($context['angle'], $cx, $cy);
+                $pdf->MultiCell(
+                    $cellWidth,
+                    $lineHeight,
+                    $text,
+                    0,
+                    'C',
+                    false,
+                    1,
+                    $cx - ($cellWidth / 2),
+                    $cy - ($blockHeight / 2),
+                    true,
+                    0,
+                    false,
+                    true,
+                    0,
+                    'M'
+                );
+                $pdf->StopTransform();
+            }
+
             $pdf->SetAlpha(1);
         }
 
