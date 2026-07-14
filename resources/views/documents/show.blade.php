@@ -61,18 +61,28 @@
                     @endif
                 </div>
                 <div class="card-body doc-preview-body">
+                    @php
+                        $docPreviewUrl = $previewUrl ?? route('documents.preview', $attachment);
+                        $docWmContext = $watermarkOverlay['context'] ?? null;
+                    @endphp
                     @if ($attachment->isImage())
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
+                            @if ($docWmContext)
+                                <x-document-watermark-overlay :context="$docWmContext" />
+                            @endif
                             <div class="doc-preview-content" data-doc-preview-content>
-                                <img src="{{ route('documents.preview', $attachment) }}" alt="{{ $attachment->displayName() }}" class="doc-preview-image">
+                                <img src="{{ $docPreviewUrl }}" alt="{{ $attachment->displayName() }}" class="doc-preview-image">
                             </div>
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
+                            @if ($docWmContext)
+                                <x-document-watermark-overlay :context="$docWmContext" />
+                            @endif
                             <iframe
-                                src="{{ route('documents.preview', $attachment) }}#zoom=page-width"
+                                src="{{ $docPreviewUrl }}#zoom=page-width"
                                 data-doc-preview-frame
-                                data-doc-preview-src="{{ route('documents.preview', $attachment) }}"
+                                data-doc-preview-src="{{ $docPreviewUrl }}"
                                 title="{{ $attachment->displayName() }}"
                                 class="doc-preview-frame"
                             ></iframe>

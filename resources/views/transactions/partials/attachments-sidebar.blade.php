@@ -58,7 +58,7 @@
                         @permission('documents.view')
                             @if ($attachment->isImage() && $attachment->fileExists())
                                 <a href="{{ route('documents.show', ['attachment' => $attachment, 'from' => 'transaction']) }}" class="txn-attachment-thumb">
-                                    <img src="{{ route('documents.preview', $attachment) }}" alt="{{ $attachment->displayName() }}" loading="lazy">
+                                    <img src="{{ route('documents.preview', ['attachment' => $attachment, 'u' => auth()->id(), 'n' => $attachment->id.'-'.substr(sha1((string) auth()->id()), 0, 8)]) }}" alt="{{ $attachment->displayName() }}" loading="lazy">
                                 </a>
                             @else
                                 <a href="{{ route('documents.show', ['attachment' => $attachment, 'from' => 'transaction']) }}" class="txn-attachment-icon-wrap txn-attachment-icon-wrap--link">

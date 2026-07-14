@@ -35,6 +35,30 @@ class DocumentAccessService
         return $this->serve($attachment, $user, $request, 'print', 'inline');
     }
 
+    /**
+     * Prepare a live overlay for in-app viewing (no PDF rebuild).
+     *
+     * @return array{audit: DocumentAccessAudit, context: array<string, mixed>}|null
+     */
+    public function prepareViewOverlay(TransactionAttachment $attachment, User $user, Request $request): ?array
+    {
+        $settings = WatermarkSetting::instance();
+
+        if (! $settings->shouldApplyFor('view') || ! $this->watermarkService->supports($attachment)) {
+            return null;
+        }
+
+        $audit = $this->auditService->createPending($user, $attachment, 'view', $request);
+        $this->auditService->markSuccess($audit, true);
+
+        return [
+            'audit' => $audit,
+            'context' => $this->watermarkService->withOverlayAssets(
+                $this->watermarkService->buildContext($user, $audit)
+            ),
+        ];
+    }
+
     private function serve(
         TransactionAttachment $attachment,
         User $user,
@@ -48,33 +72,40 @@ class DocumentAccessService
             abort(404);
         }
 
-        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
         $settings = WatermarkSetting::instance();
         $shouldWatermark = $settings->shouldApplyFor($action)
             && $this->watermarkService->supports($attachment);
 
         $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
+        $absolute = Storage::disk('local')->path($path);
+        $mime = $attachment->effectiveMimeType() ?? 'application/octet-stream';
+
+        // View: stream the original file and rely on a live HTML overlay for the current user.
+        // This avoids rebuilding large PDFs/images in memory and prevents stale cached watermarks.
+        if ($action === 'view') {
+            $audit = $this->resolveViewAudit($attachment, $user, $request, $shouldWatermark);
+
+            return $this->streamOriginal(
+                $absolute,
+                $mime,
+                $downloadName,
+                $disposition,
+                $audit->transaction_id,
+            );
+        }
+
+        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
 
         if (! $shouldWatermark) {
             $this->auditService->markSuccess($audit, false);
 
-            $absolute = Storage::disk('local')->path($path);
-            $mime = $attachment->effectiveMimeType() ?? 'application/octet-stream';
-
-            if ($disposition === 'attachment') {
-                return response()->download($absolute, $downloadName, [
-                    'Content-Type' => $mime,
-                    'X-Watermark-Transaction-Id' => $audit->transaction_id,
-                ]);
-            }
-
-            return response()->file($absolute, [
-                'Content-Type' => $mime,
-                'Content-Disposition' => 'inline',
-                'X-Watermark-Transaction-Id' => $audit->transaction_id,
-                'Cache-Control' => 'no-store, no-cache, must-revalidate, private',
-                'Pragma' => 'no-cache',
-            ]);
+            return $this->streamOriginal(
+                $absolute,
+                $mime,
+                $downloadName,
+                $disposition,
+                $audit->transaction_id,
+            );
         }
 
         try {
@@ -83,15 +114,13 @@ class DocumentAccessService
 
             $name = pathinfo($downloadName, PATHINFO_FILENAME).'-wm.'.$copy['extension'];
 
-            $response = response()->file($copy['path'], [
-                'Content-Type' => $copy['mime'],
-                'Content-Disposition' => $disposition === 'attachment'
+            $response = response()->file($copy['path'], $this->fileHeaders(
+                $copy['mime'],
+                $disposition === 'attachment'
                     ? 'attachment; filename="'.$this->safeFilename($name).'"'
                     : 'inline',
-                'X-Watermark-Transaction-Id' => $audit->transaction_id,
-                'Cache-Control' => 'no-store, no-cache, must-revalidate, private',
-                'Pragma' => 'no-cache',
-            ]);
+                $audit->transaction_id,
+            ));
 
             if ($response instanceof BinaryFileResponse) {
                 $response->deleteFileAfterSend(true);
@@ -105,6 +134,76 @@ class DocumentAccessService
 
             abort(500, __('messages.watermark.failed'));
         }
+    }
+
+    private function resolveViewAudit(
+        TransactionAttachment $attachment,
+        User $user,
+        Request $request,
+        bool $watermarkApplied,
+    ): DocumentAccessAudit {
+        $token = (string) $request->query('wm', '');
+
+        if ($token !== '') {
+            $existing = DocumentAccessAudit::query()
+                ->where('transaction_id', $token)
+                ->where('user_id', $user->id)
+                ->where('attachment_id', $attachment->id)
+                ->where('action_type', 'view')
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        $audit = $this->auditService->createPending($user, $attachment, 'view', $request);
+        $this->auditService->markSuccess($audit, $watermarkApplied);
+
+        return $audit;
+    }
+
+    private function streamOriginal(
+        string $absolute,
+        string $mime,
+        string $downloadName,
+        string $disposition,
+        string $transactionId,
+    ): BinaryFileResponse|StreamedResponse {
+        if ($disposition === 'attachment') {
+            return response()->download($absolute, $downloadName, $this->fileHeaders(
+                $mime,
+                null,
+                $transactionId,
+            ));
+        }
+
+        return response()->file($absolute, $this->fileHeaders(
+            $mime,
+            'inline',
+            $transactionId,
+        ));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function fileHeaders(string $mime, ?string $contentDisposition, string $transactionId): array
+    {
+        $headers = [
+            'Content-Type' => $mime,
+            'X-Watermark-Transaction-Id' => $transactionId,
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Vary' => 'Cookie, Authorization',
+        ];
+
+        if ($contentDisposition !== null) {
+            $headers['Content-Disposition'] = $contentDisposition;
+        }
+
+        return $headers;
     }
 
     private function safeFilename(string $name): string

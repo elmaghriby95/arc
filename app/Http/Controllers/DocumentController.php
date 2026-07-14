@@ -59,8 +59,12 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function show(TransactionAttachment $attachment, LendingEligibilityService $lendingEligibility): View
-    {
+    public function show(
+        TransactionAttachment $attachment,
+        LendingEligibilityService $lendingEligibility,
+        DocumentAccessService $accessService,
+        Request $request,
+    ): View {
         $this->authorizeAttachmentAccess($attachment);
 
         $attachment->load([
@@ -72,7 +76,7 @@ class DocumentController extends Controller
         ]);
 
         $transaction = $attachment->transaction;
-        $user = auth()->user();
+        $user = $request->user();
         $canShowLendingButton = $transaction
             ? $lendingEligibility->canShowRequestButton($user, $transaction)
             : false;
@@ -83,11 +87,21 @@ class DocumentController extends Controller
             ? $lendingEligibility->blockingReason($user, $transaction)
             : null;
 
+        $watermarkOverlay = $accessService->prepareViewOverlay($attachment, $user, $request);
+        $previewUrl = route('documents.preview', array_filter([
+            'attachment' => $attachment,
+            'wm' => $watermarkOverlay['audit']->transaction_id ?? null,
+            'u' => $user->id,
+            'n' => (string) \Illuminate\Support\Str::uuid(),
+        ]));
+
         return view('documents.show', compact(
             'attachment',
             'canShowLendingButton',
             'canRequestLending',
             'lendingRequestBlockReason',
+            'watermarkOverlay',
+            'previewUrl',
         ));
     }
 
@@ -117,7 +131,7 @@ class DocumentController extends Controller
         return $accessService->download($attachment, $request->user(), $request);
     }
 
-    public function print(TransactionAttachment $attachment): View
+    public function print(TransactionAttachment $attachment, Request $request): View
     {
         $this->authorizeAttachmentAccess($attachment);
 
@@ -127,9 +141,15 @@ class DocumentController extends Controller
             abort(404);
         }
 
+        $printUrl = route('documents.print.file', [
+            'attachment' => $attachment,
+            'u' => $request->user()->id,
+            'n' => (string) \Illuminate\Support\Str::uuid(),
+        ]);
+
         return view('documents.print', [
             'attachment' => $attachment,
-            'printUrl' => route('documents.print.file', $attachment),
+            'printUrl' => $printUrl,
             'isPdf' => $kind === 'pdf',
         ]);
     }

@@ -48,6 +48,7 @@
 }
 
 .doc-preview-viewport {
+    position: relative;
     width: 100%;
     height: 850px;
     max-width: 100%;
@@ -101,4 +102,75 @@
     width: 3rem;
     height: 3rem;
     opacity: 0.6;
+}
+
+/* Live watermark overlay — current viewer only, never baked into stored file */
+.doc-wm-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.doc-wm-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    width: min(78%, 36rem);
+    text-align: center;
+    font-size: clamp(1rem, 2.4vw, 1.65rem);
+    font-weight: 700;
+    line-height: 1.25;
+    color: rgb(60 60 60 / var(--doc-wm-opacity, 0.18));
+    transform: translate(-50%, -50%) rotate(var(--doc-wm-angle, -45deg));
+    white-space: pre-line;
+    user-select: none;
+}
+
+.doc-wm-center span {
+    display: block;
+}
+
+.doc-wm-bottom {
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.55rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.doc-wm-footer {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgb(40 40 40 / calc(var(--doc-wm-opacity, 0.18) + 0.25));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+}
+
+.doc-wm-qr {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    padding: 2px;
+    background: #fff;
+    border-radius: 2px;
+    opacity: 0.92;
+}
+
+.doc-wm-qr svg {
+    display: block;
+    width: 100%;
+    height: 100%;
 }

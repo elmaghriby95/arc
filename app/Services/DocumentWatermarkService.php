@@ -49,6 +49,10 @@ class DocumentWatermarkService
         $kind = $attachment->fileKind();
         $context = $this->buildContext($user, $audit);
 
+        // Burn-in paths (download/print) need headroom for large scanned PDFs/images.
+        @ini_set('memory_limit', '512M');
+        @ini_set('max_execution_time', '300');
+
         $dir = storage_path('app/temp/watermarks');
         if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
             throw new RuntimeException('Unable to create watermark temp directory.');
@@ -109,6 +113,7 @@ class DocumentWatermarkService
             'center_lines' => $parts,
             'footer' => implode(' | ', $parts),
             'qr_payload' => $settings->show_qr_code ? $audit->transaction_id : null,
+            'qr_svg' => null,
             'opacity' => $settings->alpha(),
             'font_size' => $settings->font_size,
             'angle' => $settings->angle,
@@ -116,6 +121,48 @@ class DocumentWatermarkService
             'show_footer' => $settings->show_footer,
             'show_qr_code' => $settings->show_qr_code && filled($audit->transaction_id),
         ];
+    }
+
+    /**
+     * @param  array{
+     *     center_lines: list<string>,
+     *     footer: string,
+     *     qr_payload: string|null,
+     *     qr_svg: string|null,
+     *     opacity: float,
+     *     font_size: int,
+     *     angle: int,
+     *     show_center_text: bool,
+     *     show_footer: bool,
+     *     show_qr_code: bool
+     * }  $context
+     * @return array{
+     *     center_lines: list<string>,
+     *     footer: string,
+     *     qr_payload: string|null,
+     *     qr_svg: string|null,
+     *     opacity: float,
+     *     font_size: int,
+     *     angle: int,
+     *     show_center_text: bool,
+     *     show_footer: bool,
+     *     show_qr_code: bool
+     * }
+     */
+    public function withOverlayAssets(array $context): array
+    {
+        if ($context['show_qr_code'] && filled($context['qr_payload'])) {
+            try {
+                $context['qr_svg'] = (string) (new \SimpleSoftwareIO\QrCode\Generator)
+                    ->size(56)
+                    ->margin(0)
+                    ->generate((string) $context['qr_payload']);
+            } catch (Throwable) {
+                $context['qr_svg'] = null;
+            }
+        }
+
+        return $context;
     }
 
     /**
@@ -144,6 +191,8 @@ class DocumentWatermarkService
             $pdf->SetCreator('ARC Watermark');
             $pdf->SetAuthor('ARC');
 
+            $pdf->setFontSubsetting(false);
+
             $pageCount = $pdf->setSourceFile($sourcePath);
 
             for ($page = 1; $page <= $pageCount; $page++) {
@@ -154,9 +203,14 @@ class DocumentWatermarkService
                 $pdf->useTemplate($templateId);
 
                 $this->stampPdfPage($pdf, (float) $size['width'], (float) $size['height'], $context);
+
+                if (($page % 5) === 0) {
+                    gc_collect_cycles();
+                }
             }
 
             $pdf->Output($output, 'F');
+            unset($pdf);
         } catch (Throwable $e) {
             if (is_file($output)) {
                 @unlink($output);
@@ -266,13 +320,25 @@ class DocumentWatermarkService
             throw new RuntimeException('GD extension is required for image watermarking.');
         }
 
-        $binary = file_get_contents($sourcePath);
+        // Avoid holding a second full copy of the file in a PHP string when possible.
+        $image = match (true) {
+            str_contains((string) $mime, 'jpeg'), str_contains((string) $mime, 'jpg') => @imagecreatefromjpeg($sourcePath),
+            str_contains((string) $mime, 'png') => @imagecreatefrompng($sourcePath),
+            str_contains((string) $mime, 'gif') => @imagecreatefromgif($sourcePath),
+            str_contains((string) $mime, 'webp') && function_exists('imagecreatefromwebp') => @imagecreatefromwebp($sourcePath),
+            default => false,
+        };
 
-        if ($binary === false) {
-            throw new RuntimeException('Unable to read image source.');
+        if ($image === false) {
+            $binary = file_get_contents($sourcePath);
+
+            if ($binary === false) {
+                throw new RuntimeException('Unable to read image source.');
+            }
+
+            $image = @imagecreatefromstring($binary);
+            unset($binary);
         }
-
-        $image = @imagecreatefromstring($binary);
 
         if ($image === false) {
             throw new RuntimeException('Unsupported or corrupt image.');
