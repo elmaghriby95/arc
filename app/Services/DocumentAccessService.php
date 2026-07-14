@@ -54,7 +54,9 @@ class DocumentAccessService
 
         return [
             'audit' => $audit,
-            'context' => $this->watermarkService->buildContext($user, $audit),
+            'context' => $this->watermarkService->withOverlayAssets(
+                $this->watermarkService->buildContext($user, $audit)
+            ),
         ];
     }
 
@@ -73,7 +75,7 @@ class DocumentAccessService
 
         $settings = WatermarkSetting::instance();
         $shouldWatermark = $settings->shouldApplyFor($action)
-            && $this->watermarkService->supports($attachment);
+            && $this->watermarkService->supportsBurnIn($attachment);
 
         $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
         $absolute = Storage::disk('local')->path($path);

@@ -3,15 +3,16 @@
 ])
 
 @php
-    $opacity = max(0.05, min(0.6, (float) ($context['opacity'] ?? 0.18)));
+    $opacity = max(0.08, min(0.6, (float) ($context['opacity'] ?? 0.18)));
     $angle = (int) ($context['angle'] ?? -45);
     $lines = $context['center_lines'] ?? [];
     $footer = $context['footer'] ?? '';
     $showCenter = ($context['show_center_text'] ?? false) && $lines !== [];
     $showFooter = ($context['show_footer'] ?? false) && $footer !== '';
+    $showQr = ($context['show_qr_code'] ?? false) && filled($context['qr_svg'] ?? null);
 @endphp
 
-@if ($showCenter || $showFooter)
+@if ($showCenter || $showFooter || $showQr)
     <div
         class="doc-wm-overlay"
         aria-hidden="true"
@@ -25,9 +26,14 @@
             </div>
         @endif
 
-        @if ($showFooter)
+        @if ($showFooter || $showQr)
             <div class="doc-wm-bottom">
-                <div class="doc-wm-footer">{{ $footer }}</div>
+                @if ($showFooter)
+                    <div class="doc-wm-footer">{{ $footer }}</div>
+                @endif
+                @if ($showQr)
+                    <div class="doc-wm-qr">{!! $context['qr_svg'] !!}</div>
+                @endif
             </div>
         @endif
     </div>

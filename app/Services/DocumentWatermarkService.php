@@ -26,6 +26,14 @@ class DocumentWatermarkService
     {
         $kind = $attachment->fileKind();
 
+        // View overlay works for any previewed type; burn-in remains PDF/image only.
+        return in_array($kind, ['pdf', 'image', 'word', 'excel', 'file'], true);
+    }
+
+    public function supportsBurnIn(TransactionAttachment $attachment): bool
+    {
+        $kind = $attachment->fileKind();
+
         return $kind === 'pdf' || $kind === 'image';
     }
 
@@ -61,7 +69,7 @@ class DocumentWatermarkService
         return match ($kind) {
             'pdf' => $this->watermarkPdf($absoluteSource, $context, $dir),
             'image' => $this->watermarkImage($absoluteSource, $attachment->effectiveMimeType(), $context, $dir),
-            default => throw new RuntimeException('Watermarking is only supported for PDF and image files.'),
+            default => throw new RuntimeException('Burn-in watermarking is only supported for PDF and image files.'),
         };
     }
 
@@ -113,6 +121,7 @@ class DocumentWatermarkService
             'center_lines' => $parts,
             'footer' => implode(' | ', $parts),
             'qr_payload' => $settings->show_qr_code ? $audit->transaction_id : null,
+            'qr_svg' => null,
             'opacity' => $settings->alpha(),
             'font_size' => $settings->font_size,
             'angle' => $settings->angle,
@@ -120,6 +129,28 @@ class DocumentWatermarkService
             'show_footer' => $settings->show_footer,
             'show_qr_code' => $settings->show_qr_code && filled($audit->transaction_id),
         ];
+    }
+
+    /**
+     * Attach QR SVG for live HTML overlay rendering.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    public function withOverlayAssets(array $context): array
+    {
+        if (! empty($context['show_qr_code']) && filled($context['qr_payload'] ?? null)) {
+            try {
+                $context['qr_svg'] = (string) (new \SimpleSoftwareIO\QrCode\Generator)
+                    ->size(64)
+                    ->margin(0)
+                    ->generate((string) $context['qr_payload']);
+            } catch (Throwable) {
+                $context['qr_svg'] = null;
+            }
+        }
+
+        return $context;
     }
 
     /**

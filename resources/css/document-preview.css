@@ -108,7 +108,7 @@
 .doc-wm-overlay {
     position: absolute;
     inset: 0;
-    z-index: 5;
+    z-index: 30;
     pointer-events: none;
     overflow: hidden;
 }
@@ -123,10 +123,10 @@
     gap: 0.35rem;
     width: min(78%, 36rem);
     text-align: center;
-    font-size: clamp(1rem, 2.4vw, 1.65rem);
+    font-size: clamp(1.05rem, 2.6vw, 1.75rem);
     font-weight: 700;
     line-height: 1.25;
-    color: rgb(60 60 60 / var(--doc-wm-opacity, 0.18));
+    color: rgb(50 50 50 / var(--doc-wm-opacity, 0.22));
     transform: translate(-50%, -50%) rotate(var(--doc-wm-angle, -45deg));
     white-space: pre-line;
     user-select: none;
@@ -145,18 +145,36 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 0.75rem;
+    z-index: 31;
 }
 
 .doc-wm-footer {
     flex: 1;
     min-width: 0;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: rgb(40 40 40 / calc(var(--doc-wm-opacity, 0.18) + 0.25));
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: rgb(30 30 30 / 0.55);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     user-select: none;
+}
+
+.doc-wm-qr {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    padding: 3px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgb(15 23 42 / 0.08);
+    opacity: 0.95;
+}
+
+.doc-wm-qr svg {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .doc-pdf-pages {
@@ -180,10 +198,14 @@
     background: #fff;
 }
 
-.doc-pdf-status {
-    margin: 0;
-    padding: 2rem 1rem;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.9rem;
+.doc-preview-viewport--fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e2e8f0;
+}
+
+.doc-preview-viewport--fallback .doc-preview-fallback {
+    position: relative;
+    z-index: 1;
 }

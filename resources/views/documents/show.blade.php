@@ -19,23 +19,9 @@
             </div>
             <div class="form-actions">
                 @permission('documents.download')
-                    @php
-                        $docDownloadUrl = $downloadUrl ?? route('documents.download', [
-                            'attachment' => $attachment,
-                            'u' => auth()->id(),
-                            'n' => (string) \Illuminate\Support\Str::uuid(),
-                        ]);
-                    @endphp
                     <a
-                        href="{{ $docDownloadUrl }}"
+                        href="{{ $downloadUrl ?? route('documents.download', ['attachment' => $attachment, 'u' => auth()->id(), 'n' => (string) \Illuminate\Support\Str::uuid()]) }}"
                         class="btn btn-secondary"
-                        @if (! empty($clientPdfDownload) && ! empty($downloadWatermarkContext))
-                            data-wm-client-download
-                            data-wm-pdf-url="{{ $previewUrl }}"
-                            data-wm-pdf-worker="{{ route('assets.pdfjs', ['file' => 'pdf.worker.min.js']) }}"
-                            data-wm-filename="{{ $attachment->effectiveFileName() ?? $attachment->displayName() }}"
-                            data-wm-context="{{ e(json_encode($downloadWatermarkContext, JSON_UNESCAPED_UNICODE)) }}"
-                        @endif
                     >{{ __('common.download') }}</a>
                 @endpermission
                 @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
@@ -97,6 +83,9 @@
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
+                            @if ($docWmContext)
+                                <x-document-watermark-overlay :context="$docWmContext" />
+                            @endif
                             <div
                                 class="doc-pdf-viewer"
                                 data-doc-pdf-viewer
@@ -112,15 +101,20 @@
                             </div>
                         </div>
                     @else
-                        <div class="doc-preview-fallback">
-                            <x-transaction-file-icon :kind="$attachment->fileKind()" />
-                            <p>{{ __('documents.preview_unavailable') }}</p>
-                            @permission('documents.download')
-                                <a href="{{ $downloadUrl ?? route('documents.download', $attachment) }}" class="btn btn-secondary btn-sm">{{ __('documents.download_file') }}</a>
-                            @endpermission
+                        <div class="doc-preview-viewport doc-preview-viewport--fallback" data-doc-preview-viewport>
+                            @if ($docWmContext)
+                                <x-document-watermark-overlay :context="$docWmContext" />
+                            @endif
+                            <div class="doc-preview-fallback">
+                                <x-transaction-file-icon :kind="$attachment->fileKind()" />
+                                <p>{{ __('documents.preview_unavailable') }}</p>
+                                @permission('documents.download')
+                                    <a href="{{ $downloadUrl ?? route('documents.download', $attachment) }}" class="btn btn-secondary btn-sm">{{ __('documents.download_file') }}</a>
+                                @endpermission
+                            </div>
                         </div>
                     @endif
-                    @if ($attachment->isImage() || $attachment->fileKind() === 'pdf')
+                    @if ($attachment->isImage() || $attachment->fileKind() === 'pdf' || $docWmContext)
                         <p class="doc-preview-hint">{{ __('documents.preview_resize_hint') }}</p>
                     @endif
                 </div>
@@ -213,9 +207,6 @@
         @push('scripts')
             <script src="{{ route('assets.pdfjs', ['file' => 'pdf.min.js']) }}"></script>
             <x-inline-js file="document-pdf-preview.js" />
-            @if (! empty($clientPdfDownload))
-                <x-inline-js file="document-wm-download.js" />
-            @endif
         @endpush
     @endif
 </x-app-layout>
