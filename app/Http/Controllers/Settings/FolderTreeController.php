@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Folder;
 use App\Models\User;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,7 +28,7 @@ class FolderTreeController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, UserActivityLogger $logger): RedirectResponse
     {
         $user = $request->user();
 
@@ -57,19 +58,21 @@ class FolderTreeController extends Controller
 
         $this->stripLocationFieldsUnlessAllowed($validated, $user);
 
-        Folder::create([
+        $folder = Folder::create([
             ...$validated,
             'department_id' => $departmentId,
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
+        $logger->logFolderCreated($user, $folder, $request);
+
         return redirect()
             ->route('settings.folders.index')
             ->with('success', __('messages.folder.created'));
     }
 
-    public function update(Request $request, Folder $folder): RedirectResponse
+    public function update(Request $request, Folder $folder, UserActivityLogger $logger): RedirectResponse
     {
         $user = $request->user();
         $this->authorizeFolderAccess($user, $folder);
@@ -99,6 +102,8 @@ class FolderTreeController extends Controller
 
         $this->stripLocationFieldsUnlessAllowed($validated, $user, $folder);
 
+        $oldValues = $folder->only(['name', 'department_id', 'parent_id', 'cabinet_number', 'row_number', 'box_number', 'is_active']);
+
         $folder->update([
             ...$validated,
             'department_id' => $departmentId,
@@ -106,15 +111,25 @@ class FolderTreeController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
+        $logger->logFolderUpdated(
+            $user,
+            $folder,
+            $oldValues,
+            $folder->only(['name', 'department_id', 'parent_id', 'cabinet_number', 'row_number', 'box_number', 'is_active']),
+            $request,
+        );
+
         return redirect()
             ->route('settings.folders.index')
             ->with('success', __('messages.folder.updated'));
     }
 
-    public function destroy(Request $request, Folder $folder): RedirectResponse
+    public function destroy(Request $request, Folder $folder, UserActivityLogger $logger): RedirectResponse
     {
-        $this->authorizeFolderAccess($request->user(), $folder);
+        $user = $request->user();
+        $this->authorizeFolderAccess($user, $folder);
 
+        $logger->logFolderDeleted($user, $folder, $request);
         $folder->delete();
 
         return redirect()

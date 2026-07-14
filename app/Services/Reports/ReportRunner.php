@@ -42,10 +42,28 @@ class ReportRunner
             ReportType::FolderDistribution => $this->folderDistribution->generate($filter),
             ReportType::ConfidentialDocuments => $this->confidentialDocuments->generate($filter),
             ReportType::SystemOperations => $this->systemOperations->generate(
-                $filter,
-                $user,
-                $forExport ? SystemOperationsReportService::EXPORT_LIMIT : SystemOperationsReportService::DISPLAY_LIMIT
+                filter: $filter,
+                user: $user,
+                page: max(1, (int) request()->integer('page', 1)),
+                forExport: $forExport,
+                forPdf: false,
             ),
         };
+    }
+
+    /** @return array<string, mixed> */
+    public function runPdf(ReportType $type, User $user, ReportFilter $filter): array
+    {
+        if ($type === ReportType::SystemOperations) {
+            return $this->systemOperations->generate(
+                filter: $filter,
+                user: $user,
+                page: 1,
+                forExport: false,
+                forPdf: true,
+            );
+        }
+
+        return $this->run($type, $user, $filter, forExport: true);
     }
 }

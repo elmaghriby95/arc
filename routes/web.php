@@ -65,8 +65,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:documents.download')
         ->name('documents.download');
 
-    Route::middleware('permission:documents.view')->group(function () {
-        Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('documents', [DocumentController::class, 'index'])
+        ->middleware('permission:documents.view')
+        ->name('documents.index');
+
+    // Lending reviewers/handover actors may open attachment preview while handling a request.
+    Route::middleware('permission:documents.view,lending-requests.review,lending-requests.handover')->group(function () {
         Route::get('documents/{attachment}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
         Route::get('documents/{attachment}/print', [DocumentController::class, 'print'])->name('documents.print');
         Route::get('documents/{attachment}/print-file', [DocumentController::class, 'printFile'])->name('documents.print.file');
@@ -211,6 +215,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/users/{user}', [UserManagementController::class, 'update']);
             Route::post('/users/{user}/avatar', [UserManagementController::class, 'updateAvatar'])->name('users.avatar.update');
             Route::delete('/users/{user}/avatar', [UserManagementController::class, 'destroyAvatar'])->name('users.avatar.destroy');
+            Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
         });
 
         Route::get('/roles', [RoleManagementController::class, 'index'])

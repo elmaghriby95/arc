@@ -109,6 +109,10 @@
                     <div class="card-body">
                         <dl class="profile-info-grid">
                             <div class="profile-info-item">
+                                <dt>{{ __('profile.employee_number') }}</dt>
+                                <dd>{{ $user->employee_number ?: '—' }}</dd>
+                            </div>
+                            <div class="profile-info-item">
                                 <dt>{{ __('profile.role') }}</dt>
                                 <dd><span class="role-pill role-pill--{{ $user->roleSlug() }}">{{ $user->role?->name ?? '—' }}</span></dd>
                             </div>
@@ -172,6 +176,12 @@
                                             <x-input-label for="name" :value="__('settings.users.full_name')" />
                                             <x-text-input id="name" name="name" type="text" :value="old('name', $user->name)" required autofocus />
                                             @error('name')<p class="form-error">{{ $message }}</p>@enderror
+                                        </div>
+
+                                        <div class="form-group">
+                                            <x-input-label for="employee_number" :value="__('settings.users.employee_number')" />
+                                            <x-text-input id="employee_number" name="employee_number" type="text" :value="old('employee_number', $user->employee_number)" :placeholder="__('settings.users.employee_number_placeholder')" dir="ltr" />
+                                            @error('employee_number')<p class="form-error">{{ $message }}</p>@enderror
                                         </div>
 
                                         <div class="form-group">
@@ -275,6 +285,13 @@
                     <div class="form-actions profile-form-actions">
                         <x-primary-button>{{ __('settings.users.save_changes') }}</x-primary-button>
                         <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
+                        @if (! $user->is(auth()->user()))
+                            <form method="POST" action="{{ route('settings.users.destroy', $user) }}" onsubmit="return confirm('{{ __('settings.users.delete_confirm') }}')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger">{{ __('settings.users.delete') }}</button>
+                            </form>
+                        @endif
                     </div>
                 </form>
             </div>

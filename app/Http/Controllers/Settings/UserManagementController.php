@@ -38,12 +38,14 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function store(StoreUserRequest $request): RedirectResponse
+    public function store(StoreUserRequest $request, UserActivityLogger $logger): RedirectResponse
     {
-        User::create([
+        $user = User::create([
             ...$request->validated(),
             'email_verified_at' => now(),
         ]);
+
+        $logger->logUserCreated($request->user(), $user, $request);
 
         return redirect()
             ->route('settings.users.index')
@@ -66,7 +68,7 @@ class UserManagementController extends Controller
 
     public function update(UpdateUserRequest $request, User $user, UserActivityLogger $logger): RedirectResponse
     {
-        $oldValues = $user->only(['name', 'email', 'role_id', 'department_id', 'language_id']);
+        $oldValues = $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'language_id']);
         $validated = $request->validated();
 
         $passwordChanged = filled($validated['password'] ?? null);
@@ -88,7 +90,7 @@ class UserManagementController extends Controller
             $request->user(),
             $user,
             $oldValues,
-            $user->only(['name', 'email', 'role_id', 'department_id', 'language_id']),
+            $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'language_id']),
             $request,
         );
 
@@ -145,5 +147,30 @@ class UserManagementController extends Controller
         return redirect()
             ->route('settings.users.edit', $user)
             ->with('success', __('messages.user.avatar_removed'));
+    }
+
+    public function destroy(Request $request, User $user, UserActivityLogger $logger): RedirectResponse
+    {
+        abort_unless($request->user()?->hasPermission('settings.users.edit'), 403);
+
+        if ($request->user()?->is($user)) {
+            return back()->withErrors(['user' => __('messages.user.cannot_delete_self')]);
+        }
+
+        if ($user->isAdmin() && ! $request->user()?->isAdmin()) {
+            return back()->withErrors(['user' => __('messages.user.cannot_delete_admin')]);
+        }
+
+        $logger->logUserDeleted($request->user(), $user, $request);
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
+        $user->delete();
+
+        return redirect()
+            ->route('settings.users.index')
+            ->with('success', __('messages.user.deleted'));
     }
 }

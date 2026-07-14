@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use App\Services\LendingScopeService;
 use App\Services\TransactionScopeService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'department_id', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
+#[Fillable(['name', 'email', 'employee_number', 'password', 'role_id', 'department_id', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -194,7 +195,12 @@ class User extends Authenticatable
     {
         $attachment->loadMissing('transaction');
 
-        return $this->canAccessTransaction($attachment->transaction);
+        if ($this->canAccessTransaction($attachment->transaction)) {
+            return true;
+        }
+
+        return app(LendingScopeService::class)
+            ->canAccessTransactionAttachmentsForLending($this, $attachment->transaction);
     }
 
     public function canAccessFolder(Folder $folder): bool

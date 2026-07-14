@@ -27,6 +27,8 @@ return [
         'email_required' => 'البريد الإلكتروني مطلوب.',
         'email_format' => 'صيغة البريد الإلكتروني غير صحيحة.',
         'email_unique' => 'هذا البريد الإلكتروني مستخدم بالفعل.',
+        'employee_number_required' => 'الرقم الوظيفي مطلوب.',
+        'employee_number_unique' => 'هذا الرقم الوظيفي مستخدم بالفعل.',
         'password_required' => 'كلمة المرور مطلوبة.',
         'password_confirmed' => 'تأكيد كلمة المرور غير متطابق.',
         'role_required' => 'يجب اختيار دور للمستخدم.',
@@ -46,5 +48,6 @@ return [
         'notes' => 'الملاحظات',
         'files' => 'المستندات',
         'files.*' => 'المستند',
+        'employee_number' => 'الرقم الوظيفي',
     ],
 ];

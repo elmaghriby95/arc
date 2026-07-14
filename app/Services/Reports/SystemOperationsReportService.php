@@ -4,7 +4,9 @@ namespace App\Services\Reports;
 
 use App\Enums\WorkflowAction;
 use App\Models\AuditLog;
+use App\Models\Department;
 use App\Models\DocumentAccessAudit;
+use App\Models\Folder;
 use App\Models\LendingRequestHistory;
 use App\Models\Transaction;
 use App\Models\TransactionAttachment;
@@ -12,24 +14,36 @@ use App\Models\TransactionStatusHistory;
 use App\Models\User;
 use App\Support\Reports\ReportFilter;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
 class SystemOperationsReportService
 {
-    public const DISPLAY_LIMIT = 500;
+    public const PAGE_SIZE = 100;
 
-    public const EXPORT_LIMIT = 2000;
+    public const COLLECT_CAP = 5000;
 
-    public function generate(ReportFilter $filter, User $user, int $limit = self::DISPLAY_LIMIT): array
-    {
+    public const PDF_LIMIT = 300;
+
+    public const EXPORT_LIMIT = 5000;
+
+    public function generate(
+        ReportFilter $filter,
+        User $user,
+        int $page = 1,
+        bool $forExport = false,
+        bool $forPdf = false,
+    ): array {
         $scope = new ReportScopeService($user);
-        $events = $this->collectEvents($filter, $scope, $limit * 2)
+        $cap = $forPdf ? self::PDF_LIMIT : self::COLLECT_CAP;
+
+        $events = $this->collectEvents($filter, $scope, $cap)
             ->sortByDesc(fn (array $event) => $event['occurred_at_ts'])
             ->values();
 
         $totalMatched = $events->count();
-        $events = $events->take($limit)->values();
+        $capped = $totalMatched >= $cap;
 
         $byType = $events->groupBy('event_type')
             ->map(fn (Collection $group, string $type) => [
@@ -42,27 +56,50 @@ class SystemOperationsReportService
 
         $actorIds = $events->pluck('actor_id')->filter()->unique();
         $transactionKeys = $events->pluck('transaction_id')->filter()->unique();
-
         $lastActivity = $events->first();
+
+        $paginator = null;
+
+        if ($forPdf) {
+            $pageEvents = $events->take(self::PDF_LIMIT)->values();
+        } elseif ($forExport) {
+            $pageEvents = $events->take(self::EXPORT_LIMIT)->values();
+        } else {
+            $page = max(1, $page);
+            $pageEvents = $events->forPage($page, self::PAGE_SIZE)->values();
+            $paginator = new LengthAwarePaginator(
+                $pageEvents,
+                $totalMatched,
+                self::PAGE_SIZE,
+                $page,
+                [
+                    'path' => request()->url(),
+                    'query' => request()->query(),
+                ]
+            );
+        }
 
         $payload = [
             'total' => $totalMatched,
-            'shown' => $events->count(),
-            'truncated' => $totalMatched > $limit,
-            'limit' => $limit,
+            'shown' => $pageEvents->count(),
+            'truncated' => $capped || ($forPdf && $totalMatched > self::PDF_LIMIT),
+            'capped' => $capped,
+            'limit' => $forPdf ? self::PDF_LIMIT : ($forExport ? self::EXPORT_LIMIT : self::PAGE_SIZE),
+            'page_size' => self::PAGE_SIZE,
             'affected_transactions' => $transactionKeys->count(),
             'active_users' => $actorIds->count(),
             'last_activity_at' => $lastActivity['occurred_at'] ?? null,
             'by_type' => $byType,
             'view_mode' => $filter->viewMode,
-            'events' => $events,
+            'events' => $pageEvents,
             'grouped' => collect(),
+            'paginator' => $paginator,
         ];
 
         if ($filter->viewMode === 'by_user') {
-            $payload['grouped'] = $this->groupByUser($events);
+            $payload['grouped'] = $this->groupByUser($pageEvents);
         } elseif ($filter->viewMode === 'by_transaction') {
-            $payload['grouped'] = $this->groupByTransaction($events);
+            $payload['grouped'] = $this->groupByTransaction($pageEvents);
         }
 
         return $payload;
@@ -116,7 +153,9 @@ class SystemOperationsReportService
         }
 
         if ($wants('audit') && Schema::hasTable('audit_logs')
-            && ! $filter->folderId && ! $filter->transactionSearch && ! $filter->transactionTypeId && ! $filter->transactionStatusId) {
+            && ! $filter->transactionSearch
+            && ! $filter->transactionTypeId
+            && ! $filter->transactionStatusId) {
             $events = $events->merge($this->auditEvents($filter, $scope, $perSource));
         }
 
@@ -364,19 +403,48 @@ class SystemOperationsReportService
 
     private function auditEvents(ReportFilter $filter, ReportScopeService $scope, int $limit): Collection
     {
+        $folderClass = (new Folder)->getMorphClass();
+        $departmentClass = (new Department)->getMorphClass();
+        $userClass = (new User)->getMorphClass();
+
         $query = AuditLog::query()
             ->with(['user:id,name,department_id', 'user.department:id,name'])
             ->orderByDesc('created_at')
             ->limit($limit);
 
         if ($filter->userId) {
-            $query->where('user_id', $filter->userId);
+            $query->where(function ($q) use ($filter, $userClass) {
+                $q->where('user_id', $filter->userId)
+                    ->orWhere(function ($inner) use ($filter, $userClass) {
+                        $inner->where('auditable_type', $userClass)
+                            ->where('auditable_id', $filter->userId);
+                    });
+            });
+        }
+
+        if ($filter->folderId) {
+            $query->where('auditable_type', $folderClass)
+                ->where('auditable_id', $filter->folderId);
         }
 
         if ($filter->departmentId) {
-            $query->whereHas('user', fn ($q) => $q->where('department_id', $filter->departmentId));
+            $query->where(function ($q) use ($filter, $departmentClass) {
+                $q->whereHas('user', fn ($u) => $u->where('department_id', $filter->departmentId))
+                    ->orWhere(function ($inner) use ($filter, $departmentClass) {
+                        $inner->where('auditable_type', $departmentClass)
+                            ->where('auditable_id', $filter->departmentId);
+                    })
+                    ->orWhere('new_values->department_id', $filter->departmentId)
+                    ->orWhere('old_values->department_id', $filter->departmentId);
+            });
         } elseif ($ids = $scope->scopedDepartmentIds()) {
-            $query->whereHas('user', fn ($q) => $q->whereIn('department_id', $ids));
+            $query->where(function ($q) use ($ids, $departmentClass) {
+                $q->whereHas('user', fn ($u) => $u->whereIn('department_id', $ids))
+                    ->orWhere(function ($inner) use ($ids, $departmentClass) {
+                        $inner->where('auditable_type', $departmentClass)
+                            ->whereIn('auditable_id', $ids);
+                    });
+            });
         }
 
         if ($filter->dateFrom) {
@@ -387,7 +455,13 @@ class SystemOperationsReportService
         }
 
         return $query->get()->map(function (AuditLog $log) {
-            $changeSummary = $this->auditChangeSummary($log);
+            $entityName = $log->new_values['name'] ?? $log->old_values['name'] ?? null;
+            $folderName = str_starts_with($log->action, 'folder.') ? $entityName : null;
+            $departmentName = $log->user?->department?->name;
+
+            if (str_starts_with($log->action, 'department.')) {
+                $departmentName = $entityName ?? $departmentName;
+            }
 
             return $this->event(
                 type: 'audit',
@@ -395,12 +469,12 @@ class SystemOperationsReportService
                 occurredAt: $log->created_at,
                 actorId: $log->user_id,
                 actor: $log->user?->name,
-                department: $log->user?->department?->name,
-                folder: null,
+                department: $departmentName,
+                folder: $folderName,
                 transactionId: null,
                 transactionRef: null,
                 transactionTitle: null,
-                details: $changeSummary,
+                details: $this->auditChangeSummary($log),
                 notes: $log->ip_address,
                 url: null,
                 meta: [
@@ -507,6 +581,24 @@ class SystemOperationsReportService
     {
         $old = $log->old_values ?? [];
         $new = $log->new_values ?? [];
+        $name = $new['name'] ?? $old['name'] ?? null;
+        $email = $new['email'] ?? $old['email'] ?? null;
+
+        if (in_array($log->action, [
+            'folder.created', 'folder.deleted',
+            'department.created', 'department.deleted',
+            'admin.user.created', 'admin.user.deleted',
+        ], true)) {
+            $parts = array_filter([
+                $name,
+                $email,
+                isset($new['code']) || isset($old['code'])
+                    ? __('reports.ops.code_label', ['code' => $new['code'] ?? $old['code'] ?? '—'])
+                    : null,
+            ]);
+
+            return $parts !== [] ? implode(' · ', $parts) : $log->action;
+        }
 
         if ($old === [] && $new === []) {
             return $log->action;
@@ -517,7 +609,7 @@ class SystemOperationsReportService
             ->take(6);
 
         if ($keys->isEmpty()) {
-            return $log->action;
+            return $name ?? $log->action;
         }
 
         return $keys->map(function ($key) use ($old, $new) {

@@ -90,6 +90,10 @@ return [
         'document_access' => 'وصول للمستند (:action)',
         'lending_action' => 'إجراء إعارة',
         'audit_generic' => 'نشاط النظام',
+        'page_summary' => 'عرض :shown من :total — الصفحة :page من :pages',
+        'collect_cap_note' => 'تم الحدّ بنتائج البحث إلى أحدث :limit عملية. ضيّق الفلاتر لرؤية نطاق أدق.',
+        'pdf_limit_note' => 'ملف PDF يعرض أحدث :shown عملية من أصل :total (حد أقصى :limit لضمان استقرار التصدير). استخدم Excel للسجل الكامل.',
+        'code_label' => 'الرمز: :code',
         'audit' => [
             'login' => 'تسجيل دخول',
             'logout' => 'تسجيل خروج',
@@ -99,6 +103,24 @@ return [
             ],
             'password' => [
                 'changed' => 'تغيير كلمة المرور',
+            ],
+            'folder' => [
+                'created' => 'إنشاء مجلد',
+                'updated' => 'تعديل مجلد',
+                'deleted' => 'حذف مجلد',
+            ],
+            'department' => [
+                'created' => 'إنشاء إدارة / وحدة',
+                'updated' => 'تعديل إدارة / وحدة',
+                'deleted' => 'حذف إدارة / وحدة',
+            ],
+            'admin' => [
+                'user' => [
+                    'created' => 'إنشاء مستخدم',
+                    'updated' => 'تعديل مستخدم',
+                    'deleted' => 'حذف مستخدم',
+                    'avatar_updated' => 'تحديث صورة مستخدم',
+                ],
             ],
         ],
     ],

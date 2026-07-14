@@ -142,19 +142,29 @@
         </div>
     @endif
 
-    @if (! empty($data['truncated']))
-        <div class="ops-limit-note">{{ __('reports.ops.limit_note', ['shown' => $data['shown'], 'limit' => $data['limit']]) }}</div>
+    @if (! empty($data['capped']))
+        <div class="ops-limit-note">{{ __('reports.ops.collect_cap_note', ['limit' => \App\Services\Reports\SystemOperationsReportService::COLLECT_CAP]) }}</div>
     @endif
 
     @if (($data['view_mode'] ?? 'timeline') === 'timeline')
         <div class="card card-elevated">
             <div class="card-header">
                 <h3 class="card-title">{{ __('reports.ops.timeline_title') }}</h3>
-                <p class="card-subtitle">{{ __('reports.record_count', ['count' => $data['events']->count()]) }}</p>
+                <p class="card-subtitle">
+                    {{ __('reports.ops.page_summary', [
+                        'shown' => $data['shown'],
+                        'total' => $data['total'],
+                        'page' => optional($data['paginator'])->currentPage() ?? 1,
+                        'pages' => max(1, optional($data['paginator'])->lastPage() ?? 1),
+                    ]) }}
+                </p>
             </div>
             <div class="card-body">
                 @include('reports.partials.operations-timeline', ['events' => $data['events']])
             </div>
+            @if ($data['paginator'] ?? null)
+                <div class="card-footer">{{ $data['paginator']->links() }}</div>
+            @endif
         </div>
     @else
         @forelse ($data['grouped'] as $group)
@@ -188,5 +198,10 @@
                 </div>
             </div>
         @endforelse
+        @if ($data['paginator'] ?? null)
+            <div class="card card-elevated">
+                <div class="card-footer">{{ $data['paginator']->links() }}</div>
+            </div>
+        @endif
     @endif
 </x-app-layout>

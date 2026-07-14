@@ -48,6 +48,12 @@
                         </div>
 
                         <div class="form-group">
+                            <x-input-label for="employee_number" :value="__('settings.users.employee_number')" />
+                            <x-text-input id="employee_number" name="employee_number" type="text" :value="old('employee_number')" required :placeholder="__('settings.users.employee_number_placeholder')" dir="ltr" />
+                            @error('employee_number')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-group">
                             <x-input-label for="email" :value="__('common.email')" />
                             <x-text-input id="email" name="email" type="email" :value="old('email')" required placeholder="example@domain.com" dir="ltr" />
                             @error('email')<p class="form-error">{{ $message }}</p>@enderror

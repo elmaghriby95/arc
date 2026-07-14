@@ -32,6 +32,12 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id),
             ],
+            'employee_number' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
             'role_id' => ['required', Rule::exists('roles', 'id')],
             'department_id' => ['nullable', Rule::exists('departments', 'id')],
             'language_id' => ['nullable', Rule::exists('languages', 'id')],
@@ -47,6 +53,8 @@ class UpdateUserRequest extends FormRequest
             'email.required' => __('validation.user.email_required'),
             'email.email' => __('validation.user.email_format'),
             'email.unique' => __('validation.user.email_unique'),
+            'employee_number.required' => __('validation.user.employee_number_required'),
+            'employee_number.unique' => __('validation.user.employee_number_unique'),
             'password.confirmed' => __('validation.user.password_confirmed'),
             'role_id.required' => __('validation.user.role_required'),
             'department_id.exists' => __('validation.user.department_exists'),
@@ -67,5 +75,12 @@ class UpdateUserRequest extends FormRequest
                 $validator->errors()->add('role_id', __('validation.user.cannot_assign_admin'));
             }
         });
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('employee_number') === '') {
+            $this->merge(['employee_number' => null]);
+        }
     }
 }

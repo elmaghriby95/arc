@@ -81,7 +81,7 @@ class LendingRequestController extends Controller
             'transaction.department',
             'transaction.transactionType',
             'transaction.status',
-            'transaction.attachments',
+            'transaction.attachments' => fn ($query) => $query->latest(),
             'requester',
             'reviewer',
             'handoverBy',
@@ -148,15 +148,19 @@ class LendingRequestController extends Controller
             $approve,
             $validated['notes'] ?? null,
         )) {
-            return back()->with('error', __('lending_requests.messages.review_failed'));
+            return redirect()
+                ->route('lending-requests.index')
+                ->with('error', __('lending_requests.messages.review_failed'));
         }
 
-        return back()->with(
-            'success',
-            $approve
-                ? __('lending_requests.messages.review_approved')
-                : __('lending_requests.messages.review_rejected'),
-        );
+        return redirect()
+            ->route('lending-requests.index')
+            ->with(
+                'success',
+                $approve
+                    ? __('lending_requests.messages.review_approved')
+                    : __('lending_requests.messages.review_rejected'),
+            );
     }
 
     public function handover(Request $request, LendingRequest $lendingRequest, LendingRequestService $service): RedirectResponse
@@ -180,15 +184,19 @@ class LendingRequestController extends Controller
             $confirm,
             $validated['notes'] ?? null,
         )) {
-            return back()->with('error', __('lending_requests.messages.handover_failed'));
+            return redirect()
+                ->route('lending-requests.index')
+                ->with('error', __('lending_requests.messages.handover_failed'));
         }
 
-        return back()->with(
-            'success',
-            $confirm
-                ? __('lending_requests.messages.handover_confirmed')
-                : __('lending_requests.messages.handover_rejected'),
-        );
+        return redirect()
+            ->route('lending-requests.index')
+            ->with(
+                'success',
+                $confirm
+                    ? __('lending_requests.messages.handover_confirmed')
+                    : __('lending_requests.messages.handover_rejected'),
+            );
     }
 
     public function returnDocuments(Request $request, LendingRequest $lendingRequest, LendingRequestService $service): RedirectResponse
@@ -202,10 +210,14 @@ class LendingRequestController extends Controller
             $lendingRequest,
             $validated['notes'] ?? null,
         )) {
-            return back()->with('error', __('lending_requests.messages.return_failed'));
+            return redirect()
+                ->route('lending-requests.index')
+                ->with('error', __('lending_requests.messages.return_failed'));
         }
 
-        return back()->with('success', __('lending_requests.messages.returned'));
+        return redirect()
+            ->route('lending-requests.index')
+            ->with('success', __('lending_requests.messages.returned'));
     }
 
     /** @return list<array{id: int, label: string, depth: int}> */

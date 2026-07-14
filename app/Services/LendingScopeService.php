@@ -99,6 +99,32 @@ class LendingScopeService
         return $user->canAccessTransaction($transaction);
     }
 
+    /**
+     * Review/handover actors may open attachments of a transaction they are
+     * handling via a lending request, even without normal transaction scope.
+     */
+    public function canAccessTransactionAttachmentsForLending(User $user, ?Transaction $transaction): bool
+    {
+        if (! $transaction || ! $this->isLendingDecisionActor($user)) {
+            return false;
+        }
+
+        $query = LendingRequest::query()->where('transaction_id', $transaction->id);
+
+        if ($this->hasUnrestrictedAccess($user)) {
+            return $query->exists();
+        }
+
+        if ($this->isStageLimitedActor($user)) {
+            $statuses = $this->visibleStatusesForDecisionActor($user);
+
+            return $statuses !== []
+                && $query->whereIn('status', $statuses)->exists();
+        }
+
+        return $this->canAccessLendingTransaction($user, $transaction) && $query->exists();
+    }
+
     /** @return list<string> */
     public function visibleStatusesForDecisionActor(User $user): array
     {

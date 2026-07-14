@@ -63,7 +63,14 @@ class ReportController extends Controller
         $user = $request->user();
         $filter = ReportFilter::fromRequest($request);
         $scope = $this->runner->scope($user);
-        $data = $this->runner->run($reportType, $user, $filter, forExport: true);
+
+        if ($reportType === ReportType::SystemOperations) {
+            @ini_set('memory_limit', '512M');
+            @set_time_limit(180);
+            $data = $this->runner->runPdf($reportType, $user, $filter);
+        } else {
+            $data = $this->runner->run($reportType, $user, $filter, forExport: true);
+        }
 
         $dompdfInstance = $domPdf->getDomPDF();
         $fontFamily = $pdfFonts->familyForPdf($dompdfInstance);
@@ -82,6 +89,8 @@ class ReportController extends Controller
 
         $pdf = $domPdf->setOption('default_font', $fontFamily)
             ->setOption('enable_font_subsetting', true)
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false)
             ->loadHTML($html)
             ->setPaper('a4', 'landscape');
 

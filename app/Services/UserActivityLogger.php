@@ -89,4 +89,78 @@ class UserActivityLogger
             $request,
         );
     }
+
+    public function logUserCreated(User $admin, User $created, ?Request $request = null): AuditLog
+    {
+        return $this->log($admin, 'admin.user.created', $created, null, [
+            'name' => $created->name,
+            'email' => $created->email,
+            'role_id' => $created->role_id,
+            'department_id' => $created->department_id,
+        ], $request);
+    }
+
+    public function logUserDeleted(User $admin, User $deleted, ?Request $request = null): AuditLog
+    {
+        return $this->log($admin, 'admin.user.deleted', $deleted, [
+            'name' => $deleted->name,
+            'email' => $deleted->email,
+            'role_id' => $deleted->role_id,
+            'department_id' => $deleted->department_id,
+        ], null, $request);
+    }
+
+    public function logFolderCreated(User $actor, Model $folder, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'folder.created', $folder, null, $this->folderSnapshot($folder), $request);
+    }
+
+    public function logFolderUpdated(User $actor, Model $folder, array $oldValues, array $newValues, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'folder.updated', $folder, $oldValues, $newValues, $request);
+    }
+
+    public function logFolderDeleted(User $actor, Model $folder, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'folder.deleted', $folder, $this->folderSnapshot($folder), null, $request);
+    }
+
+    public function logDepartmentCreated(User $actor, Model $department, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'department.created', $department, null, $this->departmentSnapshot($department), $request);
+    }
+
+    public function logDepartmentUpdated(User $actor, Model $department, array $oldValues, array $newValues, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'department.updated', $department, $oldValues, $newValues, $request);
+    }
+
+    public function logDepartmentDeleted(User $actor, Model $department, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'department.deleted', $department, $this->departmentSnapshot($department), null, $request);
+    }
+
+    /** @return array<string, mixed> */
+    private function folderSnapshot(Model $folder): array
+    {
+        return [
+            'name' => $folder->getAttribute('name'),
+            'department_id' => $folder->getAttribute('department_id'),
+            'parent_id' => $folder->getAttribute('parent_id'),
+            'cabinet_number' => $folder->getAttribute('cabinet_number'),
+            'row_number' => $folder->getAttribute('row_number'),
+            'box_number' => $folder->getAttribute('box_number'),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function departmentSnapshot(Model $department): array
+    {
+        return [
+            'name' => $department->getAttribute('name'),
+            'code' => $department->getAttribute('code'),
+            'unit_label' => $department->getAttribute('unit_label'),
+            'parent_id' => $department->getAttribute('parent_id'),
+        ];
+    }
 }

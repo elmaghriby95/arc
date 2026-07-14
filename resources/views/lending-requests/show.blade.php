@@ -93,6 +93,11 @@
                     </div>
                 </section>
 
+                @include('lending-requests.partials.transaction-documents', [
+                    'transaction' => $transaction,
+                    'lendingRequest' => $lendingRequest,
+                ])
+
                 <div class="lending-panels">
                     <section class="card">
                         <div class="card-header">

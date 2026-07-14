@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,7 +24,7 @@ class DepartmentController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -33,10 +34,12 @@ class DepartmentController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        Department::create([
+        $department = Department::create([
             ...$validated,
             'is_active' => $request->boolean('is_active', true),
         ]);
+
+        $logger->logDepartmentCreated($request->user(), $department, $request);
 
         return redirect()
             ->route('departments.index')
@@ -51,7 +54,7 @@ class DepartmentController extends Controller
         ]);
     }
 
-    public function update(Request $request, Department $department): RedirectResponse
+    public function update(Request $request, Department $department, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -61,18 +64,29 @@ class DepartmentController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $oldValues = $department->only(['name', 'code', 'unit_label', 'parent_id', 'is_active']);
+
         $department->update([
             ...$validated,
             'is_active' => $request->boolean('is_active'),
         ]);
+
+        $logger->logDepartmentUpdated(
+            $request->user(),
+            $department,
+            $oldValues,
+            $department->only(['name', 'code', 'unit_label', 'parent_id', 'is_active']),
+            $request,
+        );
 
         return redirect()
             ->route('departments.index')
             ->with('success', __('messages.department.updated'));
     }
 
-    public function destroy(Department $department): RedirectResponse
+    public function destroy(Request $request, Department $department, UserActivityLogger $logger): RedirectResponse
     {
+        $logger->logDepartmentDeleted($request->user(), $department, $request);
         $department->delete();
 
         return redirect()

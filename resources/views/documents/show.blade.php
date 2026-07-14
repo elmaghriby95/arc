@@ -6,10 +6,14 @@
     <x-slot name="header">
         <div class="page-header">
             <div>
-                @if (request('from') === 'transaction' && auth()->user()?->hasPermission('transactions.view'))
+                @if (request('from') === 'lending' && request()->filled('lending_request'))
+                    <a href="{{ route('lending-requests.show', request('lending_request')) }}" class="settings-back-link">{{ __('lending_requests.back_to_lending_request') }}</a>
+                @elseif (request('from') === 'transaction' && auth()->user()?->hasPermission('transactions.view'))
                     <a href="{{ route('transactions.show', $attachment->transaction) }}" class="settings-back-link">{{ __('common.back_to_transaction') }}</a>
-                @else
+                @elseif (auth()->user()?->hasPermission('documents.view'))
                     <a href="{{ route('documents.index') }}" class="settings-back-link">{{ __('common.back_to_documents') }}</a>
+                @else
+                    <a href="{{ route('lending-requests.index') }}" class="settings-back-link">{{ __('lending_requests.title') }}</a>
                 @endif
                 <h2 class="page-title">{{ $attachment->displayName() }}</h2>
             </div>

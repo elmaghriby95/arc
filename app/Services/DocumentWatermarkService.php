@@ -86,7 +86,7 @@ class DocumentWatermarkService
         }
 
         if ($settings->show_user_id) {
-            $parts[] = 'ID:'.$user->id;
+            $parts[] = 'ID:'.($user->employee_number ?: $user->id);
         }
 
         if ($settings->show_department) {
