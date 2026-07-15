@@ -155,11 +155,11 @@ def release_com_objects() -> None:
 
 
 def target_width(resolution: int) -> int:
-    return min(980, max(700, int(round(7.0 * resolution))))
+    return min(1700, max(1200, int(round(8.3 * resolution))))
 
 
 def target_height(resolution: int) -> int:
-    return min(1280, max(960, int(round(9.6 * resolution))))
+    return min(2400, max(1700, int(round(11.7 * resolution))))
 
 
 def temp_path(suffix: str) -> Path:
@@ -170,7 +170,7 @@ def compress_jpeg(path: Path, quality: int, max_width: int, max_height: int) -> 
     from PIL import Image
 
     target = temp_path("jpg")
-    clamped_quality = max(34, min(55, quality))
+    clamped_quality = max(50, min(78, quality))
     before = path.stat().st_size
 
     with Image.open(path) as image:
@@ -193,17 +193,17 @@ def compress_jpeg(path: Path, quality: int, max_width: int, max_height: int) -> 
 
     after = target.stat().st_size
 
-    if after > 180_000:
+    if after > 650_000:
         with Image.open(target) as image:
             smaller = (
-                max(1, int(image.width * 0.88)),
-                max(1, int(image.height * 0.88)),
+                max(1, int(image.width * 0.95)),
+                max(1, int(image.height * 0.95)),
             )
             image = image.resize(smaller, Image.Resampling.BILINEAR)
             image.save(
                 target,
                 format="JPEG",
-                quality=max(32, clamped_quality - 3),
+                quality=max(48, clamped_quality - 2),
                 optimize=True,
                 progressive=True,
             )
@@ -457,8 +457,8 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     fast_mode = profile in {"fast", "batch", "speed"}
 
     if fast_mode:
-        resolution = max(90, min(140, int(payload.get("resolution", 110))))
-        quality = max(34, min(48, int(payload.get("quality", 42))))
+        resolution = max(150, min(220, int(payload.get("resolution", 200))))
+        quality = max(50, min(78, int(payload.get("quality", 72))))
     else:
         resolution = max(100, min(300, int(payload.get("resolution", 120))))
         quality = max(35, min(75, int(payload.get("quality", 48))))
