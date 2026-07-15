@@ -125,7 +125,7 @@ class DocumentController extends Controller
         return $accessService->preview($attachment, $request->user(), $request);
     }
 
-    public function download(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
+    public function download(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse|View
     {
         $this->authorizeAttachmentAccess($attachment);
 
@@ -136,6 +136,13 @@ class DocumentController extends Controller
         }
 
         return $accessService->download($attachment, $request->user(), $request);
+    }
+
+    public function downloadSource(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse
+    {
+        $this->authorizeAttachmentAccess($attachment);
+
+        return $accessService->downloadSource($attachment, $request->user(), $request);
     }
 
     public function print(TransactionAttachment $attachment, Request $request): View

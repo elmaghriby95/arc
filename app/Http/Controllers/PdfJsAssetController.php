@@ -8,14 +8,15 @@ class PdfJsAssetController extends Controller
 {
     public function show(string $file): BinaryFileResponse
     {
-        $allowed = [
-            'pdf.min.js',
-            'pdf.worker.min.js',
+        $map = [
+            'pdf.min.js' => 'pdfjs/pdf.min.js',
+            'pdf.worker.min.js' => 'pdfjs/pdf.worker.min.js',
+            'pdf-lib.min.js' => 'pdf-lib/pdf-lib.min.js',
         ];
 
-        abort_unless(in_array($file, $allowed, true), 404);
+        abort_unless(isset($map[$file]), 404);
 
-        $path = resource_path('js/vendor/pdfjs/'.$file);
+        $path = resource_path('js/vendor/'.$map[$file]);
 
         abort_unless(is_readable($path), 404);
 

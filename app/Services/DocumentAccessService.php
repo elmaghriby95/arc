@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
@@ -26,7 +27,7 @@ class DocumentAccessService
         return $this->serve($attachment, $user, $request, 'view', 'inline');
     }
 
-    public function download(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
+    public function download(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse|View
     {
         return $this->serve($attachment, $user, $request, 'download', 'attachment');
     }
@@ -34,6 +35,44 @@ class DocumentAccessService
     public function print(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|Response|RedirectResponse
     {
         return $this->serve($attachment, $user, $request, 'print', 'inline');
+    }
+
+    /**
+     * Stream original bytes for client-side PDF sealing (tokenized download audit).
+     */
+    public function downloadSource(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse
+    {
+        $path = $attachment->effectiveFilePath();
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            abort(404);
+        }
+
+        $token = (string) $request->query('wm', '');
+
+        $audit = DocumentAccessAudit::query()
+            ->where('transaction_id', $token)
+            ->where('user_id', $user->id)
+            ->where('attachment_id', $attachment->id)
+            ->where('action_type', 'download')
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->first();
+
+        if (! $audit) {
+            abort(403);
+        }
+
+        $absolute = Storage::disk('local')->path($path);
+        $mime = $attachment->effectiveMimeType() ?? 'application/pdf';
+        $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
+
+        return $this->streamOriginal(
+            $absolute,
+            $mime,
+            $downloadName,
+            'inline',
+            $audit->transaction_id,
+        );
     }
 
     /**
@@ -66,7 +105,7 @@ class DocumentAccessService
         Request $request,
         string $action,
         string $disposition,
-    ): BinaryFileResponse|StreamedResponse|Response|RedirectResponse {
+    ): BinaryFileResponse|StreamedResponse|Response|RedirectResponse|View {
         $path = $attachment->effectiveFilePath();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
@@ -76,6 +115,7 @@ class DocumentAccessService
         $settings = WatermarkSetting::instance();
         $wantsWatermark = $settings->shouldApplyFor($action);
         $canBurnIn = $this->watermarkService->supportsBurnIn($attachment);
+        $kind = $attachment->fileKind();
 
         $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
         $absolute = Storage::disk('local')->path($path);
@@ -115,12 +155,38 @@ class DocumentAccessService
                 abort(422, __('messages.watermark.unsupported_type'));
             }
 
+            // PDF downloads: NEVER rebuild with FPDI (causes 10MB → 38MB on scans).
+            // Seal in the browser so original streams stay compressed; size ~ identical.
+            if ($action === 'download' && $kind === 'pdf') {
+                $this->auditService->markSuccess($audit, true);
+
+                $context = $this->watermarkService->withOverlayAssets(
+                    $this->watermarkService->buildContext($user, $audit)
+                );
+
+                $sourceUrl = route('documents.download.source', [
+                    'attachment' => $attachment,
+                    'wm' => $audit->transaction_id,
+                    'u' => $user->id,
+                    'n' => (string) \Illuminate\Support\Str::uuid(),
+                ]);
+
+                $filename = pathinfo($downloadName, PATHINFO_FILENAME).'-wm.pdf';
+
+                return view('documents.download-seal', [
+                    'attachment' => $attachment,
+                    'sourceUrl' => $sourceUrl,
+                    'watermark' => $context,
+                    'filename' => $this->safeFilename($filename),
+                    'backUrl' => route('documents.show', $attachment),
+                ]);
+            }
+
             try {
                 $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
             } catch (Throwable $first) {
                 report($first);
 
-                // Retry once without QR (lighter / more compatible), still settings text stamp.
                 try {
                     $copy = $this->watermarkService->createWatermarkedCopy(
                         $attachment,
@@ -132,7 +198,6 @@ class DocumentAccessService
                     $this->auditService->markFailure($audit, $second->getMessage());
                     report($second);
 
-                    // Never hand out a clean unwatermarked file when watermark is required.
                     if ($action === 'download') {
                         return redirect()
                             ->route('documents.show', $attachment)
