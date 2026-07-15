@@ -72,7 +72,7 @@ class UserActivityReportService
             ->values();
 
         $users = User::query()
-            ->with(['department', 'role'])
+            ->with(['department'])
             ->whereIn('id', $userIds)
             ->get()
             ->keyBy('id');
@@ -86,7 +86,6 @@ class UserActivityReportService
             return [
                 'user' => $user?->name ?? __('reports.unknown_user'),
                 'department' => $user?->department?->name ?? '—',
-                'role' => $user?->role?->name ?? '—',
                 'created' => $created,
                 'transitions' => $transitions,
                 'uploads' => $uploads,

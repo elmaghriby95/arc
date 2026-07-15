@@ -329,7 +329,6 @@
                                 <tr>
                                     <th>{{ __('common.name') }}</th>
                                     <th>{{ __('common.email') }}</th>
-                                    <th>{{ __('common.role') }}</th>
                                     <th>{{ __('common.department') }}</th>
                                 </tr>
                             </thead>
@@ -342,7 +341,6 @@
                                             </div>
                                         </td>
                                         <td>{{ $user->email }}</td>
-                                        <td><span class="role-pill role-pill--{{ $user->role?->slug ?? 'user' }}">{{ $user->role?->name ?? '—' }}</span></td>
                                         <td>{{ $user->department?->name ?? '—' }}</td>
                                     </tr>
                                 @endforeach

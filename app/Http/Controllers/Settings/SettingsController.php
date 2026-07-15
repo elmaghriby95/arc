@@ -34,7 +34,7 @@ class SettingsController extends Controller
                 'languages' => Language::where('is_active', true)->count(),
             ],
             'roleCounts' => $roleCounts,
-            'recentUsers' => User::with(['department', 'role'])->latest()->limit(5)->get(),
+            'recentUsers' => User::with(['department'])->latest()->limit(5)->get(),
         ]);
     }
 }

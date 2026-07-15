@@ -192,7 +192,6 @@
                 <button type="button" class="navbar-user-btn" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
                     <span class="navbar-user-meta">
                         <span class="navbar-user-name">{{ Auth::user()->name }}</span>
-                        <span class="navbar-user-role">{{ Auth::user()->role?->name ?? '—' }}</span>
                     </span>
                     <span class="navbar-user-chevron" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
@@ -202,7 +201,6 @@
                     <div class="navbar-dropdown-header">
                         <div>
                             <strong>{{ Auth::user()->name }}</strong>
-                            <small>{{ Auth::user()->role?->name ?? '—' }}</small>
                         </div>
                     </div>
                     <div class="navbar-dropdown-divider"></div>

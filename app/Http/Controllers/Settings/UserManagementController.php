@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Enums\Permission;
 use App\Http\Requests\Settings\StoreUserRequest;
 use App\Http\Requests\Settings\UpdateUserRequest;
 use App\Models\Department;
@@ -29,7 +28,7 @@ class UserManagementController extends Controller
         $matchingDepartmentIds = $this->matchingDepartmentIds($breadcrumbs, $search);
 
         return view('settings.users.index', [
-            'users' => User::with(['department', 'role'])
+            'users' => User::with(['department'])
                 ->when($search !== '', function ($query) use ($search, $matchingDepartmentIds) {
                     $like = "%{$search}%";
 
@@ -42,12 +41,6 @@ class UserManagementController extends Controller
                             ->orWhere('last_login_at', 'like', $like)
                             ->orWhere('created_at', 'like', $like)
                             ->orWhere('updated_at', 'like', $like)
-                            ->orWhereHas('role', function ($roleQuery) use ($like) {
-                                $roleQuery
-                                    ->where('name', 'like', $like)
-                                    ->orWhere('slug', 'like', $like)
-                                    ->orWhere('description', 'like', $like);
-                            })
                             ->orWhereHas('department', function ($departmentQuery) use ($like) {
                                 $departmentQuery
                                     ->where('name', 'like', $like)
@@ -97,9 +90,7 @@ class UserManagementController extends Controller
     public function create(): View
     {
         return view('settings.users.create', [
-            'roles' => Role::orderByDesc('is_system')->orderBy('name')->get(),
             'defaultRole' => Role::where('slug', 'user')->first(),
-            'canAssignUserRole' => auth()->user()?->hasPermission(Permission::SettingsUsersAssignRole->value) ?? false,
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),
         ]);
@@ -123,8 +114,6 @@ class UserManagementController extends Controller
     {
         return view('settings.users.edit', [
             'user' => $user->load(['department', 'role', 'language']),
-            'roles' => Role::orderByDesc('is_system')->orderBy('name')->get(),
-            'canAssignUserRole' => auth()->user()?->hasPermission(Permission::SettingsUsersAssignRole->value) ?? false,
             'languages' => Language::query()->where('is_active', true)->orderByDesc('is_default')->orderBy('name')->get(),
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),

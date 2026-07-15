@@ -20,7 +20,6 @@
                 <div class="profile-hero-info">
                     <div class="profile-hero-name-row">
                         <h2 class="profile-hero-name">{{ $user->name }}</h2>
-                        <span class="role-pill role-pill--{{ $user->roleSlug() }}">{{ $user->role?->name ?? '—' }}</span>
                         @if ($user->is(auth()->user()))
                             <span class="user-tag">{{ __('settings.users.you') }}</span>
                         @endif
@@ -88,10 +87,6 @@
                                 <dd>{{ $user->employee_number ?: '—' }}</dd>
                             </div>
                             <div class="profile-info-item">
-                                <dt>{{ __('profile.role') }}</dt>
-                                <dd><span class="role-pill role-pill--{{ $user->roleSlug() }}">{{ $user->role?->name ?? '—' }}</span></dd>
-                            </div>
-                            <div class="profile-info-item">
                                 <dt>{{ __('profile.department') }}</dt>
                                 <dd>
                                     @if ($orgBreadcrumb)
@@ -130,11 +125,12 @@
                 <form id="user-update-form" method="POST" action="{{ route('settings.users.update', $user) }}">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="role_id" value="{{ $user->role_id }}">
 
                     <div class="profile-tabs" data-profile-tabs>
                         <div class="profile-tabs-nav">
                             <button type="button" class="profile-tab-btn is-active" data-tab="info">{{ __('settings.users.tab.info') }}</button>
-                            <button type="button" class="profile-tab-btn" data-tab="role">{{ __('settings.users.tab.role') }}</button>
+                            <button type="button" class="profile-tab-btn" data-tab="organization">{{ __('settings.users.org_location') }}</button>
                             <button type="button" class="profile-tab-btn" data-tab="password">{{ __('settings.users.tab.password') }}</button>
                         </div>
 
@@ -182,35 +178,15 @@
                             </div>
                         </div>
 
-                        <div class="profile-tab-panel" data-panel="role">
+                        <div class="profile-tab-panel" data-panel="organization">
                             <div class="card">
                                 <div class="card-body">
                                     <header class="profile-form-header">
-                                        <h2 class="card-title">{{ __('settings.users.role_org_title') }}</h2>
-                                        <p class="text-muted">{{ __('settings.users.role_org_desc') }}</p>
+                                        <h2 class="card-title">{{ __('settings.users.org_location') }}</h2>
+                                        <p class="text-muted">{{ __('settings.users.org_location_desc') }}</p>
                                     </header>
 
-                                    <div class="form-grid form-grid-2">
-                                        <div class="form-group">
-                                            <x-input-label for="role_id" :value="__('common.role')" />
-                                            @if ($canAssignUserRole)
-                                                <select id="role_id" name="role_id" class="form-select" required>
-                                                    @foreach ($roles as $role)
-                                                        <option
-                                                            value="{{ $role->id }}"
-                                                            @selected(old('role_id', $user->role_id) == $role->id)
-                                                            @if ($role->slug === 'admin' && ! auth()->user()->isAdmin()) disabled @endif
-                                                        >{{ $role->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            @else
-                                                <input type="hidden" name="role_id" value="{{ $user->role_id }}">
-                                                <div class="form-readonly-value">{{ $user->role?->name ?? '—' }}</div>
-                                                <p class="form-hint">{{ __('settings.users.role_assign_permission_required') }}</p>
-                                            @endif
-                                            @error('role_id')<p class="form-error">{{ $message }}</p>@enderror
-                                        </div>
-
+                                    <div class="form-grid">
                                         <div class="form-group">
                                             <x-input-label for="department_id" :value="__('settings.users.org_location')" />
                                             @include('settings.partials.org-unit-select', [

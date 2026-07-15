@@ -61,10 +61,8 @@ class StoreUserRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (! $this->user()?->hasPermission(Permission::SettingsUsersAssignRole->value)) {
-            $this->merge([
-                'role_id' => Role::where('slug', self::DEFAULT_ROLE_SLUG)->value('id'),
-            ]);
-        }
+        $this->merge([
+            'role_id' => Role::where('slug', self::DEFAULT_ROLE_SLUG)->value('id'),
+        ]);
     }
 }

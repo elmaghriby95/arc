@@ -20,7 +20,6 @@
                 <div class="profile-hero-info">
                     <div class="profile-hero-name-row">
                         <h2 class="profile-hero-name">{{ $user->name }}</h2>
-                        <span class="role-pill role-pill--{{ $user->roleSlug() }}">{{ $user->role?->name ?? '—' }}</span>
                     </div>
                     <p class="profile-hero-email">{{ $user->email }}</p>
 
@@ -86,10 +85,6 @@
                     </div>
                     <div class="card-body">
                         <dl class="profile-info-grid">
-                            <div class="profile-info-item">
-                                <dt>{{ __('profile.role') }}</dt>
-                                <dd><span class="role-pill role-pill--{{ $user->roleSlug() }}">{{ $user->role?->name ?? '—' }}</span></dd>
-                            </div>
                             <div class="profile-info-item">
                                 <dt>{{ __('profile.department') }}</dt>
                                 <dd>

@@ -252,7 +252,7 @@ class ReportWorkbookExport implements WithMultipleSheets
     private static function userActivity(array $data): self
     {
         $rows = collect($data['details'])->map(fn ($row) => [
-            $row['user'], $row['department'], $row['role'],
+            $row['user'], $row['department'],
             $row['created'], $row['transitions'], $row['uploads'], $row['total'],
         ])->all();
 
@@ -260,7 +260,6 @@ class ReportWorkbookExport implements WithMultipleSheets
             new ReportSheetExport(__('reports.export.sheet.user_activity'), [
                 __('reports.user'),
                 __('common.department'),
-                __('common.role'),
                 __('reports.created_transactions'),
                 __('reports.transitions'),
                 __('reports.uploads'),

@@ -87,10 +87,18 @@ class UpdateUserRequest extends FormRequest
             $this->merge(['employee_number' => null]);
         }
 
-        if (! $this->user()?->hasPermission(Permission::SettingsUsersAssignRole->value)) {
-            $this->merge([
-                'role_id' => $this->route('user')?->role_id,
-            ]);
+        $target = $this->route('user');
+
+        if (
+            $target?->isAdmin()
+            && $this->filled('role_id')
+            && (int) $this->input('role_id') !== (int) $target->role_id
+        ) {
+            return;
         }
+
+        $this->merge([
+            'role_id' => $target?->role_id,
+        ]);
     }
 }

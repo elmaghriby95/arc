@@ -39,7 +39,6 @@
                     <tr>
                         <th>{{ __('reports.user') }}</th>
                         <th>{{ __('common.department') }}</th>
-                        <th>{{ __('common.role') }}</th>
                         <th>{{ __('reports.created') }}</th>
                         <th>{{ __('reports.transitions') }}</th>
                         <th>{{ __('reports.uploads') }}</th>
@@ -51,14 +50,13 @@
                         <tr>
                             <td><strong>{{ $row['user'] }}</strong></td>
                             <td>{{ $row['department'] }}</td>
-                            <td>{{ $row['role'] }}</td>
                             <td>{{ $row['created'] }}</td>
                             <td>{{ $row['transitions'] }}</td>
                             <td>{{ $row['uploads'] }}</td>
                             <td><strong>{{ $row['total'] }}</strong></td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="table-empty">{{ __('reports.no_activity') }}</td></tr>
+                        <tr><td colspan="6" class="table-empty">{{ __('reports.no_activity') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

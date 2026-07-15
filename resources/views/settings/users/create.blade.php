@@ -20,12 +20,13 @@
             <div class="user-create-step-line"></div>
             <div class="user-create-step">
                 <span class="user-create-step-num">2</span>
-                <span class="user-create-step-label">{{ __('settings.users.step_role') }}</span>
+                <span class="user-create-step-label">{{ __('settings.users.org_location') }}</span>
             </div>
         </div>
 
         <form method="POST" action="{{ route('settings.users.store') }}" class="user-create-form" data-user-create-form>
             @csrf
+            <input type="hidden" name="role_id" value="{{ $defaultRole?->id }}">
 
             <div class="card user-create-card">
                 <div class="card-header user-create-card-header">
@@ -110,42 +111,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="card-title">{{ __('settings.users.role_org_title') }}</h3>
-                        <p class="user-create-card-desc">{{ __('settings.users.role_org_desc') }}</p>
+                        <h3 class="card-title">{{ __('settings.users.org_location') }}</h3>
+                        <p class="user-create-card-desc">{{ __('settings.users.org_location_desc') }}</p>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="form-grid form-grid-2">
-                        <div class="form-group">
-                            <x-input-label for="role_id" :value="__('common.role')" />
-                            @if ($canAssignUserRole)
-                                <select id="role_id" name="role_id" class="form-select" required data-role-select>
-                                    <option value="" disabled @selected(! old('role_id'))>{{ __('settings.users.choose_role') }}</option>
-                                    @foreach ($roles as $role)
-                                        <option
-                                            value="{{ $role->id }}"
-                                            data-slug="{{ $role->slug }}"
-                                            data-description="{{ $role->description }}"
-                                            @selected(old('role_id') == $role->id)
-                                            @if ($role->slug === 'admin' && ! auth()->user()->isAdmin()) disabled @endif
-                                        >{{ $role->name }}</option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <input type="hidden" name="role_id" value="{{ $defaultRole?->id }}">
-                                <div class="form-readonly-value">{{ $defaultRole?->name ?? __('settings.users.default_role') }}</div>
-                                <p class="form-hint">{{ __('settings.users.role_assign_permission_required') }}</p>
-                            @endif
-                            @error('role_id')<p class="form-error">{{ $message }}</p>@enderror
-
-                            @if ($canAssignUserRole)
-                                <div class="role-description-preview" data-role-description hidden>
-                                    <span class="role-description-preview-label">{{ __('settings.users.role_description') }}</span>
-                                    <span data-role-description-text></span>
-                                </div>
-                            @endif
-                        </div>
-
+                    <div class="form-grid">
                         <div class="form-group">
                             <x-input-label for="department_id" :value="__('settings.users.org_location')" />
                             @include('settings.partials.org-unit-select', [

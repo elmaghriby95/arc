@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,9 +21,9 @@ class UserRoleAssignmentPermissionTest extends TestCase
         URL::forceRootUrl('http://localhost');
     }
 
-    public function test_user_creator_without_role_assignment_permission_gets_default_role(): void
+    public function test_user_creation_always_uses_default_role(): void
     {
-        $actor = $this->userWithPermissions([Permission::SettingsUsersCreate->value]);
+        $actor = $this->userWithPermissions(['settings.users.create']);
         $managerRole = Role::where('slug', 'manager')->firstOrFail();
         $defaultRole = Role::where('slug', 'user')->firstOrFail();
 
@@ -45,9 +44,9 @@ class UserRoleAssignmentPermissionTest extends TestCase
         $this->assertSame($defaultRole->id, $created->role_id);
     }
 
-    public function test_user_editor_without_role_assignment_permission_cannot_change_role(): void
+    public function test_user_editing_keeps_current_role(): void
     {
-        $actor = $this->userWithPermissions([Permission::SettingsUsersEdit->value]);
+        $actor = $this->userWithPermissions(['settings.users.edit']);
         $defaultRole = Role::where('slug', 'user')->firstOrFail();
         $managerRole = Role::where('slug', 'manager')->firstOrFail();
         $target = User::factory()->create([
@@ -69,31 +68,25 @@ class UserRoleAssignmentPermissionTest extends TestCase
         $this->assertSame($defaultRole->id, $target->refresh()->role_id);
     }
 
-    public function test_user_editor_with_role_assignment_permission_can_change_role(): void
+    public function test_role_select_is_not_rendered_on_user_forms(): void
     {
-        $actor = $this->userWithPermissions([
-            Permission::SettingsUsersEdit->value,
-            Permission::SettingsUsersAssignRole->value,
-        ]);
+        $actor = $this->userWithPermissions(['settings.users.create', 'settings.users.edit']);
         $defaultRole = Role::where('slug', 'user')->firstOrFail();
-        $managerRole = Role::where('slug', 'manager')->firstOrFail();
         $target = User::factory()->create([
             'role_id' => $defaultRole->id,
             'employee_number' => 'EMP-ROLE-003',
         ]);
 
-        $response = $this->actingAs($actor)->put("/settings/users/{$target->id}", [
-            'name' => $target->name,
-            'email' => $target->email,
-            'employee_number' => $target->employee_number,
-            'role_id' => $managerRole->id,
-            'department_id' => null,
-            'language_id' => null,
-        ]);
+        $createResponse = $this->actingAs($actor)->get('/settings/users/create');
+        $editResponse = $this->actingAs($actor)->get("/settings/users/{$target->id}/edit");
 
-        $response->assertRedirect("/settings/users/{$target->id}/edit");
+        $createResponse
+            ->assertOk()
+            ->assertDontSee('id="role_id"', false);
 
-        $this->assertSame($managerRole->id, $target->refresh()->role_id);
+        $editResponse
+            ->assertOk()
+            ->assertDontSee('id="role_id"', false);
     }
 
     /** @param list<string> $permissions */

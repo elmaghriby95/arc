@@ -77,7 +77,6 @@
                                     <th>{{ __('settings.users.user') }}</th>
                                     <th>{{ __('settings.users.employee_number') }}</th>
                                     <th>{{ __('common.email') }}</th>
-                                    <th>{{ __('common.role') }}</th>
                                     <th>{{ __('settings.users.org_location') }}</th>
                                     <th>{{ __('settings.users.registered_at') }}</th>
                                     <th></th>
@@ -98,7 +97,6 @@
                                         </td>
                                         <td dir="ltr">{{ $user->employee_number ?: '—' }}</td>
                                         <td>{{ $user->email }}</td>
-                                        <td><span class="role-pill role-pill--{{ $user->role?->slug ?? 'user' }}">{{ $user->role?->name ?? '—' }}</span></td>
                                         <td>
                                             @if ($user->department_id && isset($breadcrumbs[$user->department_id]))
                                                 <span class="org-path org-path--compact">{{ $breadcrumbs[$user->department_id] }}</span>
