@@ -457,8 +457,8 @@ def scan_document(payload: dict) -> tuple[bytes, str]:
     fast_mode = profile in {"fast", "batch", "speed"}
 
     if fast_mode:
-        resolution = max(150, min(220, int(payload.get("resolution", 160))))
-        quality = max(50, min(78, int(payload.get("quality", 55))))
+        resolution = max(150, min(220, int(payload.get("resolution", 180))))
+        quality = max(50, min(78, int(payload.get("quality", 65))))
     else:
         resolution = max(100, min(300, int(payload.get("resolution", 120))))
         quality = max(35, min(75, int(payload.get("quality", 48))))
