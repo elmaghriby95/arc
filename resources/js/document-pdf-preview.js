@@ -52,8 +52,33 @@
             statusEl.hidden = !text;
         };
 
-        const createWatermarkOverlay = () => {
-            if (!watermark) return null;
+        const drawQrWatermark = async (ctx, width, height) => {
+            if (!watermark?.show_qr_code || !watermark.qr_svg) return;
+
+            try {
+                const blob = new Blob([String(watermark.qr_svg)], { type: 'image/svg+xml;charset=utf-8' });
+                const objectUrl = URL.createObjectURL(blob);
+                const image = await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = objectUrl;
+                });
+                const size = Math.max(40, Math.min(72, Math.min(width, height) * 0.08));
+                ctx.save();
+                ctx.globalAlpha = 0.95;
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(width - size - 18, height - size - 18, size + 8, size + 8);
+                ctx.drawImage(image, width - size - 14, height - size - 14, size, size);
+                ctx.restore();
+                URL.revokeObjectURL(objectUrl);
+            } catch (e) {
+                // QR is optional; text/footer still identify the page.
+            }
+        };
+
+        const drawWatermark = async (ctx, width, height) => {
+            if (!watermark) return;
 
             const lines = Array.isArray(watermark.center_lines)
                 ? watermark.center_lines.filter(Boolean)
@@ -61,51 +86,38 @@
             const footer = watermark.footer ? String(watermark.footer) : '';
             const showCenter = Boolean(watermark.show_center_text && lines.length);
             const showFooter = Boolean(watermark.show_footer && footer);
-            const showQr = Boolean(watermark.show_qr_code && watermark.qr_svg);
-
-            if (!showCenter && !showFooter && !showQr) {
-                return null;
-            }
-
-            const overlay = document.createElement('div');
-            overlay.className = 'doc-wm-overlay doc-wm-overlay--page';
-            overlay.setAttribute('aria-hidden', 'true');
-            overlay.style.setProperty('--doc-wm-opacity', String(Math.max(0.08, Math.min(0.6, Number(watermark.opacity || 0.18)))));
-            overlay.style.setProperty('--doc-wm-angle', `${Number(watermark.angle || -45)}deg`);
+            const opacity = Number(watermark.opacity || 0.18);
+            const angleDeg = Number(watermark.angle || -45);
+            const fontSize = Math.max(14, Number(watermark.font_size || 28) * (width / 800));
 
             if (showCenter) {
-                const center = document.createElement('div');
-                center.className = 'doc-wm-center';
+                ctx.save();
+                ctx.globalAlpha = Math.max(0.08, Math.min(0.6, opacity));
+                ctx.fillStyle = '#3c3c3c';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = `bold ${fontSize}px "Segoe UI", Tahoma, "DejaVu Sans", Arial, sans-serif`;
+                ctx.translate(width / 2, height / 2);
+                ctx.rotate((angleDeg * Math.PI) / 180);
                 lines.forEach((line, index) => {
-                    const span = document.createElement('span');
-                    span.textContent = String(line);
-                    center.appendChild(span);
+                    const y = (index - (lines.length - 1) / 2) * (fontSize * 1.15);
+                    ctx.fillText(String(line), 0, y);
                 });
-                overlay.appendChild(center);
+                ctx.restore();
             }
 
-            if (showFooter || showQr) {
-                const bottom = document.createElement('div');
-                bottom.className = 'doc-wm-bottom';
-
-                if (showFooter) {
-                    const footerEl = document.createElement('div');
-                    footerEl.className = 'doc-wm-footer';
-                    footerEl.textContent = footer;
-                    bottom.appendChild(footerEl);
-                }
-
-                if (showQr) {
-                    const qr = document.createElement('div');
-                    qr.className = 'doc-wm-qr';
-                    qr.innerHTML = String(watermark.qr_svg);
-                    bottom.appendChild(qr);
-                }
-
-                overlay.appendChild(bottom);
+            if (showFooter) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0.35, Math.min(0.75, opacity + 0.25));
+                ctx.fillStyle = '#282828';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                ctx.font = `${Math.max(10, fontSize * 0.35)}px "Segoe UI", Tahoma, "DejaVu Sans", Arial, sans-serif`;
+                ctx.fillText(footer, 12, height - 10, width - 90);
+                ctx.restore();
             }
 
-            return overlay;
+            await drawQrWatermark(ctx, width, height);
         };
 
         const renderPageInto = async (pageNumber, token) => {
@@ -128,14 +140,13 @@
                 await page.render({ canvasContext: ctx, viewport }).promise;
                 if (token !== renderToken) return;
 
+                await drawWatermark(ctx, canvas.width, canvas.height);
+                if (token !== renderToken) return;
+
                 state.holder.style.width = `${canvas.width}px`;
                 state.holder.style.height = `${canvas.height}px`;
                 state.holder.innerHTML = '';
                 state.holder.appendChild(canvas);
-                const pageWatermark = createWatermarkOverlay();
-                if (pageWatermark) {
-                    state.holder.appendChild(pageWatermark);
-                }
                 state.rendered = true;
             } catch (e) {
                 state.holder.textContent = String(pageNumber);
