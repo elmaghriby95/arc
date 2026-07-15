@@ -17,15 +17,6 @@
         <div class="profile-hero">
             <div class="profile-hero-bg"></div>
             <div class="profile-hero-content">
-                <div class="profile-hero-avatar-wrap">
-                    <x-user-avatar :user="$user" size="hero" class="profile-hero-avatar" />
-                    @permission('profile.edit')
-                        <label for="avatar-upload" class="profile-avatar-edit" title="{{ __('profile.change_avatar') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-                        </label>
-                    @endpermission
-                </div>
-
                 <div class="profile-hero-info">
                     <div class="profile-hero-name-row">
                         <h2 class="profile-hero-name">{{ $user->name }}</h2>
@@ -64,13 +55,6 @@
                 </div>
             </div>
         </div>
-
-        @permission('profile.edit')
-            <form id="avatar-upload-form" method="POST" action="{{ route('profile.avatar.update') }}" enctype="multipart/form-data" class="visually-hidden">
-                @csrf
-                <input type="file" id="avatar-upload" name="avatar" accept="image/jpeg,image/png,image/webp" onchange="this.form.submit()">
-            </form>
-        @endpermission
 
         {{-- Stats --}}
         <div class="profile-stats-grid">
@@ -158,18 +142,6 @@
                         <div class="card">
                             <div class="card-body">
                                 @include('profile.partials.update-profile-information-form')
-
-                                @permission('profile.edit')
-                                    @if ($user->avatar_path)
-                                        <div class="profile-avatar-actions">
-                                            <form method="POST" action="{{ route('profile.avatar.destroy') }}" onsubmit="return confirm('{{ __('profile.remove_avatar_confirm') }}')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-secondary btn-sm">{{ __('profile.remove_avatar') }}</button>
-                                            </form>
-                                        </div>
-                                    @endif
-                                @endpermission
                             </div>
                         </div>
                     </div>

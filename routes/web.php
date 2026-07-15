@@ -198,8 +198,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
             Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
             Route::patch('/users/{user}', [UserManagementController::class, 'update']);
-            Route::post('/users/{user}/avatar', [UserManagementController::class, 'updateAvatar'])->name('users.avatar.update');
-            Route::delete('/users/{user}/avatar', [UserManagementController::class, 'destroyAvatar'])->name('users.avatar.destroy');
             Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
         });
 
@@ -384,14 +382,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('permission:profile.edit')
         ->name('profile.update');
-
-    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])
-        ->middleware('permission:profile.edit')
-        ->name('profile.avatar.update');
-
-    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])
-        ->middleware('permission:profile.edit')
-        ->name('profile.avatar.destroy');
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->middleware('permission:profile.delete')

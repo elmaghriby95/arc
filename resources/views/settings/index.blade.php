@@ -338,7 +338,6 @@
                                     <tr>
                                         <td>
                                             <div class="user-cell">
-                                                <span class="user-avatar">{{ mb_substr($user->name, 0, 1) }}</span>
                                                 {{ $user->name }}
                                             </div>
                                         </td>

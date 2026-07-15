@@ -45,10 +45,6 @@
             @endpermission
             @if (session('status') === 'profile-updated')
                 <span class="text-success profile-save-notice">{{ __('profile.saved') }}</span>
-            @elseif (session('status') === 'avatar-updated')
-                <span class="text-success profile-save-notice">{{ __('profile.avatar_saved') }}</span>
-            @elseif (session('status') === 'avatar-removed')
-                <span class="text-success profile-save-notice">{{ __('profile.avatar_removed') }}</span>
             @endif
         </div>
     </form>

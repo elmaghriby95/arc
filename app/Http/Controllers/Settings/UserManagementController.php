@@ -38,7 +38,6 @@ class UserManagementController extends Controller
                             ->orWhere('name', 'like', $like)
                             ->orWhere('email', 'like', $like)
                             ->orWhere('employee_number', 'like', $like)
-                            ->orWhere('avatar_path', 'like', $like)
                             ->orWhere('last_login_ip', 'like', $like)
                             ->orWhere('last_login_at', 'like', $like)
                             ->orWhere('created_at', 'like', $like)

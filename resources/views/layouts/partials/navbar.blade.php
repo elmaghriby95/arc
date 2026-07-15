@@ -156,7 +156,6 @@
                                             @endif
                                             @if ($changedBy)
                                                 <span class="navbar-notification-by">
-                                                    <span class="navbar-notification-by-avatar">{{ mb_substr($changedBy, 0, 1) }}</span>
                                                     {{ $changedBy }}
                                                 </span>
                                             @endif
@@ -191,7 +190,6 @@
 
             <div class="dropdown navbar-user" data-dropdown>
                 <button type="button" class="navbar-user-btn" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">
-                    <x-user-avatar :user="Auth::user()" size="sm" class="navbar-user-avatar" />
                     <span class="navbar-user-meta">
                         <span class="navbar-user-name">{{ Auth::user()->name }}</span>
                         <span class="navbar-user-role">{{ Auth::user()->role?->name ?? '—' }}</span>
@@ -202,7 +200,6 @@
                 </button>
                 <div class="dropdown-menu navbar-dropdown">
                     <div class="navbar-dropdown-header">
-                        <x-user-avatar :user="Auth::user()" size="sm" class="navbar-dropdown-avatar" />
                         <div>
                             <strong>{{ Auth::user()->name }}</strong>
                             <small>{{ Auth::user()->role?->name ?? '—' }}</small>

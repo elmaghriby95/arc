@@ -18,10 +18,4 @@
     $classes = trim("user-avatar user-avatar--{$slug} {$sizeClass} {$class}");
 @endphp
 
-@if ($user->avatarUrl())
-    <span {{ $attributes->merge(['class' => $classes . ' user-avatar--photo']) }}>
-        <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }}" loading="lazy">
-    </span>
-@else
-    <span {{ $attributes->merge(['class' => $classes]) }}>{{ $user->avatarInitial() }}</span>
-@endif
+<span {{ $attributes->merge(['class' => $classes]) }}>{{ $user->avatarInitial() }}</span>

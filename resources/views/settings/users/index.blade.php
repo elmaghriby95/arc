@@ -88,7 +88,6 @@
                                     <tr>
                                         <td>
                                             <div class="user-cell">
-                                                <span class="user-avatar user-avatar--{{ $user->role?->slug ?? 'user' }}">{{ mb_substr($user->name, 0, 1) }}</span>
                                                 <div>
                                                     <strong>{{ $user->name }}</strong>
                                                     @if ($user->id === auth()->id())
