@@ -63,9 +63,10 @@ class DocumentWatermarkService
             $context['qr_payload'] = null;
         }
 
-        // DOWNLOAD / PRINT burn-in — raise limits for multi-page scanned PDFs.
-        @ini_set('memory_limit', '1024M');
+        // DOWNLOAD / PRINT burn-in — raise limits for multi-page / scanned PDFs.
+        @ini_set('memory_limit', '2048M');
         @ini_set('max_execution_time', '600');
+        @set_time_limit(600);
 
         $dir = storage_path('app/temp/watermarks');
         if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
@@ -207,36 +208,124 @@ class DocumentWatermarkService
      */
     private function watermarkPdf(string $sourcePath, array $context, string $dir): array
     {
+        $workingPath = $sourcePath;
+        $tempInputs = [];
+
+        try {
+            if (! $this->canFpdiOpen($sourcePath)) {
+                $normalized = $this->normalizePdfCompatibility($sourcePath, $dir);
+
+                if (! $normalized || ! $this->canFpdiOpen($normalized)) {
+                    if ($normalized && is_file($normalized)) {
+                        @unlink($normalized);
+                    }
+
+                    throw new RuntimeException(
+                        'This PDF cannot be imported for watermarking (unsupported compression or encryption).'
+                    );
+                }
+
+                $workingPath = $normalized;
+                $tempInputs[] = $normalized;
+            }
+
+            return $this->watermarkPdfWithFpdi($workingPath, $context, $dir);
+        } finally {
+            foreach ($tempInputs as $temp) {
+                if (is_file($temp)) {
+                    @unlink($temp);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param  array{
+     *     center_lines: list<string>,
+     *     footer: string,
+     *     qr_payload: string|null,
+     *     opacity: float,
+     *     font_size: int,
+     *     angle: int,
+     *     show_center_text: bool,
+     *     show_footer: bool,
+     *     show_qr_code: bool
+     * }  $context
+     * @return array{path: string, mime: string, extension: string}
+     */
+    private function watermarkPdfWithFpdi(string $sourcePath, array $context, string $dir): array
+    {
+        $probe = $this->makeFpdi();
+        $pageCount = $probe->setSourceFile($sourcePath);
+        unset($probe);
+
+        if ($pageCount < 1) {
+            throw new RuntimeException('PDF has no pages to watermark.');
+        }
+
+        $sourceSize = (int) (@filesize($sourcePath) ?: 0);
+
+        // Small files: one pass. Larger files: stamp in page chunks to avoid OOM.
+        if ($pageCount <= 12 && $sourceSize < (8 * 1024 * 1024)) {
+            return $this->watermarkPdfRange($sourcePath, 1, $pageCount, $context, $dir);
+        }
+
+        $chunkSize = $sourceSize > (15 * 1024 * 1024) ? 2 : 5;
+        $chunkPaths = [];
+
+        try {
+            for ($start = 1; $start <= $pageCount; $start += $chunkSize) {
+                $end = min($pageCount, $start + $chunkSize - 1);
+                $chunkPaths[] = $this->watermarkPdfRange($sourcePath, $start, $end, $context, $dir)['path'];
+                gc_collect_cycles();
+            }
+
+            return $this->mergePdfFiles($chunkPaths, $dir);
+        } catch (Throwable $e) {
+            foreach ($chunkPaths as $chunkPath) {
+                if (is_file($chunkPath)) {
+                    @unlink($chunkPath);
+                }
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * @param  array{
+     *     center_lines: list<string>,
+     *     footer: string,
+     *     qr_payload: string|null,
+     *     opacity: float,
+     *     font_size: int,
+     *     angle: int,
+     *     show_center_text: bool,
+     *     show_footer: bool,
+     *     show_qr_code: bool
+     * }  $context
+     * @return array{path: string, mime: string, extension: string}
+     */
+    private function watermarkPdfRange(
+        string $sourcePath,
+        int $fromPage,
+        int $toPage,
+        array $context,
+        string $dir,
+    ): array {
         $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
 
         try {
-            $pdf = new Fpdi;
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetAutoPageBreak(false, 0);
-            $pdf->SetCreator('ARC Watermark');
-            $pdf->SetAuthor('ARC');
-            $pdf->setFontSubsetting(true);
-            $pdf->SetCompression(true);
+            $pdf = $this->makeFpdi();
+            $pdf->setSourceFile($sourcePath);
 
-            $pageCount = $pdf->setSourceFile($sourcePath);
-
-            if ($pageCount < 1) {
-                throw new RuntimeException('PDF has no pages to watermark.');
-            }
-
-            for ($page = 1; $page <= $pageCount; $page++) {
+            for ($page = $fromPage; $page <= $toPage; $page++) {
                 $templateId = $pdf->importPage($page);
                 $size = $pdf->getTemplateSize($templateId);
                 $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
                 $pdf->AddPage($orientation, [$size['width'], $size['height']]);
                 $pdf->useTemplate($templateId);
-                // Stamp every imported page — required for all download/print operations.
                 $this->stampPdfPage($pdf, (float) $size['width'], (float) $size['height'], $context);
-
-                if (($page % 10) === 0) {
-                    gc_collect_cycles();
-                }
             }
 
             $pdf->Output($output, 'F');
@@ -261,6 +350,244 @@ class DocumentWatermarkService
     }
 
     /**
+     * @param  list<string>  $paths
+     * @return array{path: string, mime: string, extension: string}
+     */
+    private function mergePdfFiles(array $paths, string $dir): array
+    {
+        if ($paths === []) {
+            throw new RuntimeException('No watermarked PDF chunks to merge.');
+        }
+
+        if (count($paths) === 1) {
+            return [
+                'path' => $paths[0],
+                'mime' => 'application/pdf',
+                'extension' => 'pdf',
+            ];
+        }
+
+        $merged = $this->mergePdfFilesWithQpdf($paths, $dir);
+
+        if ($merged !== null) {
+            foreach ($paths as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+
+            return $merged;
+        }
+
+        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
+
+        try {
+            $pdf = $this->makeFpdi();
+
+            foreach ($paths as $path) {
+                $pageCount = $pdf->setSourceFile($path);
+
+                for ($page = 1; $page <= $pageCount; $page++) {
+                    $templateId = $pdf->importPage($page);
+                    $size = $pdf->getTemplateSize($templateId);
+                    $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
+                    $pdf->AddPage($orientation, [$size['width'], $size['height']]);
+                    $pdf->useTemplate($templateId);
+                }
+            }
+
+            $pdf->Output($output, 'F');
+            unset($pdf);
+        } catch (Throwable $e) {
+            if (is_file($output)) {
+                @unlink($output);
+            }
+
+            throw $e;
+        } finally {
+            foreach ($paths as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+        }
+
+        if (! is_file($output) || filesize($output) === 0) {
+            throw new RuntimeException('Merged watermarked PDF was not written.');
+        }
+
+        return [
+            'path' => $output,
+            'mime' => 'application/pdf',
+            'extension' => 'pdf',
+        ];
+    }
+
+    /**
+     * @param  list<string>  $paths
+     * @return array{path: string, mime: string, extension: string}|null
+     */
+    private function mergePdfFilesWithQpdf(array $paths, string $dir): ?array
+    {
+        $binary = $this->findBinary(['qpdf']);
+
+        if ($binary === null) {
+            return null;
+        }
+
+        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
+        $command = array_merge(
+            [$binary, '--empty', '--pages'],
+            $paths,
+            ['--', $output],
+        );
+
+        if (! $this->runProcess($command)) {
+            if (is_file($output)) {
+                @unlink($output);
+            }
+
+            return null;
+        }
+
+        if (! is_file($output) || filesize($output) === 0) {
+            return null;
+        }
+
+        return [
+            'path' => $output,
+            'mime' => 'application/pdf',
+            'extension' => 'pdf',
+        ];
+    }
+
+    private function makeFpdi(): Fpdi
+    {
+        $pdf = new Fpdi;
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetAutoPageBreak(false, 0);
+        $pdf->SetCreator('ARC Watermark');
+        $pdf->SetAuthor('ARC');
+        $pdf->setFontSubsetting(false);
+        $pdf->SetCompression(true);
+
+        return $pdf;
+    }
+
+    private function canFpdiOpen(string $path): bool
+    {
+        try {
+            $pdf = $this->makeFpdi();
+            $count = $pdf->setSourceFile($path);
+            unset($pdf);
+
+            return $count > 0;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Re-save PDF without compressed object/xref streams so free FPDI can import it.
+     */
+    private function normalizePdfCompatibility(string $sourcePath, string $dir): ?string
+    {
+        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'-norm.pdf';
+
+        $qpdf = $this->findBinary(['qpdf']);
+        if ($qpdf !== null) {
+            $ok = $this->runProcess([
+                $qpdf,
+                '--object-streams=disable',
+                '--compress-streams=n',
+                '--decode-level=generalized',
+                $sourcePath,
+                $output,
+            ]);
+
+            if ($ok && is_file($output) && filesize($output) > 0) {
+                return $output;
+            }
+        }
+
+        if (is_file($output)) {
+            @unlink($output);
+        }
+
+        $gs = $this->findBinary(['gs', 'gswin64c', 'gswin32c']);
+        if ($gs !== null) {
+            $ok = $this->runProcess([
+                $gs,
+                '-dSAFER',
+                '-dBATCH',
+                '-dNOPAUSE',
+                '-sDEVICE=pdfwrite',
+                '-dCompatibilityLevel=1.4',
+                '-dPDFSETTINGS=/default',
+                '-sOutputFile='.$output,
+                $sourcePath,
+            ]);
+
+            if ($ok && is_file($output) && filesize($output) > 0) {
+                return $output;
+            }
+        }
+
+        if (is_file($output)) {
+            @unlink($output);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private function findBinary(array $names): ?string
+    {
+        foreach ($names as $name) {
+            if (is_file($name) && is_executable($name)) {
+                return $name;
+            }
+
+            $finder = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'where' : 'which';
+            $nullDevice = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'NUL' : '/dev/null';
+            $line = @shell_exec($finder.' '.escapeshellarg($name).' 2>'.$nullDevice);
+
+            if (! is_string($line) || trim($line) === '') {
+                continue;
+            }
+
+            $candidate = trim(explode("\n", str_replace("\r", '', $line))[0]);
+
+            if ($candidate !== '' && (is_file($candidate) || strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<string>  $command
+     */
+    private function runProcess(array $command): bool
+    {
+        if ($command === []) {
+            return false;
+        }
+
+        $escaped = array_map('escapeshellarg', $command);
+        $line = implode(' ', $escaped);
+        $output = [];
+        $exit = 1;
+        @exec($line.' 2>&1', $output, $exit);
+
+        return $exit === 0;
+    }
+
+    /**
      * @param  array{
      *     center_lines: list<string>,
      *     footer: string,
@@ -277,8 +604,8 @@ class DocumentWatermarkService
     {
         if ($context['show_center_text'] && $context['center_lines'] !== []) {
             $pdf->SetTextColor(80, 80, 80);
-            $pdf->SetFont('dejavusans', 'B', max(8, $context['font_size']));
-            $pdf->SetAlpha($context['opacity']);
+            $this->applyPdfFont($pdf, 'B', max(8, (float) $context['font_size']));
+            $this->applyPdfAlpha($pdf, (float) $context['opacity']);
 
             $text = implode("\n", $context['center_lines']);
             $pdf->StartTransform();
@@ -301,36 +628,58 @@ class DocumentWatermarkService
                 'M'
             );
             $pdf->StopTransform();
-            $pdf->SetAlpha(1);
+            $this->applyPdfAlpha($pdf, 1.0);
         }
 
         if ($context['show_footer'] && $context['footer'] !== '') {
-            $pdf->SetAlpha(max(0.35, min(0.75, $context['opacity'] + 0.25)));
+            $this->applyPdfAlpha($pdf, max(0.35, min(0.75, $context['opacity'] + 0.25)));
             $pdf->SetTextColor(40, 40, 40);
-            $pdf->SetFont('dejavusans', '', 7);
+            $this->applyPdfFont($pdf, '', 7);
             $footerY = max(4, $height - 10);
             $pdf->SetXY(8, $footerY);
             $pdf->Cell($width - ($context['show_qr_code'] ? 28 : 16), 6, $context['footer'], 0, 0, 'L', false, '', 1);
-            $pdf->SetAlpha(1);
+            $this->applyPdfAlpha($pdf, 1.0);
         }
 
         if ($context['show_qr_code'] && $context['qr_payload']) {
-            $qrSize = 14.0;
-            $style = [
-                'border' => false,
-                'padding' => 1,
-                'fgcolor' => [20, 20, 20],
-                'bgcolor' => [255, 255, 255],
-            ];
-            $pdf->write2DBarcode(
-                $context['qr_payload'],
-                'QRCODE,M',
-                $width - $qrSize - 6,
-                $height - $qrSize - 6,
-                $qrSize,
-                $qrSize,
-                $style
-            );
+            try {
+                $qrSize = 14.0;
+                $style = [
+                    'border' => false,
+                    'padding' => 1,
+                    'fgcolor' => [20, 20, 20],
+                    'bgcolor' => [255, 255, 255],
+                ];
+                $pdf->write2DBarcode(
+                    $context['qr_payload'],
+                    'QRCODE,M',
+                    $width - $qrSize - 6,
+                    $height - $qrSize - 6,
+                    $qrSize,
+                    $qrSize,
+                    $style
+                );
+            } catch (Throwable) {
+                // QR is optional; keep text/footer watermark if barcode drawing fails.
+            }
+        }
+    }
+
+    private function applyPdfFont(Fpdi $pdf, string $style, float $size): void
+    {
+        try {
+            $pdf->SetFont('dejavusans', $style, $size);
+        } catch (Throwable) {
+            $pdf->SetFont('helvetica', $style === 'B' ? 'B' : '', $size);
+        }
+    }
+
+    private function applyPdfAlpha(Fpdi $pdf, float $alpha): void
+    {
+        try {
+            $pdf->SetAlpha(max(0.05, min(1.0, $alpha)));
+        } catch (Throwable) {
+            // Some TCPDF builds reject SetAlpha; keep opaque text rather than failing the download.
         }
     }
 

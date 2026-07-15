@@ -6,6 +6,7 @@ use App\Models\DocumentAccessAudit;
 use App\Models\TransactionAttachment;
 use App\Models\User;
 use App\Models\WatermarkSetting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -25,12 +26,12 @@ class DocumentAccessService
         return $this->serve($attachment, $user, $request, 'view', 'inline');
     }
 
-    public function download(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse|Response
+    public function download(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
     {
         return $this->serve($attachment, $user, $request, 'download', 'attachment');
     }
 
-    public function print(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|Response
+    public function print(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|Response|RedirectResponse
     {
         return $this->serve($attachment, $user, $request, 'print', 'inline');
     }
@@ -65,7 +66,7 @@ class DocumentAccessService
         Request $request,
         string $action,
         string $disposition,
-    ): BinaryFileResponse|StreamedResponse|Response {
+    ): BinaryFileResponse|StreamedResponse|Response|RedirectResponse {
         $path = $attachment->effectiveFilePath();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
@@ -105,6 +106,12 @@ class DocumentAccessService
             if (! $canBurnIn) {
                 $this->auditService->markFailure($audit, 'Watermark burn-in not supported for this file type.');
 
+                if ($action === 'download') {
+                    return redirect()
+                        ->route('documents.show', $attachment)
+                        ->with('error', __('messages.watermark.unsupported_type'));
+                }
+
                 abort(422, __('messages.watermark.unsupported_type'));
             }
 
@@ -126,7 +133,13 @@ class DocumentAccessService
                     report($second);
 
                     // Never hand out a clean unwatermarked file when watermark is required.
-                    abort(500, __('messages.watermark.download_required'));
+                    if ($action === 'download') {
+                        return redirect()
+                            ->route('documents.show', $attachment)
+                            ->with('error', __('messages.watermark.download_required'));
+                    }
+
+                    abort(503, __('messages.watermark.download_required'));
                 }
             }
 
