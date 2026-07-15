@@ -7,6 +7,8 @@ use App\Http\Requests\Settings\StoreUserRequest;
 use App\Http\Requests\Settings\UpdateUserRequest;
 use App\Models\Department;
 use App\Models\Language;
+use App\Models\LendingRequest;
+use App\Models\LendingRequestHistory;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserActivityFeed;
@@ -159,6 +161,13 @@ class UserManagementController extends Controller
 
         if ($user->isAdmin() && ! $request->user()?->isAdmin()) {
             return back()->withErrors(['user' => __('messages.user.cannot_delete_admin')]);
+        }
+
+        if (
+            LendingRequest::where('requested_by', $user->id)->exists()
+            || LendingRequestHistory::where('performed_by', $user->id)->exists()
+        ) {
+            return back()->withErrors(['user' => __('messages.user.cannot_delete_lending_history')]);
         }
 
         $logger->logUserDeleted($request->user(), $user, $request);

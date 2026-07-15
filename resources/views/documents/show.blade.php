@@ -83,9 +83,6 @@
                         </div>
                     @elseif ($attachment->fileKind() === 'pdf')
                         <div class="doc-preview-viewport" data-doc-preview-viewport>
-                            @if ($docWmContext)
-                                <x-document-watermark-overlay :context="$docWmContext" />
-                            @endif
                             <div
                                 class="doc-pdf-viewer"
                                 data-doc-pdf-viewer

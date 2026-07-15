@@ -152,7 +152,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{{ route('settings.users.update', $user) }}">
+                <form id="user-update-form" method="POST" action="{{ route('settings.users.update', $user) }}">
                     @csrf
                     @method('PUT')
 
@@ -282,18 +282,19 @@
                         </div>
                     </div>
 
-                    <div class="form-actions profile-form-actions">
-                        <x-primary-button>{{ __('settings.users.save_changes') }}</x-primary-button>
-                        <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
-                        @if (! $user->is(auth()->user()))
-                            <form method="POST" action="{{ route('settings.users.destroy', $user) }}" onsubmit="return confirm('{{ __('settings.users.delete_confirm') }}')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger">{{ __('settings.users.delete') }}</button>
-                            </form>
-                        @endif
-                    </div>
                 </form>
+
+                <div class="form-actions profile-form-actions">
+                    <x-primary-button form="user-update-form">{{ __('settings.users.save_changes') }}</x-primary-button>
+                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
+                    @if (! $user->is(auth()->user()))
+                        <form method="POST" action="{{ route('settings.users.destroy', $user) }}" onsubmit="return confirm('{{ __('settings.users.delete_confirm') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">{{ __('settings.users.delete') }}</button>
+                        </form>
+                    @endif
+                </div>
             </div>
 
             <aside class="profile-sidebar">

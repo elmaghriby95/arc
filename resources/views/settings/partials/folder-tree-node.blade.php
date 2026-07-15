@@ -55,7 +55,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                     </svg>
                 </summary>
-                <form method="POST" action="{{ route('settings.folders.update', $folder) }}" class="folder-edit-form">
+                <form method="POST" action="{{ route('settings.folders.update', $folder) }}" id="folder-update-form-{{ $folder->id }}" class="folder-edit-form">
                     @csrf
                     @method('PUT')
                     <div class="form-group">
@@ -100,15 +100,15 @@
                         <input name="is_active" type="checkbox" value="1" @checked($folder->is_active)>
                         <x-input-label :value="__('common.active')" />
                     </div>
-                    <div class="form-actions">
-                        <x-primary-button>{{ __('common.save') }}</x-primary-button>
-                        <button type="submit" formaction="{{ route('settings.folders.destroy', $folder) }}" formmethod="POST" class="btn btn-danger" onclick="this.form.querySelector('[name=_method]').value='DELETE'; return confirm(@json(__('common.confirm_delete')))">
-                            @csrf
-                            @method('DELETE')
-                            {{ __('common.delete') }}
-                        </button>
-                    </div>
                 </form>
+                <div class="form-actions">
+                    <x-primary-button form="folder-update-form-{{ $folder->id }}">{{ __('common.save') }}</x-primary-button>
+                    <form method="POST" action="{{ route('settings.folders.destroy', $folder) }}" onsubmit="return confirm(@json(__('common.confirm_delete')))">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">{{ __('common.delete') }}</button>
+                    </form>
+                </div>
             </details>
         </div>
     </div>

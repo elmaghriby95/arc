@@ -60,7 +60,7 @@
     @endphp
 
     <div class="doc-print-stage">
-        @if ($wmContext)
+        @if ($wmContext && ! ($isPdf ?? false))
             <x-document-watermark-overlay :context="$wmContext" />
         @endif
 

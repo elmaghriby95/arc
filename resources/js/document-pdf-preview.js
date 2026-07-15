@@ -52,42 +52,60 @@
             statusEl.hidden = !text;
         };
 
-        const drawWatermark = (ctx, width, height) => {
-            if (!watermark) return;
+        const createWatermarkOverlay = () => {
+            if (!watermark) return null;
 
             const lines = Array.isArray(watermark.center_lines)
                 ? watermark.center_lines.filter(Boolean)
                 : [];
-            const opacity = Number(watermark.opacity || 0.18);
-            const angleDeg = Number(watermark.angle || -45);
-            const fontSize = Math.max(14, Number(watermark.font_size || 28) * (width / 800));
+            const footer = watermark.footer ? String(watermark.footer) : '';
+            const showCenter = Boolean(watermark.show_center_text && lines.length);
+            const showFooter = Boolean(watermark.show_footer && footer);
+            const showQr = Boolean(watermark.show_qr_code && watermark.qr_svg);
 
-            if (watermark.show_center_text && lines.length) {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0.05, Math.min(0.6, opacity));
-                ctx.fillStyle = '#3c3c3c';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.font = `bold ${fontSize}px DejaVu Sans, Arial, sans-serif`;
-                ctx.translate(width / 2, height / 2);
-                ctx.rotate((angleDeg * Math.PI) / 180);
+            if (!showCenter && !showFooter && !showQr) {
+                return null;
+            }
+
+            const overlay = document.createElement('div');
+            overlay.className = 'doc-wm-overlay doc-wm-overlay--page';
+            overlay.setAttribute('aria-hidden', 'true');
+            overlay.style.setProperty('--doc-wm-opacity', String(Math.max(0.08, Math.min(0.6, Number(watermark.opacity || 0.18)))));
+            overlay.style.setProperty('--doc-wm-angle', `${Number(watermark.angle || -45)}deg`);
+
+            if (showCenter) {
+                const center = document.createElement('div');
+                center.className = 'doc-wm-center';
                 lines.forEach((line, index) => {
-                    const y = (index - (lines.length - 1) / 2) * (fontSize * 1.15);
-                    ctx.fillText(String(line), 0, y);
+                    const span = document.createElement('span');
+                    span.textContent = String(line);
+                    center.appendChild(span);
                 });
-                ctx.restore();
+                overlay.appendChild(center);
             }
 
-            if (watermark.show_footer && watermark.footer) {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0.35, Math.min(0.75, opacity + 0.25));
-                ctx.fillStyle = '#282828';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'bottom';
-                ctx.font = `${Math.max(10, fontSize * 0.35)}px DejaVu Sans, Arial, sans-serif`;
-                ctx.fillText(String(watermark.footer), 12, height - 10, width - 80);
-                ctx.restore();
+            if (showFooter || showQr) {
+                const bottom = document.createElement('div');
+                bottom.className = 'doc-wm-bottom';
+
+                if (showFooter) {
+                    const footerEl = document.createElement('div');
+                    footerEl.className = 'doc-wm-footer';
+                    footerEl.textContent = footer;
+                    bottom.appendChild(footerEl);
+                }
+
+                if (showQr) {
+                    const qr = document.createElement('div');
+                    qr.className = 'doc-wm-qr';
+                    qr.innerHTML = String(watermark.qr_svg);
+                    bottom.appendChild(qr);
+                }
+
+                overlay.appendChild(bottom);
             }
+
+            return overlay;
         };
 
         const renderPageInto = async (pageNumber, token) => {
@@ -110,11 +128,14 @@
                 await page.render({ canvasContext: ctx, viewport }).promise;
                 if (token !== renderToken) return;
 
-                drawWatermark(ctx, canvas.width, canvas.height);
                 state.holder.style.width = `${canvas.width}px`;
                 state.holder.style.height = `${canvas.height}px`;
                 state.holder.innerHTML = '';
                 state.holder.appendChild(canvas);
+                const pageWatermark = createWatermarkOverlay();
+                if (pageWatermark) {
+                    state.holder.appendChild(pageWatermark);
+                }
                 state.rendered = true;
             } catch (e) {
                 state.holder.textContent = String(pageNumber);
