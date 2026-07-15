@@ -70,10 +70,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:documents.download')
         ->name('documents.download');
 
-    Route::get('documents/{attachment}/download-source', [DocumentController::class, 'downloadSource'])
-        ->middleware('permission:documents.download')
-        ->name('documents.download.source');
-
     Route::get('documents', [DocumentController::class, 'index'])
         ->middleware('permission:documents.view')
         ->name('documents.index');

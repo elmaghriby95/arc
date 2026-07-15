@@ -125,7 +125,7 @@ class DocumentController extends Controller
         return $accessService->preview($attachment, $request->user(), $request);
     }
 
-    public function download(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse|View
+    public function download(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
     {
         $this->authorizeAttachmentAccess($attachment);
 
@@ -138,14 +138,7 @@ class DocumentController extends Controller
         return $accessService->download($attachment, $request->user(), $request);
     }
 
-    public function downloadSource(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): BinaryFileResponse|StreamedResponse
-    {
-        $this->authorizeAttachmentAccess($attachment);
-
-        return $accessService->downloadSource($attachment, $request->user(), $request);
-    }
-
-    public function print(TransactionAttachment $attachment, Request $request): View
+    public function print(TransactionAttachment $attachment, DocumentAccessService $accessService, Request $request): View
     {
         $this->authorizeAttachmentAccess($attachment);
 
@@ -155,16 +148,21 @@ class DocumentController extends Controller
             abort(404);
         }
 
-        $printUrl = route('documents.print.file', [
+        $user = $request->user();
+        $printWatermark = $accessService->preparePrintWatermark($attachment, $user, $request);
+
+        $printUrl = route('documents.print.file', array_filter([
             'attachment' => $attachment,
-            'u' => $request->user()->id,
+            'wm' => $printWatermark['audit']->transaction_id ?? null,
+            'u' => $user->id,
             'n' => (string) \Illuminate\Support\Str::uuid(),
-        ]);
+        ]));
 
         return view('documents.print', [
             'attachment' => $attachment,
             'printUrl' => $printUrl,
             'isPdf' => $kind === 'pdf',
+            'printWatermark' => $printWatermark,
         ]);
     }
 

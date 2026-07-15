@@ -10,7 +10,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
@@ -27,7 +26,7 @@ class DocumentAccessService
         return $this->serve($attachment, $user, $request, 'view', 'inline');
     }
 
-    public function download(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse|View
+    public function download(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse|Response|RedirectResponse
     {
         return $this->serve($attachment, $user, $request, 'download', 'attachment');
     }
@@ -38,57 +37,41 @@ class DocumentAccessService
     }
 
     /**
-     * Stream original bytes for client-side PDF sealing (tokenized download audit).
-     */
-    public function downloadSource(TransactionAttachment $attachment, User $user, Request $request): BinaryFileResponse|StreamedResponse
-    {
-        $path = $attachment->effectiveFilePath();
-
-        if (! $path || ! Storage::disk('local')->exists($path)) {
-            abort(404);
-        }
-
-        $token = (string) $request->query('wm', '');
-
-        $audit = DocumentAccessAudit::query()
-            ->where('transaction_id', $token)
-            ->where('user_id', $user->id)
-            ->where('attachment_id', $attachment->id)
-            ->where('action_type', 'download')
-            ->where('created_at', '>=', now()->subMinutes(30))
-            ->first();
-
-        if (! $audit) {
-            abort(403);
-        }
-
-        $absolute = Storage::disk('local')->path($path);
-        $mime = $attachment->effectiveMimeType() ?? 'application/pdf';
-        $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
-
-        return $this->streamOriginal(
-            $absolute,
-            $mime,
-            $downloadName,
-            'inline',
-            $audit->transaction_id,
-        );
-    }
-
-    /**
      * Prepare current-user watermark payload for client-side viewing overlay.
      *
      * @return array{audit: DocumentAccessAudit, context: array<string, mixed>}|null
      */
     public function prepareViewWatermark(TransactionAttachment $attachment, User $user, Request $request): ?array
     {
+        return $this->prepareOverlayWatermark($attachment, $user, $request, 'view');
+    }
+
+    /**
+     * Prepare watermark payload for the print surface (PDF.js / image overlay).
+     *
+     * @return array{audit: DocumentAccessAudit, context: array<string, mixed>}|null
+     */
+    public function preparePrintWatermark(TransactionAttachment $attachment, User $user, Request $request): ?array
+    {
+        return $this->prepareOverlayWatermark($attachment, $user, $request, 'print');
+    }
+
+    /**
+     * @return array{audit: DocumentAccessAudit, context: array<string, mixed>}|null
+     */
+    private function prepareOverlayWatermark(
+        TransactionAttachment $attachment,
+        User $user,
+        Request $request,
+        string $action,
+    ): ?array {
         $settings = WatermarkSetting::instance();
 
-        if (! $settings->shouldApplyFor('view') || ! $this->watermarkService->supports($attachment)) {
+        if (! $settings->shouldApplyFor($action) || ! $this->watermarkService->supports($attachment)) {
             return null;
         }
 
-        $audit = $this->auditService->createPending($user, $attachment, 'view', $request);
+        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
         $this->auditService->markSuccess($audit, true);
 
         return [
@@ -105,7 +88,7 @@ class DocumentAccessService
         Request $request,
         string $action,
         string $disposition,
-    ): BinaryFileResponse|StreamedResponse|Response|RedirectResponse|View {
+    ): BinaryFileResponse|StreamedResponse|Response|RedirectResponse {
         $path = $attachment->effectiveFilePath();
 
         if (! $path || ! Storage::disk('local')->exists($path)) {
@@ -121,13 +104,14 @@ class DocumentAccessService
         $absolute = Storage::disk('local')->path($path);
         $mime = $attachment->effectiveMimeType() ?? 'application/octet-stream';
 
-        // VIEW: stream original instantly; live overlay handles display watermark.
-        if ($action === 'view') {
+        // VIEW / PRINT file bytes: always stream original (overlay handles visual watermark).
+        if ($action === 'view' || $action === 'print') {
             $audit = $this->resolveViewAudit(
                 $attachment,
                 $user,
                 $request,
                 $wantsWatermark && $this->watermarkService->supports($attachment),
+                $action,
             );
 
             return $this->streamOriginal(
@@ -139,49 +123,33 @@ class DocumentAccessService
             );
         }
 
-        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
+        // DOWNLOAD
+        $audit = $this->auditService->createPending($user, $attachment, 'download', $request);
 
-        // DOWNLOAD / PRINT: watermark is mandatory whenever enabled in settings.
         if ($wantsWatermark) {
+            // PDF: never rebuild — scanned files explode in size (10MB→38MB) and time out.
+            // Deliver original instantly; watermark policy is enforced on view/print + full audit trail.
+            if ($kind === 'pdf') {
+                $this->auditService->markSuccess($audit, false);
+
+                return $this->streamOriginal(
+                    $absolute,
+                    $mime,
+                    $downloadName,
+                    $disposition,
+                    $audit->transaction_id,
+                );
+            }
+
             if (! $canBurnIn) {
                 $this->auditService->markFailure($audit, 'Watermark burn-in not supported for this file type.');
 
-                if ($action === 'download') {
-                    return redirect()
-                        ->route('documents.show', $attachment)
-                        ->with('error', __('messages.watermark.unsupported_type'));
-                }
-
-                abort(422, __('messages.watermark.unsupported_type'));
+                return redirect()
+                    ->route('documents.show', $attachment)
+                    ->with('error', __('messages.watermark.unsupported_type'));
             }
 
-            // PDF downloads: NEVER rebuild with FPDI (causes 10MB → 38MB on scans).
-            // Seal in the browser so original streams stay compressed; size ~ identical.
-            if ($action === 'download' && $kind === 'pdf') {
-                $this->auditService->markSuccess($audit, true);
-
-                $context = $this->watermarkService->withOverlayAssets(
-                    $this->watermarkService->buildContext($user, $audit)
-                );
-
-                $sourceUrl = route('documents.download.source', [
-                    'attachment' => $attachment,
-                    'wm' => $audit->transaction_id,
-                    'u' => $user->id,
-                    'n' => (string) \Illuminate\Support\Str::uuid(),
-                ]);
-
-                $filename = pathinfo($downloadName, PATHINFO_FILENAME).'-wm.pdf';
-
-                return view('documents.download-seal', [
-                    'attachment' => $attachment,
-                    'sourceUrl' => $sourceUrl,
-                    'watermark' => $context,
-                    'filename' => $this->safeFilename($filename),
-                    'backUrl' => route('documents.show', $attachment),
-                ]);
-            }
-
+            // Images: GD burn-in is size-safe and fast enough.
             try {
                 $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
             } catch (Throwable $first) {
@@ -198,33 +166,20 @@ class DocumentAccessService
                     $this->auditService->markFailure($audit, $second->getMessage());
                     report($second);
 
-                    if ($action === 'download') {
-                        return redirect()
-                            ->route('documents.show', $attachment)
-                            ->with('error', __('messages.watermark.download_required'));
-                    }
-
-                    abort(503, __('messages.watermark.download_required'));
+                    return redirect()
+                        ->route('documents.show', $attachment)
+                        ->with('error', __('messages.watermark.download_required'));
                 }
             }
 
             $this->auditService->markSuccess($audit, true);
 
             $name = pathinfo($downloadName, PATHINFO_FILENAME).'-wm.'.$copy['extension'];
-
-            if ($disposition === 'attachment') {
-                $response = response()->download(
-                    $copy['path'],
-                    $this->safeFilename($name),
-                    $this->fileHeaders($copy['mime'], null, $audit->transaction_id),
-                );
-            } else {
-                $response = response()->file($copy['path'], $this->fileHeaders(
-                    $copy['mime'],
-                    'inline',
-                    $audit->transaction_id,
-                ));
-            }
+            $response = response()->download(
+                $copy['path'],
+                $this->safeFilename($name),
+                $this->fileHeaders($copy['mime'], null, $audit->transaction_id),
+            );
 
             if ($response instanceof BinaryFileResponse) {
                 $response->deleteFileAfterSend(true);
@@ -249,6 +204,7 @@ class DocumentAccessService
         User $user,
         Request $request,
         bool $watermarkApplied,
+        string $action = 'view',
     ): DocumentAccessAudit {
         $token = (string) $request->query('wm', '');
 
@@ -257,7 +213,7 @@ class DocumentAccessService
                 ->where('transaction_id', $token)
                 ->where('user_id', $user->id)
                 ->where('attachment_id', $attachment->id)
-                ->where('action_type', 'view')
+                ->where('action_type', $action)
                 ->first();
 
             if ($existing) {
@@ -265,7 +221,7 @@ class DocumentAccessService
             }
         }
 
-        $audit = $this->auditService->createPending($user, $attachment, 'view', $request);
+        $audit = $this->auditService->createPending($user, $attachment, $action, $request);
         $this->auditService->markSuccess($audit, $watermarkApplied);
 
         return $audit;
