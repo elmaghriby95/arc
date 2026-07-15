@@ -74,8 +74,8 @@
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     format: 'pdf',
-                    resolution: options.resolution ?? 85,
-                    quality: options.quality ?? 30,
+                    resolution: options.resolution ?? 110,
+                    quality: options.quality ?? 42,
                     mode: options.mode ?? 'Gray',
                     source: options.source ?? 'feeder',
                     profile: options.profile ?? 'fast',
