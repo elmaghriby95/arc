@@ -120,7 +120,7 @@ class DocumentAccessService
             } catch (Throwable $first) {
                 report($first);
 
-                // One retry with a lighter stamp (no QR) before failing the download.
+                // Retry once without QR (lighter / more compatible), still settings text stamp.
                 try {
                     $copy = $this->watermarkService->createWatermarkedCopy(
                         $attachment,

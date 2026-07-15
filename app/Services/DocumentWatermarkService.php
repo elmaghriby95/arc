@@ -63,10 +63,10 @@ class DocumentWatermarkService
             $context['qr_payload'] = null;
         }
 
-        // DOWNLOAD / PRINT burn-in — raise limits for multi-page / scanned PDFs.
-        @ini_set('memory_limit', '2048M');
-        @ini_set('max_execution_time', '600');
-        @set_time_limit(600);
+        // Shared hosting friendly caps — avoid huge rewrites / double-processing.
+        @ini_set('memory_limit', '512M');
+        @ini_set('max_execution_time', '180');
+        @set_time_limit(180);
 
         $dir = storage_path('app/temp/watermarks');
         if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
@@ -85,6 +85,7 @@ class DocumentWatermarkService
      *     center_lines: list<string>,
      *     footer: string,
      *     qr_payload: string|null,
+     *     qr_svg: string|null,
      *     opacity: float,
      *     font_size: int,
      *     angle: int,
@@ -124,23 +125,27 @@ class DocumentWatermarkService
             $parts[] = $audit->transaction_id;
         }
 
-        // Always keep at least one visible line so every page is stamped.
-        if ($parts === []) {
+        // Only force a minimal visible mark when at least one visual element is enabled
+        // but no field was selected — still respect element toggles.
+        if ($parts === [] && ($settings->show_center_text || $settings->show_footer || $settings->show_qr_code)) {
             $parts[] = $user->name;
-            $parts[] = $audit->transaction_id;
         }
 
+        $showCenter = (bool) $settings->show_center_text;
+        $showFooter = (bool) $settings->show_footer;
+        $showQr = (bool) $settings->show_qr_code && filled($audit->transaction_id);
+
         return [
-            'center_lines' => $parts,
-            'footer' => implode(' | ', $parts),
-            'qr_payload' => $settings->show_qr_code ? $audit->transaction_id : null,
+            'center_lines' => $showCenter ? $parts : [],
+            'footer' => $showFooter ? implode(' | ', $parts) : '',
+            'qr_payload' => $showQr ? $audit->transaction_id : null,
             'qr_svg' => null,
             'opacity' => $settings->alpha(),
-            'font_size' => $settings->font_size,
-            'angle' => $settings->angle,
-            'show_center_text' => $settings->show_center_text || $parts !== [],
-            'show_footer' => $settings->show_footer || $parts !== [],
-            'show_qr_code' => $settings->show_qr_code && filled($audit->transaction_id),
+            'font_size' => max(10, min(72, (int) $settings->font_size)),
+            'angle' => max(-90, min(90, (int) $settings->angle)),
+            'show_center_text' => $showCenter && $parts !== [],
+            'show_footer' => $showFooter && $parts !== [],
+            'show_qr_code' => $showQr,
         ];
     }
 
@@ -167,8 +172,6 @@ class DocumentWatermarkService
     }
 
     /**
-     * Build watermark context for the current user without persisting an audit row yet.
-     *
      * @return array{
      *     center_lines: list<string>,
      *     footer: string,
@@ -193,6 +196,9 @@ class DocumentWatermarkService
     }
 
     /**
+     * Single-pass PDF stamp — keeps page XObjects intact (no chunk/merge rewrite).
+     * That avoids the 3–4× size explosion caused by re-importing stamped chunks.
+     *
      * @param  array{
      *     center_lines: list<string>,
      *     footer: string,
@@ -208,124 +214,27 @@ class DocumentWatermarkService
      */
     private function watermarkPdf(string $sourcePath, array $context, string $dir): array
     {
-        $workingPath = $sourcePath;
-        $tempInputs = [];
-
-        try {
-            if (! $this->canFpdiOpen($sourcePath)) {
-                $normalized = $this->normalizePdfCompatibility($sourcePath, $dir);
-
-                if (! $normalized || ! $this->canFpdiOpen($normalized)) {
-                    if ($normalized && is_file($normalized)) {
-                        @unlink($normalized);
-                    }
-
-                    throw new RuntimeException(
-                        'This PDF cannot be imported for watermarking (unsupported compression or encryption).'
-                    );
-                }
-
-                $workingPath = $normalized;
-                $tempInputs[] = $normalized;
-            }
-
-            return $this->watermarkPdfWithFpdi($workingPath, $context, $dir);
-        } finally {
-            foreach ($tempInputs as $temp) {
-                if (is_file($temp)) {
-                    @unlink($temp);
-                }
-            }
-        }
-    }
-
-    /**
-     * @param  array{
-     *     center_lines: list<string>,
-     *     footer: string,
-     *     qr_payload: string|null,
-     *     opacity: float,
-     *     font_size: int,
-     *     angle: int,
-     *     show_center_text: bool,
-     *     show_footer: bool,
-     *     show_qr_code: bool
-     * }  $context
-     * @return array{path: string, mime: string, extension: string}
-     */
-    private function watermarkPdfWithFpdi(string $sourcePath, array $context, string $dir): array
-    {
-        $probe = $this->makeFpdi();
-        $pageCount = $probe->setSourceFile($sourcePath);
-        unset($probe);
-
-        if ($pageCount < 1) {
-            throw new RuntimeException('PDF has no pages to watermark.');
-        }
-
-        $sourceSize = (int) (@filesize($sourcePath) ?: 0);
-
-        // Small files: one pass. Larger files: stamp in page chunks to avoid OOM.
-        if ($pageCount <= 12 && $sourceSize < (8 * 1024 * 1024)) {
-            return $this->watermarkPdfRange($sourcePath, 1, $pageCount, $context, $dir);
-        }
-
-        $chunkSize = $sourceSize > (15 * 1024 * 1024) ? 2 : 5;
-        $chunkPaths = [];
-
-        try {
-            for ($start = 1; $start <= $pageCount; $start += $chunkSize) {
-                $end = min($pageCount, $start + $chunkSize - 1);
-                $chunkPaths[] = $this->watermarkPdfRange($sourcePath, $start, $end, $context, $dir)['path'];
-                gc_collect_cycles();
-            }
-
-            return $this->mergePdfFiles($chunkPaths, $dir);
-        } catch (Throwable $e) {
-            foreach ($chunkPaths as $chunkPath) {
-                if (is_file($chunkPath)) {
-                    @unlink($chunkPath);
-                }
-            }
-
-            throw $e;
-        }
-    }
-
-    /**
-     * @param  array{
-     *     center_lines: list<string>,
-     *     footer: string,
-     *     qr_payload: string|null,
-     *     opacity: float,
-     *     font_size: int,
-     *     angle: int,
-     *     show_center_text: bool,
-     *     show_footer: bool,
-     *     show_qr_code: bool
-     * }  $context
-     * @return array{path: string, mime: string, extension: string}
-     */
-    private function watermarkPdfRange(
-        string $sourcePath,
-        int $fromPage,
-        int $toPage,
-        array $context,
-        string $dir,
-    ): array {
         $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
 
         try {
             $pdf = $this->makeFpdi();
-            $pdf->setSourceFile($sourcePath);
+            $pageCount = $pdf->setSourceFile($sourcePath);
 
-            for ($page = $fromPage; $page <= $toPage; $page++) {
+            if ($pageCount < 1) {
+                throw new RuntimeException('PDF has no pages to watermark.');
+            }
+
+            for ($page = 1; $page <= $pageCount; $page++) {
                 $templateId = $pdf->importPage($page);
                 $size = $pdf->getTemplateSize($templateId);
                 $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
                 $pdf->AddPage($orientation, [$size['width'], $size['height']]);
-                $pdf->useTemplate($templateId);
+                $pdf->useTemplate($templateId, 0, 0, $size['width'], $size['height'], true);
                 $this->stampPdfPage($pdf, (float) $size['width'], (float) $size['height'], $context);
+
+                if (($page % 20) === 0) {
+                    gc_collect_cycles();
+                }
             }
 
             $pdf->Output($output, 'F');
@@ -349,242 +258,23 @@ class DocumentWatermarkService
         ];
     }
 
-    /**
-     * @param  list<string>  $paths
-     * @return array{path: string, mime: string, extension: string}
-     */
-    private function mergePdfFiles(array $paths, string $dir): array
-    {
-        if ($paths === []) {
-            throw new RuntimeException('No watermarked PDF chunks to merge.');
-        }
-
-        if (count($paths) === 1) {
-            return [
-                'path' => $paths[0],
-                'mime' => 'application/pdf',
-                'extension' => 'pdf',
-            ];
-        }
-
-        $merged = $this->mergePdfFilesWithQpdf($paths, $dir);
-
-        if ($merged !== null) {
-            foreach ($paths as $path) {
-                if (is_file($path)) {
-                    @unlink($path);
-                }
-            }
-
-            return $merged;
-        }
-
-        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
-
-        try {
-            $pdf = $this->makeFpdi();
-
-            foreach ($paths as $path) {
-                $pageCount = $pdf->setSourceFile($path);
-
-                for ($page = 1; $page <= $pageCount; $page++) {
-                    $templateId = $pdf->importPage($page);
-                    $size = $pdf->getTemplateSize($templateId);
-                    $orientation = $size['orientation'] ?? ($size['width'] > $size['height'] ? 'L' : 'P');
-                    $pdf->AddPage($orientation, [$size['width'], $size['height']]);
-                    $pdf->useTemplate($templateId);
-                }
-            }
-
-            $pdf->Output($output, 'F');
-            unset($pdf);
-        } catch (Throwable $e) {
-            if (is_file($output)) {
-                @unlink($output);
-            }
-
-            throw $e;
-        } finally {
-            foreach ($paths as $path) {
-                if (is_file($path)) {
-                    @unlink($path);
-                }
-            }
-        }
-
-        if (! is_file($output) || filesize($output) === 0) {
-            throw new RuntimeException('Merged watermarked PDF was not written.');
-        }
-
-        return [
-            'path' => $output,
-            'mime' => 'application/pdf',
-            'extension' => 'pdf',
-        ];
-    }
-
-    /**
-     * @param  list<string>  $paths
-     * @return array{path: string, mime: string, extension: string}|null
-     */
-    private function mergePdfFilesWithQpdf(array $paths, string $dir): ?array
-    {
-        $binary = $this->findBinary(['qpdf']);
-
-        if ($binary === null) {
-            return null;
-        }
-
-        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
-        $command = array_merge(
-            [$binary, '--empty', '--pages'],
-            $paths,
-            ['--', $output],
-        );
-
-        if (! $this->runProcess($command)) {
-            if (is_file($output)) {
-                @unlink($output);
-            }
-
-            return null;
-        }
-
-        if (! is_file($output) || filesize($output) === 0) {
-            return null;
-        }
-
-        return [
-            'path' => $output,
-            'mime' => 'application/pdf',
-            'extension' => 'pdf',
-        ];
-    }
-
     private function makeFpdi(): Fpdi
     {
-        $pdf = new Fpdi;
+        $pdf = new Fpdi('P', 'mm', 'A4', true, 'UTF-8', false);
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->SetAutoPageBreak(false, 0);
-        $pdf->SetCreator('ARC Watermark');
+        $pdf->SetCreator('ARC');
         $pdf->SetAuthor('ARC');
-        $pdf->setFontSubsetting(false);
+        $pdf->SetTitle('');
+        $pdf->SetSubject('');
+        $pdf->SetKeywords('');
+        // Subset only glyphs used — large win vs embedding full DejaVu on every download.
+        $pdf->setFontSubsetting(true);
         $pdf->SetCompression(true);
+        $pdf->setJPEGQuality(85);
 
         return $pdf;
-    }
-
-    private function canFpdiOpen(string $path): bool
-    {
-        try {
-            $pdf = $this->makeFpdi();
-            $count = $pdf->setSourceFile($path);
-            unset($pdf);
-
-            return $count > 0;
-        } catch (Throwable) {
-            return false;
-        }
-    }
-
-    /**
-     * Re-save PDF without compressed object/xref streams so free FPDI can import it.
-     */
-    private function normalizePdfCompatibility(string $sourcePath, string $dir): ?string
-    {
-        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'-norm.pdf';
-
-        $qpdf = $this->findBinary(['qpdf']);
-        if ($qpdf !== null) {
-            $ok = $this->runProcess([
-                $qpdf,
-                '--object-streams=disable',
-                '--compress-streams=n',
-                '--decode-level=generalized',
-                $sourcePath,
-                $output,
-            ]);
-
-            if ($ok && is_file($output) && filesize($output) > 0) {
-                return $output;
-            }
-        }
-
-        if (is_file($output)) {
-            @unlink($output);
-        }
-
-        $gs = $this->findBinary(['gs', 'gswin64c', 'gswin32c']);
-        if ($gs !== null) {
-            $ok = $this->runProcess([
-                $gs,
-                '-dSAFER',
-                '-dBATCH',
-                '-dNOPAUSE',
-                '-sDEVICE=pdfwrite',
-                '-dCompatibilityLevel=1.4',
-                '-dPDFSETTINGS=/default',
-                '-sOutputFile='.$output,
-                $sourcePath,
-            ]);
-
-            if ($ok && is_file($output) && filesize($output) > 0) {
-                return $output;
-            }
-        }
-
-        if (is_file($output)) {
-            @unlink($output);
-        }
-
-        return null;
-    }
-
-    /**
-     * @param  list<string>  $names
-     */
-    private function findBinary(array $names): ?string
-    {
-        foreach ($names as $name) {
-            if (is_file($name) && is_executable($name)) {
-                return $name;
-            }
-
-            $finder = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'where' : 'which';
-            $nullDevice = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'NUL' : '/dev/null';
-            $line = @shell_exec($finder.' '.escapeshellarg($name).' 2>'.$nullDevice);
-
-            if (! is_string($line) || trim($line) === '') {
-                continue;
-            }
-
-            $candidate = trim(explode("\n", str_replace("\r", '', $line))[0]);
-
-            if ($candidate !== '' && (is_file($candidate) || strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param  list<string>  $command
-     */
-    private function runProcess(array $command): bool
-    {
-        if ($command === []) {
-            return false;
-        }
-
-        $escaped = array_map('escapeshellarg', $command);
-        $line = implode(' ', $escaped);
-        $output = [];
-        $exit = 1;
-        @exec($line.' 2>&1', $output, $exit);
-
-        return $exit === 0;
     }
 
     /**
@@ -643,16 +333,16 @@ class DocumentWatermarkService
 
         if ($context['show_qr_code'] && $context['qr_payload']) {
             try {
-                $qrSize = 14.0;
+                $qrSize = 12.0;
                 $style = [
                     'border' => false,
-                    'padding' => 1,
+                    'padding' => 0,
                     'fgcolor' => [20, 20, 20],
                     'bgcolor' => [255, 255, 255],
                 ];
                 $pdf->write2DBarcode(
                     $context['qr_payload'],
-                    'QRCODE,M',
+                    'QRCODE,L',
                     $width - $qrSize - 6,
                     $height - $qrSize - 6,
                     $qrSize,
@@ -660,7 +350,7 @@ class DocumentWatermarkService
                     $style
                 );
             } catch (Throwable) {
-                // QR is optional; keep text/footer watermark if barcode drawing fails.
+                // QR optional — text watermark still applies.
             }
         }
     }
@@ -668,7 +358,7 @@ class DocumentWatermarkService
     private function applyPdfFont(Fpdi $pdf, string $style, float $size): void
     {
         try {
-            $pdf->SetFont('dejavusans', $style, $size);
+            $pdf->SetFont('dejavusans', $style, $size, '', true);
         } catch (Throwable) {
             $pdf->SetFont('helvetica', $style === 'B' ? 'B' : '', $size);
         }
@@ -679,7 +369,7 @@ class DocumentWatermarkService
         try {
             $pdf->SetAlpha(max(0.05, min(1.0, $alpha)));
         } catch (Throwable) {
-            // Some TCPDF builds reject SetAlpha; keep opaque text rather than failing the download.
+            // Keep going without alpha rather than failing the download.
         }
     }
 
@@ -703,7 +393,6 @@ class DocumentWatermarkService
             throw new RuntimeException('GD extension is required for image watermarking.');
         }
 
-        // Avoid holding a second full copy of the file in a PHP string when possible.
         $image = match (true) {
             str_contains((string) $mime, 'jpeg'), str_contains((string) $mime, 'jpg') => @imagecreatefromjpeg($sourcePath),
             str_contains((string) $mime, 'png') => @imagecreatefrompng($sourcePath),
@@ -783,7 +472,7 @@ class DocumentWatermarkService
 
         $ok = match ($extension) {
             'png' => imagepng($image, $output, 6),
-            default => imagejpeg($image, $output, 90),
+            default => imagejpeg($image, $output, 85),
         };
 
         imagedestroy($image);
@@ -802,14 +491,14 @@ class DocumentWatermarkService
     private function drawQrOnImage(\GdImage $image, string $payload, int $width, int $height): void
     {
         try {
-            $qrCode = Encoder::encode($payload, ErrorCorrectionLevel::M());
+            $qrCode = Encoder::encode($payload, ErrorCorrectionLevel::L());
             $matrix = $qrCode->getMatrix();
         } catch (Throwable) {
             return;
         }
 
         $modules = $matrix->getWidth();
-        $qrSize = max(40, (int) round(min($width, $height) * 0.08));
+        $qrSize = max(36, (int) round(min($width, $height) * 0.07));
         $moduleSize = max(1, intdiv($qrSize, $modules));
         $drawn = $moduleSize * $modules;
         $dstX = $width - $drawn - 10;
@@ -836,7 +525,7 @@ class DocumentWatermarkService
     {
         $candidates = [
             storage_path('fonts/DejaVuSans.ttf'),
-            base_path('vendor/tecnickcom/tcpdf/fonts/dejavusans.ttf'),
+            resource_path('fonts/DejaVuSans.ttf'),
             'C:\\Windows\\Fonts\\arial.ttf',
             '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
         ];
