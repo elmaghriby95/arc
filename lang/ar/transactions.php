@@ -31,6 +31,7 @@ return [
         'unsupported_file_type' => 'نوع الملف غير مدعوم. المسموح: PDF، Word، Excel، وصور.',
         'files_rejected' => 'تم تجاهل :count ملف — نوع غير مدعوم.',
         'folder_unit_mismatch' => 'المجلد المحدد لا ينتمي للوحدة التنظيمية المختارة.',
+        'documents_required' => 'لا يمكن حفظ المعاملة بدون مستند واحد على الأقل. يرجى إرفاق مستند ثم إعادة المحاولة.',
         'upload_progress' => 'جاري رفع المستندات… :pct% (:loaded / :total)',
         'upload_preparing' => 'جاري تجهيز الرفع…',
         'upload_creating' => 'جاري إنشاء المعاملة…',

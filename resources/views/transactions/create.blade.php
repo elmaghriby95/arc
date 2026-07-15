@@ -191,7 +191,7 @@
                                     <p>{{ __('transactions.step_documents_desc') }}</p>
                                 </header>
 
-                                <div class="txnw-box">
+                                <div class="txnw-box {{ $errors->has('files') ? 'txnw-box--error' : '' }}" data-txn-documents-box>
                                     @if ($referenceSettings->operational_number_enabled && $referenceSettings->operational_number_disclaimer)
                                         <p class="txnw-hint txnw-hint--warn">{{ $referenceSettings->operational_number_disclaimer }}</p>
                                     @endif
@@ -224,6 +224,7 @@
                                         </div>
                                     </div>
                                     <p class="txnw-hint">{{ __('transactions.upload_draft_hint') }}</p>
+                                    @error('files')<p class="form-error">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="txnw-upload-progress is-hidden" data-txn-upload-progress role="status" aria-live="polite">

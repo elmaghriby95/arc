@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const folderSelected = document.querySelector('[data-folder-selected]');
     const folderSelectedName = document.querySelector('[data-folder-selected-name]');
     const dropzone = form.querySelector('[data-txn-create-dropzone]');
+    const documentsBox = form.querySelector('[data-txn-documents-box]');
     const fileInput = dropzone?.querySelector('[data-txn-file-input]');
     const browseBtn = dropzone?.querySelector('[data-txn-browse]');
     const scanBtn = dropzone?.querySelector('[data-txn-scan]');
@@ -60,6 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return true;
+    };
+
+    const showDocumentsRequired = () => {
+        const message = i18n.documents_required || 'لا يمكن حفظ المعاملة بدون مستند واحد على الأقل. يرجى إرفاق مستند ثم إعادة المحاولة.';
+
+        documentsBox?.classList.add('txnw-box--error');
+        showValidationErrors({ files: [message] });
+        alert(message);
     };
 
     const showStep = (step) => {
@@ -254,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         selectedFiles = [...selectedFiles, ...incoming];
+        documentsBox?.classList.remove('txnw-box--error');
         renderList();
         syncInput();
         content?.classList.add('is-hidden');
@@ -443,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 key === 'files[]'
                 || key.startsWith('titles[')
                 || key.startsWith('reference_')
+                || key.startsWith('original_document_numbers[')
                 || key.startsWith('use_operational[')
             ) {
                 return;
@@ -474,6 +485,71 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
     };
+
+    const appendCreateFileMeta = (fd, sourceIndex) => {
+        const meta = collectFileMeta(sourceIndex);
+        const fields = {
+            title: 'titles[0]',
+            reference_number: 'reference_numbers[0]',
+            reference_year: 'reference_years[0]',
+            reference_month: 'reference_months[0]',
+            original_document_number: 'original_document_numbers[0]',
+            use_operational: 'use_operational[0]',
+        };
+
+        Object.entries(fields).forEach(([key, field]) => {
+            const value = meta[key];
+
+            if (value !== '' && value !== null && value !== undefined) {
+                fd.append(field, value);
+            }
+        });
+    };
+
+    const createTransactionXHR = (file, onProgress) => new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const fd = new FormData();
+
+        Object.entries(collectTransactionPayload()).forEach(([key, value]) => {
+            if (value !== '' && value !== null && value !== undefined) {
+                fd.append(key, value);
+            }
+        });
+
+        fd.append('files[]', file);
+        appendCreateFileMeta(fd, 0);
+
+        xhr.open('POST', form.action);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Accept', 'application/json');
+
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable && onProgress) {
+                onProgress(event.loaded, event.total);
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            const data = parseJsonResponse(xhr.responseText);
+
+            if (xhr.status === 422 || xhr.status === 413) {
+                reject(data || { errors: { files: [i18n.upload_failed || 'Upload failed.'] } });
+
+                return;
+            }
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(data);
+
+                return;
+            }
+
+            reject(data || new Error('create failed'));
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('network')));
+        xhr.send(fd);
+    });
 
     const uploadFileXHR = (url, file, meta, onProgress) => new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -534,29 +610,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let createData;
 
         try {
-            const createResponse = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-                body: JSON.stringify(collectTransactionPayload()),
+            createData = await createTransactionXHR(selectedFiles[0], (loaded) => {
+                updateUploadProgress(loaded, totalBytes);
             });
-
-            createData = parseJsonResponse(await createResponse.text());
-
-            if (! createResponse.ok) {
-                setFormLocked(false);
-                resetUploadProgress();
-                showValidationErrors(createData?.errors);
-
-                return;
-            }
-        } catch {
+            uploadedBytes = selectedFiles[0].size;
+            updateUploadProgress(uploadedBytes, totalBytes);
+        } catch (error) {
             setFormLocked(false);
             resetUploadProgress();
+            showValidationErrors(error?.errors);
             alert(i18n.upload_failed || 'Upload failed.');
 
             return;
@@ -577,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const uploadUrl = uploadUrlTemplate.replace('__ID__', String(transactionId));
 
         try {
-            for (let index = 0; index < selectedFiles.length; index++) {
+            for (let index = 1; index < selectedFiles.length; index++) {
                 const file = selectedFiles[index];
                 const fileStart = uploadedBytes;
 
@@ -633,6 +695,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (selectedFiles.length === 0) {
+            event.preventDefault();
+            showStep(3);
+            showDocumentsRequired();
+
             return;
         }
 

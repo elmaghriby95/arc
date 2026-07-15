@@ -21,14 +21,78 @@ use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $breadcrumbs = Department::breadcrumbMap();
+        $search = trim((string) $request->input('search', ''));
+        $matchingDepartmentIds = $this->matchingDepartmentIds($breadcrumbs, $search);
 
         return view('settings.users.index', [
-            'users' => User::with(['department', 'role'])->latest()->paginate(15),
+            'users' => User::with(['department', 'role'])
+                ->when($search !== '', function ($query) use ($search, $matchingDepartmentIds) {
+                    $like = "%{$search}%";
+
+                    $query->where(function ($builder) use ($like, $matchingDepartmentIds) {
+                        $builder
+                            ->where('id', 'like', $like)
+                            ->orWhere('name', 'like', $like)
+                            ->orWhere('email', 'like', $like)
+                            ->orWhere('employee_number', 'like', $like)
+                            ->orWhere('avatar_path', 'like', $like)
+                            ->orWhere('last_login_ip', 'like', $like)
+                            ->orWhere('last_login_at', 'like', $like)
+                            ->orWhere('created_at', 'like', $like)
+                            ->orWhere('updated_at', 'like', $like)
+                            ->orWhereHas('role', function ($roleQuery) use ($like) {
+                                $roleQuery
+                                    ->where('name', 'like', $like)
+                                    ->orWhere('slug', 'like', $like)
+                                    ->orWhere('description', 'like', $like);
+                            })
+                            ->orWhereHas('department', function ($departmentQuery) use ($like) {
+                                $departmentQuery
+                                    ->where('name', 'like', $like)
+                                    ->orWhere('unit_label', 'like', $like)
+                                    ->orWhere('code', 'like', $like)
+                                    ->orWhere('description', 'like', $like);
+                            })
+                            ->orWhereHas('language', function ($languageQuery) use ($like) {
+                                $languageQuery
+                                    ->where('name', 'like', $like)
+                                    ->orWhere('native_name', 'like', $like)
+                                    ->orWhere('code', 'like', $like)
+                                    ->orWhere('direction', 'like', $like);
+                            });
+
+                        if ($matchingDepartmentIds !== []) {
+                            $builder->orWhereIn('department_id', $matchingDepartmentIds);
+                        }
+                    });
+                })
+                ->latest()
+                ->paginate(15)
+                ->withQueryString(),
             'breadcrumbs' => $breadcrumbs,
         ]);
+    }
+
+    /** @param array<int, string> $breadcrumbs */
+    private function matchingDepartmentIds(array $breadcrumbs, string $search): array
+    {
+        if ($search === '') {
+            return [];
+        }
+
+        $needle = mb_strtolower($search);
+        $matches = [];
+
+        foreach ($breadcrumbs as $id => $breadcrumb) {
+            if (str_contains(mb_strtolower($breadcrumb), $needle)) {
+                $matches[] = (int) $id;
+            }
+        }
+
+        return $matches;
     }
 
     public function create(): View

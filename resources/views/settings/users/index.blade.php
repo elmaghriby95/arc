@@ -18,6 +18,35 @@
     <div class="container">
         <x-flash-messages />
 
+        <div class="card card-elevated">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">{{ __('settings.users.filters_title') }}</h3>
+                    <p class="card-subtitle">{{ __('settings.users.filters_subtitle') }}</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="form-grid">
+                    <div class="form-group">
+                        <x-input-label for="search" :value="__('common.search')" />
+                        <x-text-input
+                            id="search"
+                            name="search"
+                            type="search"
+                            :value="request('search')"
+                            :placeholder="__('settings.users.search_placeholder')"
+                        />
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:flex-end; gap:.5rem;">
+                        <x-primary-button>{{ __('common.filter') }}</x-primary-button>
+                        @if (request()->filled('search'))
+                            <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.reset') }}</a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">{{ __('settings.users.list_title') }}</h3>
@@ -31,10 +60,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                             </svg>
                         </div>
-                        <p>{{ __('settings.users.empty') }}</p>
-                        @permission('settings.users.create')
-                            <a href="{{ route('settings.users.create') }}" class="btn btn-primary">{{ __('settings.users.create_first') }}</a>
-                        @endpermission
+                        <p>{{ request()->filled('search') ? __('settings.users.no_search_results') : __('settings.users.empty') }}</p>
+                        @if (request()->filled('search'))
+                            <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.reset') }}</a>
+                        @else
+                            @permission('settings.users.create')
+                                <a href="{{ route('settings.users.create') }}" class="btn btn-primary">{{ __('settings.users.create_first') }}</a>
+                            @endpermission
+                        @endif
                     </div>
                 @else
                     <div class="table-wrapper">

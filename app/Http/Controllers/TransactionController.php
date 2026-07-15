@@ -122,8 +122,9 @@ class TransactionController extends Controller
             'folder_id' => ['required', 'exists:folders,id'],
             'transaction_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
-            'files' => ['nullable', 'array'],
+            'files' => ['required', 'array', 'min:1'],
             'files.*' => [
+                'required',
                 'file',
                 'max:'.$maxFileKb,
                 File::types(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']),
@@ -142,6 +143,9 @@ class TransactionController extends Controller
             'use_operational.*' => ['nullable', 'boolean'],
         ], [
             'archival_reference.unique' => __('validation.unique', ['attribute' => __('validation.attributes.archival_reference')]),
+            'files.required' => __('messages.transaction.documents_required'),
+            'files.min' => __('messages.transaction.documents_required'),
+            'files.*.required' => __('messages.transaction.documents_required'),
         ]);
 
         if (! $request->user()->canAccessDepartment($validated['department_id'])) {
@@ -576,6 +580,7 @@ class TransactionController extends Controller
             'unsupported_file_type' => __('transactions.js.unsupported_file_type'),
             'files_rejected' => __('transactions.js.files_rejected'),
             'folder_unit_mismatch' => __('transactions.js.folder_unit_mismatch'),
+            'documents_required' => __('transactions.js.documents_required'),
             'field_year' => __('transactions.js.field_year'),
             'field_month' => __('transactions.js.field_month'),
             'field_month_required' => __('transactions.js.field_month_required'),

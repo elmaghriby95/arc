@@ -78,6 +78,11 @@
                 <p class="doc-pdf-status" data-doc-pdf-status hidden></p>
                 <div class="doc-pdf-pages" data-doc-pdf-pages></div>
             </div>
+            @if ($wmContext)
+                <script type="application/json" data-doc-watermark-json>
+                    {!! json_encode($wmContext, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
+                </script>
+            @endif
         @else
             <img class="doc-print-media" src="{{ $printUrl }}" alt="{{ $attachment->displayName() }}">
         @endif

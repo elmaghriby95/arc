@@ -36,6 +36,14 @@
         } catch (e) {
             watermark = null;
         }
+        if (!watermark) {
+            const jsonEl = document.querySelector('[data-doc-watermark-json]');
+            try {
+                watermark = jsonEl?.textContent ? JSON.parse(jsonEl.textContent) : null;
+            } catch (e) {
+                watermark = null;
+            }
+        }
 
         let pdfDoc = null;
         let baseScale = 1.15;

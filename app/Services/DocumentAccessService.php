@@ -43,7 +43,7 @@ class DocumentAccessService
      */
     public function prepareViewWatermark(TransactionAttachment $attachment, User $user, Request $request): ?array
     {
-        return $this->prepareOverlayWatermark($attachment, $user, $request, 'view');
+        return $this->prepareOverlayWatermark($attachment, $user, $request, 'view', forceWhenEnabled: true);
     }
 
     /**
@@ -64,21 +64,40 @@ class DocumentAccessService
         User $user,
         Request $request,
         string $action,
+        bool $forceWhenEnabled = false,
     ): ?array {
         $settings = WatermarkSetting::instance();
 
-        if (! $settings->shouldApplyFor($action) || ! $this->watermarkService->supports($attachment)) {
+        $shouldApply = $forceWhenEnabled
+            ? $settings->is_enabled
+            : $settings->shouldApplyFor($action);
+
+        if (! $shouldApply || ! $this->watermarkService->supports($attachment)) {
             return null;
         }
 
         $audit = $this->auditService->createPending($user, $attachment, $action, $request);
         $this->auditService->markSuccess($audit, true);
 
+        $context = $this->watermarkService->withOverlayAssets(
+            $this->watermarkService->buildContext($user, $audit)
+        );
+
+        if (
+            $forceWhenEnabled
+            && empty($context['show_center_text'])
+            && empty($context['show_footer'])
+            && empty($context['show_qr_code'])
+        ) {
+            $context['center_lines'] = [$user->name, $audit->transaction_id];
+            $context['footer'] = implode(' | ', $context['center_lines']);
+            $context['show_center_text'] = true;
+            $context['show_footer'] = true;
+        }
+
         return [
             'audit' => $audit,
-            'context' => $this->watermarkService->withOverlayAssets(
-                $this->watermarkService->buildContext($user, $audit)
-            ),
+            'context' => $context,
         ];
     }
 

@@ -96,6 +96,11 @@
                                 <p class="doc-pdf-status" data-doc-pdf-status hidden></p>
                                 <div class="doc-pdf-pages" data-doc-pdf-pages></div>
                             </div>
+                            @if ($docWmContext)
+                                <script type="application/json" data-doc-watermark-json>
+                                    {!! json_encode($docWmContext, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
+                                </script>
+                            @endif
                         </div>
                     @else
                         <div class="doc-preview-viewport doc-preview-viewport--fallback" data-doc-preview-viewport>
