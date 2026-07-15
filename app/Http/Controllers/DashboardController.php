@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LendingRequestStatus;
-use App\Models\Department;
 use App\Models\LendingRequest;
 use App\Models\Transaction;
 use App\Models\TransactionAttachment;
@@ -20,15 +19,6 @@ class DashboardController extends Controller
         $transactionsQuery = $this->dashboardTransactionsQuery($user);
         $attachmentsQuery = $this->dashboardAttachmentsQuery($user);
         $statCards = $this->statCards($user, $transactionsQuery, $attachmentsQuery);
-        $canOpenDocuments = $this->canOpenDocuments($user);
-        $canViewTransactions = $user->hasPermission('transactions.view');
-        $recentAttachments = ($canOpenDocuments || $canViewTransactions)
-            ? (clone $attachmentsQuery)
-                ->with(['transaction.department', 'transaction.status', 'uploader'])
-                ->latest()
-                ->limit(5)
-                ->get()
-            : collect();
 
         return view('dashboard', [
             'heroMetric' => $statCards[0] ?? [
@@ -36,11 +26,7 @@ class DashboardController extends Controller
                 'value' => 0,
             ],
             'statCards' => $statCards,
-            'recentAttachments' => $recentAttachments,
             'orgBreadcrumb' => $user->orgBreadcrumb(),
-            'canOpenDocuments' => $canOpenDocuments,
-            'canViewDocuments' => $user->hasPermission('documents.view'),
-            'canViewTransactions' => $canViewTransactions,
         ]);
     }
 
@@ -88,87 +74,54 @@ class DashboardController extends Controller
      */
     private function statCards(User $user, Builder $transactionsQuery, Builder $attachmentsQuery): array
     {
-        $cards = [];
+        $reviewStatusIds = $this->reviewStatusIds($user);
 
-        if ($user->hasPermission('transactions.view')) {
-            $cards[] = $this->statCard(
+        return [
+            $this->statCard(
                 'transactions',
                 __('dashboard.total_transactions'),
                 (clone $transactionsQuery)->count(),
                 'indigo',
                 'transactions',
-                route('transactions.index'),
-            );
-        }
-
-        if ($user->hasPermission('documents.view')) {
-            $cards[] = $this->statCard(
+                $user->hasPermission('transactions.view') ? route('transactions.index') : null,
+            ),
+            $this->statCard(
                 'documents',
                 __('dashboard.total_documents'),
                 (clone $attachmentsQuery)->count(),
                 'cyan',
                 'documents',
-                route('documents.index'),
-            );
-        }
-
-        $reviewStatusIds = $this->reviewStatusIds($user);
-        if ($reviewStatusIds !== []) {
-            $cards[] = $this->statCard(
+                $user->hasPermission('documents.view') ? route('documents.index') : null,
+            ),
+            $this->statCard(
                 'review',
                 __('dashboard.pending_review'),
-                (clone $transactionsQuery)->whereIn('transaction_status_id', $reviewStatusIds)->count(),
+                $reviewStatusIds === []
+                    ? 0
+                    : (clone $transactionsQuery)->whereIn('transaction_status_id', $reviewStatusIds)->count(),
                 'amber',
                 'review',
-                $user->hasPermission('transactions.view') ? route('transactions.index', ['transaction_status_id' => $reviewStatusIds[0]]) : null,
-            );
-        }
-
-        if ($this->canViewArchivedTransactions($user)) {
-            $cards[] = $this->statCard(
+                $user->hasPermission('transactions.view') && $reviewStatusIds !== []
+                    ? route('transactions.index', ['transaction_status_id' => $reviewStatusIds[0]])
+                    : null,
+            ),
+            $this->statCard(
                 'archived',
                 __('dashboard.archived_transactions'),
                 (clone $transactionsQuery)->whereHas('status', fn (Builder $query) => $query->where('is_final', true))->count(),
                 'emerald',
                 'archive',
                 $user->hasPermission('transactions.view') ? route('transactions.index') : null,
-            );
-        }
-
-        if ($this->canViewLendingSummary($user)) {
-            $cards[] = $this->statCard(
+            ),
+            $this->statCard(
                 'lending',
                 __('dashboard.active_lending_requests'),
                 $this->activeLendingRequestsCount($user),
                 'violet',
                 'lending',
-                route('lending-requests.index'),
-            );
-        }
-
-        if ($user->hasPermission('departments.view') || $user->hasPermission('settings.organization.view')) {
-            $cards[] = $this->statCard(
-                'departments',
-                __('dashboard.active_departments'),
-                $this->scopedDepartmentsCount($user),
-                'slate',
-                'departments',
-                $user->hasPermission('departments.view') ? route('departments.index') : null,
-            );
-        }
-
-        if ($user->isAdmin() || $user->hasPermission('settings.users.view')) {
-            $cards[] = $this->statCard(
-                'users',
-                __('dashboard.users'),
-                $this->scopedUsersCount($user),
-                'rose',
-                'users',
-                $user->hasPermission('settings.users.view') ? route('settings.users.index') : null,
-            );
-        }
-
-        return $cards;
+                $this->canViewLendingSummary($user) ? route('lending-requests.index') : null,
+            ),
+        ];
     }
 
     /** @return array{key: string, label: string, value: int, color: string, icon: string, url: string|null} */
@@ -191,20 +144,6 @@ class DashboardController extends Controller
             ->all();
     }
 
-    private function canViewArchivedTransactions(User $user): bool
-    {
-        if ($user->hasPermission('transactions.view')) {
-            return true;
-        }
-
-        return TransactionStatus::query()
-            ->where('is_active', true)
-            ->where('is_final', true)
-            ->whereNotNull('required_permission')
-            ->get(['required_permission'])
-            ->contains(fn (TransactionStatus $status) => $user->hasPermission($status->required_permission));
-    }
-
     private function canViewLendingSummary(User $user): bool
     {
         return $this->hasAnyPermission($user, [
@@ -224,41 +163,6 @@ class DashboardController extends Controller
             ))
             ->whereHas('transaction', fn (Builder $query) => $this->applyDashboardTransactionScope($query, $user))
             ->count();
-    }
-
-    private function scopedDepartmentsCount(User $user): int
-    {
-        $query = Department::where('is_active', true);
-
-        if (! $this->hasGlobalDashboardScope($user)) {
-            $user->department_id
-                ? $query->where('id', $user->department_id)
-                : $query->whereRaw('0 = 1');
-        }
-
-        return $query->count();
-    }
-
-    private function scopedUsersCount(User $user): int
-    {
-        $query = User::query();
-
-        if (! $this->hasGlobalDashboardScope($user)) {
-            $user->department_id
-                ? $query->where('department_id', $user->department_id)
-                : $query->whereRaw('0 = 1');
-        }
-
-        return $query->count();
-    }
-
-    private function canOpenDocuments(User $user): bool
-    {
-        return $this->hasAnyPermission($user, [
-            'documents.view',
-            'lending-requests.review',
-            'lending-requests.handover',
-        ]);
     }
 
     /** @param list<string> $permissions */

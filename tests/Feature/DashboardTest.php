@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\LendingRequestStatus;
 use App\Models\Department;
+use App\Models\LendingRequest;
 use App\Models\Role;
 use App\Models\Transaction;
 use App\Models\TransactionAttachment;
@@ -42,29 +44,31 @@ class DashboardTest extends TestCase
         ]);
         $draft = TransactionStatus::where('is_initial', true)->firstOrFail();
 
-        $this->transactionWithAttachment($department, $user, $draft, 'Own department attachment 1');
+        $ownTransaction = $this->transactionWithAttachment($department, $user, $draft, 'Own department attachment 1');
         $this->transactionWithAttachment($department, $user, $draft, 'Own department attachment 2');
         $this->transactionWithAttachment($childDepartment, $user, $draft, 'Child department attachment');
         $this->transactionWithAttachment($otherDepartment, $user, $draft, 'Other department attachment');
+        $this->lendingRequest($ownTransaction, $user);
 
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response
             ->assertOk()
-            ->assertSeeText('Own department attachment 1')
-            ->assertSeeText('Own department attachment 2')
+            ->assertDontSeeText('Own department attachment 1')
+            ->assertDontSeeText('Own department attachment 2')
             ->assertDontSeeText('Child department attachment')
             ->assertDontSeeText('Other department attachment')
             ->assertViewHas('statCards', function (array $cards) {
                 $cards = collect($cards)->keyBy('key');
 
-                return $cards['transactions']['value'] === 2
+                return $cards->count() === 5
+                    && $cards['transactions']['value'] === 2
                     && $cards['documents']['value'] === 2
-                    && $cards['departments']['value'] === 1;
+                    && $cards['lending']['value'] === 1;
             });
     }
 
-    public function test_dashboard_hides_cards_and_recent_documents_without_feature_permissions(): void
+    public function test_dashboard_keeps_five_cards_but_hides_links_without_feature_permissions(): void
     {
         $department = $this->department('ARC');
         $role = $this->roleWith([]);
@@ -81,8 +85,10 @@ class DashboardTest extends TestCase
         $response
             ->assertOk()
             ->assertDontSeeText('Permissionless attachment')
-            ->assertViewHas('statCards', fn (array $cards) => $cards === [])
-            ->assertViewHas('recentAttachments', fn ($attachments) => $attachments->isEmpty());
+            ->assertViewHas('statCards', function (array $cards) {
+                return collect($cards)->count() === 5
+                    && collect($cards)->every(fn (array $card) => $card['url'] === null);
+            });
     }
 
     public function test_reviewer_sees_review_card_for_direct_department_only(): void
@@ -109,10 +115,11 @@ class DashboardTest extends TestCase
                 $cards = collect($cards)->keyBy('key');
 
                 return $cards->has('review')
+                    && $cards->count() === 5
                     && $cards['review']['value'] === 1
                     && $cards['review']['url'] === null
-                    && ! $cards->has('transactions')
-                    && ! $cards->has('documents');
+                    && $cards['transactions']['value'] === 2
+                    && $cards['documents']['value'] === 2;
             });
     }
 
@@ -167,5 +174,15 @@ class DashboardTest extends TestCase
         ]);
 
         return $transaction;
+    }
+
+    private function lendingRequest(Transaction $transaction, User $requester): LendingRequest
+    {
+        return LendingRequest::create([
+            'transaction_id' => $transaction->id,
+            'requested_by' => $requester->id,
+            'status' => LendingRequestStatus::PendingReview,
+            'purpose' => 'Dashboard count test',
+        ]);
     }
 }
