@@ -73,7 +73,7 @@ class PdfIncrementalWatermarkService
                 $annotationRefs[] = "{$annotationNumber} 0 R";
                 $updates[$annotationNumber] = $this->buildFreeTextAnnotationObject(
                     $annotationNumber,
-                    implode("\n", $centerLines),
+                    implode("\r", $centerLines),
                     [
                         $box[0] + (($width - $centerRectWidth) / 2),
                         $box[1] + (($height - $centerRectHeight) / 2),
