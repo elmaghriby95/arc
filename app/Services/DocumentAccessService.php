@@ -146,6 +146,8 @@ class DocumentAccessService
         $audit = $this->auditService->createPending($user, $attachment, 'download', $request);
 
         if ($wantsWatermark) {
+            $watermarkAudit = $this->resolveDownloadWatermarkAudit($attachment, $user, $request, $audit);
+
             if (! $canBurnIn) {
                 $this->auditService->markFailure($audit, 'Watermark burn-in not supported for this file type.');
 
@@ -156,7 +158,7 @@ class DocumentAccessService
 
             // PDFs use incremental append; images use GD. Neither path depends on public assets.
             try {
-                $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
+                $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $watermarkAudit);
             } catch (Throwable $first) {
                 report($first);
 
@@ -164,7 +166,7 @@ class DocumentAccessService
                     $copy = $this->watermarkService->createWatermarkedCopy(
                         $attachment,
                         $user,
-                        $audit,
+                        $watermarkAudit,
                         reduceFeatures: true,
                     );
                 } catch (Throwable $second) {
@@ -230,6 +232,28 @@ class DocumentAccessService
         $this->auditService->markSuccess($audit, $watermarkApplied);
 
         return $audit;
+    }
+
+    private function resolveDownloadWatermarkAudit(
+        TransactionAttachment $attachment,
+        User $user,
+        Request $request,
+        DocumentAccessAudit $downloadAudit,
+    ): DocumentAccessAudit {
+        $token = (string) $request->query('wm', '');
+
+        if ($token === '') {
+            return $downloadAudit;
+        }
+
+        $viewAudit = DocumentAccessAudit::query()
+            ->where('transaction_id', $token)
+            ->where('user_id', $user->id)
+            ->where('attachment_id', $attachment->id)
+            ->where('action_type', 'view')
+            ->first();
+
+        return $viewAudit ?: $downloadAudit;
     }
 
     private function streamOriginal(

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Department;
 use App\Models\TransactionAttachment;
 use App\Models\User;
@@ -28,7 +27,6 @@ class DashboardController extends Controller
             'stats' => [
                 'documents' => (clone $attachmentsQuery)->count(),
                 'departments' => (clone $departmentsQuery)->count(),
-                'categories' => Category::where('is_active', true)->count(),
                 'users' => $user->isAdmin() ? User::count() : null,
             ],
             'recentAttachments' => (clone $attachmentsQuery)

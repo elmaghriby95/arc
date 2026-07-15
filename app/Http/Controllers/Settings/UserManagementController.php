@@ -223,7 +223,7 @@ class UserManagementController extends Controller
             return back()->withErrors(['user' => __('messages.user.cannot_delete_self')]);
         }
 
-        if ($user->isAdmin() && ! $request->user()?->isAdmin()) {
+        if ($user->isAdmin()) {
             return back()->withErrors(['user' => __('messages.user.cannot_delete_admin')]);
         }
 

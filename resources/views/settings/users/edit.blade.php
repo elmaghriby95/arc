@@ -287,7 +287,7 @@
                 <div class="form-actions profile-form-actions">
                     <x-primary-button form="user-update-form">{{ __('settings.users.save_changes') }}</x-primary-button>
                     <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
-                    @if (! $user->is(auth()->user()))
+                    @if (! $user->is(auth()->user()) && ! $user->isAdmin())
                         <form method="POST" action="{{ route('settings.users.destroy', $user) }}" onsubmit="return confirm('{{ __('settings.users.delete_confirm') }}')">
                             @csrf
                             @method('DELETE')

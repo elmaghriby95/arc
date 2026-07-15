@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Enums\DocumentStatus;
 use App\Models\Role;
 use App\Models\AuditLog;
-use App\Models\Category;
 use App\Models\Department;
 use App\Models\Document;
 use App\Models\DocumentType;
@@ -26,10 +25,9 @@ class ArchiveSeeder extends Seeder
         $this->seedReferenceData();
         $departments = $this->seedDepartments();
         $this->assignFolderDepartments($departments);
-        $categories = $this->seedCategories();
         $users = $this->seedUsers($departments);
         $tags = $this->seedTags();
-        $this->seedDocuments($departments, $categories, $users, $tags);
+        $this->seedDocuments($departments, $users, $tags);
         $this->seedAuditLogs($users);
     }
 
@@ -174,48 +172,6 @@ class ArchiveSeeder extends Seeder
         return $map;
     }
 
-    private function seedCategories(): array
-    {
-        $roots = [
-            ['name' => 'مراسلات', 'description' => 'الخطابات والمراسلات الرسمية', 'sort_order' => 1],
-            ['name' => 'عقود', 'description' => 'العقود والاتفاقيات', 'sort_order' => 2],
-            ['name' => 'تقارير', 'description' => 'التقارير الدورية والإدارية', 'sort_order' => 3],
-            ['name' => 'قرارات', 'description' => 'القرارات الإدارية', 'sort_order' => 4],
-            ['name' => 'محاضر اجتماعات', 'description' => 'محاضر اللجان والاجتماعات', 'sort_order' => 5],
-        ];
-
-        $map = [];
-
-        foreach ($roots as $category) {
-            $map[$category['name']] = Category::firstOrCreate(
-                ['name' => $category['name']],
-                [...$category, 'is_active' => true]
-            );
-        }
-
-        $subcategories = [
-            ['name' => 'خطابات صادرة', 'parent' => 'مراسلات', 'sort_order' => 1],
-            ['name' => 'خطابات واردة', 'parent' => 'مراسلات', 'sort_order' => 2],
-            ['name' => 'عقود توريد', 'parent' => 'عقود', 'sort_order' => 1],
-            ['name' => 'عقود خدمات', 'parent' => 'عقود', 'sort_order' => 2],
-            ['name' => 'تقارير شهرية', 'parent' => 'تقارير', 'sort_order' => 1],
-            ['name' => 'تقارير سنوية', 'parent' => 'تقارير', 'sort_order' => 2],
-        ];
-
-        foreach ($subcategories as $category) {
-            $map[$category['name']] = Category::firstOrCreate(
-                ['name' => $category['name']],
-                [
-                    'parent_id' => $map[$category['parent']]->id,
-                    'sort_order' => $category['sort_order'],
-                    'is_active' => true,
-                ]
-            );
-        }
-
-        return $map;
-    }
-
     private function seedUsers(array $departments): array
     {
         $roles = Role::pluck('id', 'slug');
@@ -299,14 +255,13 @@ class ArchiveSeeder extends Seeder
         return $map;
     }
 
-    private function seedDocuments(array $departments, array $categories, array $users, array $tags): void
+    private function seedDocuments(array $departments, array $users, array $tags): void
     {
         $samples = [
             [
                 'title' => 'خطاب تعيين موظف جديد',
                 'description' => 'خطاب رسمي بشأن تعيين موظف في قسم الموارد البشرية.',
                 'department' => 'HR',
-                'category' => 'خطابات صادرة',
                 'uploader' => 'manager.hr@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => false,
@@ -318,7 +273,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'عقد توريد أجهزة حاسوب',
                 'description' => 'عقد توريد أجهزة حاسوب وملحقاتها لقسم تقنية المعلومات.',
                 'department' => 'IT',
-                'category' => 'عقود توريد',
                 'uploader' => 'admin@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => false,
@@ -330,7 +284,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'تقرير مالي ربع سنوي',
                 'description' => 'تقرير الأداء المالي للربع الأول من السنة.',
                 'department' => 'FIN',
-                'category' => 'تقارير شهرية',
                 'uploader' => 'manager.fin@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => true,
@@ -342,7 +295,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'قرار تشكيل لجنة الأرشفة',
                 'description' => 'قرار إداري بتشكيل لجنة متابعة مشروع الأرشفة الإلكترونية.',
                 'department' => 'GEN',
-                'category' => 'قرارات',
                 'uploader' => 'admin@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => false,
@@ -354,7 +306,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'محضر اجتماع مجلس الإدارة',
                 'description' => 'محضر اجتماع مجلس الإدارة الدوري الشهري.',
                 'department' => 'GEN',
-                'category' => 'محاضر اجتماعات',
                 'uploader' => 'admin@arc.local',
                 'status' => DocumentStatus::Archived,
                 'is_confidential' => true,
@@ -366,7 +317,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'مذكرة استشارة قانونية',
                 'description' => 'مذكرة قانونية بخصوص مراجعة بنود عقد الخدمات.',
                 'department' => 'LEG',
-                'category' => 'عقود خدمات',
                 'uploader' => 'user.leg@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => true,
@@ -378,7 +328,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'خطاب شكوى عميل',
                 'description' => 'خطاب وارد من عميل يتضمن شكوى بخصوص الخدمة المقدمة.',
                 'department' => 'CS',
-                'category' => 'خطابات واردة',
                 'uploader' => 'user.cs@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => false,
@@ -390,7 +339,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'سياسة أمن المعلومات',
                 'description' => 'النسخة المعتمدة من سياسة أمن المعلومات والبيانات.',
                 'department' => 'IT',
-                'category' => 'قرارات',
                 'uploader' => 'user.it@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => false,
@@ -402,7 +350,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'طلب إجازة موظف',
                 'description' => 'نموذج طلب إجازة سنوية لأحد موظفي القسم.',
                 'department' => 'HR',
-                'category' => 'مراسلات',
                 'uploader' => 'manager.hr@arc.local',
                 'status' => DocumentStatus::Draft,
                 'is_confidential' => false,
@@ -414,7 +361,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'تقرير ميزانية سنوي',
                 'description' => 'مسودة التقرير السنوي للميزانية قبل الاعتماد النهائي.',
                 'department' => 'FIN',
-                'category' => 'تقارير سنوية',
                 'uploader' => 'manager.fin@arc.local',
                 'status' => DocumentStatus::Draft,
                 'is_confidential' => true,
@@ -426,7 +372,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'اتفاقية سرية مع مورد',
                 'description' => 'اتفاقية عدم إفشاء مع أحد الموردين الخارجيين.',
                 'department' => 'LEG',
-                'category' => 'عقود',
                 'uploader' => 'user.leg@arc.local',
                 'status' => DocumentStatus::Archived,
                 'is_confidential' => true,
@@ -438,7 +383,6 @@ class ArchiveSeeder extends Seeder
                 'title' => 'تقرير رضا العملاء',
                 'description' => 'نتائج استبيان رضا العملاء للنصف الأول من السنة.',
                 'department' => 'CS',
-                'category' => 'تقارير',
                 'uploader' => 'user.cs@arc.local',
                 'status' => DocumentStatus::Active,
                 'is_confidential' => false,
@@ -466,7 +410,6 @@ class ArchiveSeeder extends Seeder
                 'reference_number' => $referenceNumber,
                 'title' => $sample['title'],
                 'description' => $sample['description'],
-                'category_id' => $categories[$sample['category']]->id,
                 'department_id' => $departments[$sample['department']]->id,
                 'uploaded_by' => $users[$sample['uploader']]->id,
                 'file_path' => $filePath,

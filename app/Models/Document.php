@@ -17,7 +17,6 @@ class Document extends Model
         'reference_number',
         'title',
         'description',
-        'category_id',
         'department_id',
         'uploaded_by',
         'file_path',
@@ -36,11 +35,6 @@ class Document extends Model
             'is_confidential' => 'boolean',
             'status' => DocumentStatus::class,
         ];
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function department(): BelongsTo

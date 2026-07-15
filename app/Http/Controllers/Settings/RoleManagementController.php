@@ -46,6 +46,8 @@ class RoleManagementController extends Controller
 
     public function edit(Role $role): View
     {
+        abort_if($role->isSuperAdmin(), 403, __('messages.role.cannot_update_super_admin'));
+
         return view('settings.roles.edit', [
             'role' => $role,
             'permissionGroups' => PermissionRegistry::grouped(),
@@ -54,6 +56,10 @@ class RoleManagementController extends Controller
 
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
+        if ($role->isSuperAdmin()) {
+            return back()->with('error', __('messages.role.cannot_update_super_admin'));
+        }
+
         $role->update([
             'name' => $request->string('name'),
             'description' => $request->string('description'),
@@ -67,6 +73,10 @@ class RoleManagementController extends Controller
 
     public function destroy(Role $role): RedirectResponse
     {
+        if ($role->isSuperAdmin()) {
+            return back()->with('error', __('messages.role.cannot_delete_super_admin'));
+        }
+
         if ($role->is_system) {
             return back()->with('error', __('messages.role.cannot_delete_system'));
         }

@@ -31,7 +31,6 @@ class TranslationCatalog
             self::transactions(),
             self::documents(),
             self::departments(),
-            self::categories(),
             self::reports(),
             self::reportsExport(),
             self::workflow(),
@@ -79,7 +78,6 @@ class TranslationCatalog
             ['group' => 'nav', 'key' => 'more', 'values' => ['ar' => 'المزيد', 'en' => 'More', 'fr' => 'Plus']],
             ['group' => 'nav', 'key' => 'reports', 'values' => ['ar' => 'التقارير', 'en' => 'Reports', 'fr' => 'Rapports']],
             ['group' => 'nav', 'key' => 'departments', 'values' => ['ar' => 'الأقسام', 'en' => 'Departments', 'fr' => 'Départements']],
-            ['group' => 'nav', 'key' => 'categories', 'values' => ['ar' => 'التصنيفات', 'en' => 'Categories', 'fr' => 'Catégories']],
             ['group' => 'nav', 'key' => 'settings', 'values' => ['ar' => 'الإعدادات', 'en' => 'Settings', 'fr' => 'Paramètres']],
             ['group' => 'nav', 'key' => 'notifications', 'values' => ['ar' => 'الإشعارات', 'en' => 'Notifications', 'fr' => 'Notifications']],
             ['group' => 'nav', 'key' => 'unread_count', 'values' => ['ar' => ':count غير مقروء', 'en' => ':count unread', 'fr' => ':count non lu(s)']],
@@ -193,9 +191,6 @@ class TranslationCatalog
             ['group' => 'messages', 'key' => 'unauthorized_action', 'values' => ['ar' => 'غير مصرح لك بتنفيذ هذا الإجراء.', 'en' => 'You are not authorized to perform this action.', 'fr' => 'Vous n\'êtes pas autorisé à effectuer cette action.']],
             ['group' => 'messages', 'key' => 'admin_access_denied', 'values' => ['ar' => 'غير مصرح لك بالوصول إلى هذه الصفحة.', 'en' => 'You are not authorized to access this page.', 'fr' => 'Vous n\'êtes pas autorisé à accéder à cette page.']],
             ['group' => 'messages', 'key' => 'file_not_found', 'values' => ['ar' => 'الملف غير موجود.', 'en' => 'File not found.', 'fr' => 'Fichier introuvable.']],
-            ['group' => 'messages', 'key' => 'category.created', 'values' => ['ar' => 'تم إضافة التصنيف بنجاح.', 'en' => 'Category added successfully.', 'fr' => 'Catégorie ajoutée avec succès.']],
-            ['group' => 'messages', 'key' => 'category.updated', 'values' => ['ar' => 'تم تحديث التصنيف بنجاح.', 'en' => 'Category updated successfully.', 'fr' => 'Catégorie mise à jour avec succès.']],
-            ['group' => 'messages', 'key' => 'category.deleted', 'values' => ['ar' => 'تم حذف التصنيف بنجاح.', 'en' => 'Category deleted successfully.', 'fr' => 'Catégorie supprimée avec succès.']],
             ['group' => 'messages', 'key' => 'department.created', 'values' => ['ar' => 'تم إضافة القسم بنجاح.', 'en' => 'Department added successfully.', 'fr' => 'Département ajouté avec succès.']],
             ['group' => 'messages', 'key' => 'department.updated', 'values' => ['ar' => 'تم تحديث القسم بنجاح.', 'en' => 'Department updated successfully.', 'fr' => 'Département mis à jour avec succès.']],
             ['group' => 'messages', 'key' => 'department.deleted', 'values' => ['ar' => 'تم حذف القسم بنجاح.', 'en' => 'Department deleted successfully.', 'fr' => 'Département supprimé avec succès.']],
@@ -644,7 +639,6 @@ class TranslationCatalog
             ['group' => 'dashboard', 'key' => 'attached_documents', 'values' => ['ar' => 'مستند مرفق', 'en' => 'attached document(s)', 'fr' => 'document(s) joint(s)']],
             ['group' => 'dashboard', 'key' => 'total_documents', 'values' => ['ar' => 'إجمالي الوثائق', 'en' => 'Total documents', 'fr' => 'Total documents']],
             ['group' => 'dashboard', 'key' => 'active_departments', 'values' => ['ar' => 'الأقسام النشطة', 'en' => 'Active departments', 'fr' => 'Départements actifs']],
-            ['group' => 'dashboard', 'key' => 'categories', 'values' => ['ar' => 'التصنيفات', 'en' => 'Categories', 'fr' => 'Catégories']],
             ['group' => 'dashboard', 'key' => 'users', 'values' => ['ar' => 'المستخدمون', 'en' => 'Users', 'fr' => 'Utilisateurs']],
             ['group' => 'dashboard', 'key' => 'recent_documents', 'values' => ['ar' => 'أحدث الوثائق', 'en' => 'Recent documents', 'fr' => 'Documents récents']],
             ['group' => 'dashboard', 'key' => 'recent_documents_sub', 'values' => ['ar' => 'آخر المستندات المرفقة بالمعاملات', 'en' => 'Latest documents attached to transactions', 'fr' => 'Derniers documents joints']],
@@ -778,10 +772,6 @@ class TranslationCatalog
             'departments.create' => ['ar' => 'إضافة قسم', 'en' => 'Create department', 'fr' => 'Créer un département'],
             'departments.edit' => ['ar' => 'تعديل قسم', 'en' => 'Edit department', 'fr' => 'Modifier un département'],
             'departments.delete' => ['ar' => 'حذف قسم', 'en' => 'Delete department', 'fr' => 'Supprimer un département'],
-            'categories.view' => ['ar' => 'عرض التصنيفات', 'en' => 'View categories', 'fr' => 'Voir les catégories'],
-            'categories.create' => ['ar' => 'إضافة تصنيف', 'en' => 'Create category', 'fr' => 'Créer une catégorie'],
-            'categories.edit' => ['ar' => 'تعديل تصنيف', 'en' => 'Edit category', 'fr' => 'Modifier une catégorie'],
-            'categories.delete' => ['ar' => 'حذف تصنيف', 'en' => 'Delete category', 'fr' => 'Supprimer une catégorie'],
             'settings.view' => ['ar' => 'عرض صفحة الإعدادات', 'en' => 'View settings page', 'fr' => 'Voir les paramètres'],
             'settings.users.view' => ['ar' => 'عرض المستخدمين', 'en' => 'View users', 'fr' => 'Voir les utilisateurs'],
             'settings.users.create' => ['ar' => 'إنشاء مستخدم', 'en' => 'Create user', 'fr' => 'Créer un utilisateur'],
@@ -843,7 +833,6 @@ class TranslationCatalog
             ['group' => 'permissions.groups', 'key' => 'reports', 'values' => ['ar' => 'التقارير', 'en' => 'Reports', 'fr' => 'Rapports']],
             ['group' => 'permissions.groups', 'key' => 'documents', 'values' => ['ar' => 'الوثائق', 'en' => 'Documents', 'fr' => 'Documents']],
             ['group' => 'permissions.groups', 'key' => 'departments', 'values' => ['ar' => 'الأقسام', 'en' => 'Departments', 'fr' => 'Départements']],
-            ['group' => 'permissions.groups', 'key' => 'categories', 'values' => ['ar' => 'التصنيفات', 'en' => 'Categories', 'fr' => 'Catégories']],
             ['group' => 'permissions.groups', 'key' => 'settings', 'values' => ['ar' => 'الإعدادات', 'en' => 'Settings', 'fr' => 'Paramètres']],
             ['group' => 'permissions.groups', 'key' => 'users_management', 'values' => ['ar' => 'إدارة المستخدمين', 'en' => 'User management', 'fr' => 'Gestion des utilisateurs']],
             ['group' => 'permissions.groups', 'key' => 'roles_management', 'values' => ['ar' => 'إدارة الأدوار', 'en' => 'Role management', 'fr' => 'Gestion des rôles']],
@@ -1021,7 +1010,6 @@ class TranslationCatalog
             ['group' => 'documents', 'key' => 'empty_action', 'values' => ['ar' => 'إنشاء معاملة ورفع مستندات', 'en' => 'Create transaction and upload documents', 'fr' => 'Créer une transaction']],
             ['group' => 'documents', 'key' => 'create_title', 'values' => ['ar' => 'إضافة وثيقة', 'en' => 'Add document', 'fr' => 'Ajouter un document']],
             ['group' => 'documents', 'key' => 'title_label', 'values' => ['ar' => 'عنوان الوثيقة', 'en' => 'Document title', 'fr' => 'Titre du document']],
-            ['group' => 'documents', 'key' => 'category', 'values' => ['ar' => 'التصنيف', 'en' => 'Category', 'fr' => 'Catégorie']],
             ['group' => 'documents', 'key' => 'date', 'values' => ['ar' => 'تاريخ الوثيقة', 'en' => 'Document date', 'fr' => 'Date du document']],
             ['group' => 'documents', 'key' => 'tags', 'values' => ['ar' => 'الوسوم', 'en' => 'Tags', 'fr' => 'Étiquettes']],
             ['group' => 'documents', 'key' => 'confidential', 'values' => ['ar' => 'سري', 'en' => 'Confidential', 'fr' => 'Confidentiel']],
@@ -1063,22 +1051,6 @@ class TranslationCatalog
             ['group' => 'departments', 'key' => 'name', 'values' => ['ar' => 'اسم القسم', 'en' => 'Department name', 'fr' => 'Nom du département']],
             ['group' => 'departments', 'key' => 'parent', 'values' => ['ar' => 'القسم الأب', 'en' => 'Parent department', 'fr' => 'Département parent']],
             ['group' => 'departments', 'key' => 'no_parent', 'values' => ['ar' => '— بدون قسم أب —', 'en' => '— No parent —', 'fr' => '— Sans parent —']],
-        ];
-    }
-
-    /** @return list<array{group: string, key: string, description?: string, values: array<string, string>}> */
-    private static function categories(): array
-    {
-        return [
-            ['group' => 'categories', 'key' => 'title', 'values' => ['ar' => 'التصنيفات', 'en' => 'Categories', 'fr' => 'Catégories']],
-            ['group' => 'categories', 'key' => 'add_button', 'values' => ['ar' => 'إضافة تصنيف', 'en' => 'Add category', 'fr' => 'Ajouter une catégorie']],
-            ['group' => 'categories', 'key' => 'parent', 'values' => ['ar' => 'التصنيف الأب', 'en' => 'Parent category', 'fr' => 'Catégorie parente']],
-            ['group' => 'categories', 'key' => 'documents_count', 'values' => ['ar' => 'عدد الوثائق', 'en' => 'Documents count', 'fr' => 'Nombre de documents']],
-            ['group' => 'categories', 'key' => 'sort_order', 'values' => ['ar' => 'ترتيب العرض', 'en' => 'Sort order', 'fr' => 'Ordre d\'affichage']],
-            ['group' => 'categories', 'key' => 'empty', 'values' => ['ar' => 'لا توجد تصنيفات.', 'en' => 'No categories.', 'fr' => 'Aucune catégorie.']],
-            ['group' => 'categories', 'key' => 'create_title', 'values' => ['ar' => 'إضافة تصنيف', 'en' => 'Add category', 'fr' => 'Ajouter une catégorie']],
-            ['group' => 'categories', 'key' => 'edit_title', 'values' => ['ar' => 'تعديل التصنيف', 'en' => 'Edit category', 'fr' => 'Modifier la catégorie']],
-            ['group' => 'categories', 'key' => 'name', 'values' => ['ar' => 'اسم التصنيف', 'en' => 'Category name', 'fr' => 'Nom de la catégorie']],
         ];
     }
 
@@ -1256,7 +1228,6 @@ class TranslationCatalog
             ['group' => 'reports', 'key' => 'export.col.file_kind', 'values' => ['ar' => 'نوع الملف', 'en' => 'File type', 'fr' => 'Type de fichier']],
             ['group' => 'reports', 'key' => 'export.col.mime', 'values' => ['ar' => 'MIME', 'en' => 'MIME', 'fr' => 'MIME']],
             ['group' => 'reports', 'key' => 'export.col.total_days', 'values' => ['ar' => 'إجمالي الأيام', 'en' => 'Total days', 'fr' => 'Total jours']],
-            ['group' => 'reports', 'key' => 'export.col.category', 'values' => ['ar' => 'التصنيف', 'en' => 'Category', 'fr' => 'Catégorie']],
             ['group' => 'reports', 'key' => 'export.col.duplicate', 'values' => ['ar' => 'مكرر', 'en' => 'Duplicate', 'fr' => 'Doublon']],
             ['group' => 'reports', 'key' => 'export.col.repetition', 'values' => ['ar' => 'التكرار', 'en' => 'Repetition', 'fr' => 'Répétition']],
             ['group' => 'reports', 'key' => 'export.col.folder', 'values' => ['ar' => 'المجلد', 'en' => 'Folder', 'fr' => 'Dossier']],

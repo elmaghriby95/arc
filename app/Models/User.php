@@ -121,7 +121,6 @@ class User extends Authenticatable
             'transactions.view' => 'transactions.index',
             'documents.view' => 'documents.index',
             'departments.view' => 'departments.index',
-            'categories.view' => 'categories.index',
             'settings.view' => 'settings.index',
             'profile.view' => 'profile.edit',
         ];
@@ -141,7 +140,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role?->slug === 'admin';
+        return $this->role?->isSuperAdmin() ?? false;
     }
 
     public function orgBreadcrumb(): ?string

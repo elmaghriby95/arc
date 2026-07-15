@@ -30,15 +30,6 @@
                                 'selected' => old('department_id', $document->department_id),
                             ])
                         </div>
-                        <div class="form-group">
-                            <x-input-label for="category_id" :value="__('documents.category')" />
-                            <select id="category_id" name="category_id" class="form-select">
-                                <option value="">—</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" @selected(old('category_id', $document->category_id) == $category->id)>{{ $category->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                     </div>
 
                     <div class="form-grid">

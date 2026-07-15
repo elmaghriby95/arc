@@ -43,9 +43,6 @@
         @permission('departments.view')
             <a href="{{ route('departments.index') }}" class="mobile-nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">{{ __('nav.departments') }}</a>
         @endpermission
-        @permission('categories.view')
-            <a href="{{ route('categories.index') }}" class="mobile-nav-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">{{ __('nav.categories') }}</a>
-        @endpermission
         @permission('settings.view')
             <a href="{{ route('settings.index') }}" class="mobile-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">{{ __('nav.settings') }}</a>
         @endpermission

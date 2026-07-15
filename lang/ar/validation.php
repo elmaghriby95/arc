@@ -35,6 +35,7 @@ return [
         'department_exists' => 'الوحدة التنظيمية المحددة غير موجودة.',
         'cannot_assign_admin' => 'لا يمكنك تعيين دور مدير النظام.',
         'cannot_demote_self' => 'لا يمكنك تغيير دورك إلى دور أقل من مدير النظام.',
+        'cannot_change_super_admin_role' => 'لا يمكن تغيير دور مدير النظام.',
     ],
 
     'attributes' => [

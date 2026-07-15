@@ -95,11 +95,12 @@ class DocumentController extends Controller
             'n' => (string) \Illuminate\Support\Str::uuid(),
         ]));
 
-        $downloadUrl = route('documents.download', [
+        $downloadUrl = route('documents.download', array_filter([
             'attachment' => $attachment,
+            'wm' => $viewWatermark['audit']->transaction_id ?? null,
             'u' => $user->id,
             'n' => (string) \Illuminate\Support\Str::uuid(),
-        ]);
+        ]));
 
         return view('documents.show', compact(
             'attachment',

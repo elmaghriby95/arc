@@ -51,7 +51,7 @@ class StoreUserRequest extends FormRequest
         $validator->after(function ($validator) {
             $role = Role::find($this->input('role_id'));
 
-            if ($role && $role->slug === 'admin' && ! $this->user()?->isAdmin()) {
+            if ($role?->isSuperAdmin() && ! $this->user()?->isAdmin()) {
                 $validator->errors()->add('role_id', __('validation.user.cannot_assign_admin'));
             }
         });

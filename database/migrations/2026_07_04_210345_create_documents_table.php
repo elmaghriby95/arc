@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('reference_number')->unique();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('department_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete();
             $table->string('file_path');

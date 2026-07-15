@@ -68,11 +68,13 @@
                     </div>
 
                     <div class="role-card-footer">
-                        @permission('settings.roles.edit')
-                            <a href="{{ route('settings.roles.edit', $role) }}" class="btn btn-secondary btn-sm">{{ __('settings.roles.edit_permissions') }}</a>
-                        @endpermission
+                        @if (! $role->isSuperAdmin())
+                            @permission('settings.roles.edit')
+                                <a href="{{ route('settings.roles.edit', $role) }}" class="btn btn-secondary btn-sm">{{ __('settings.roles.edit_permissions') }}</a>
+                            @endpermission
+                        @endif
 
-                        @if (! $role->is_system)
+                        @if (! $role->is_system && ! $role->isSuperAdmin())
                             @permission('settings.roles.delete')
                                 <form method="POST" action="{{ route('settings.roles.destroy', $role) }}" onsubmit="return confirm(@json(__('settings.roles.confirm_delete')))">
                                     @csrf

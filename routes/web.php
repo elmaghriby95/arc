@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\BrandingAssetController;
 use App\Http\Controllers\PdfJsAssetController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
@@ -100,25 +99,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('departments/{department}', [DepartmentController::class, 'destroy'])
         ->middleware('permission:departments.delete')
         ->name('departments.destroy');
-
-    Route::middleware('permission:categories.view')->group(function () {
-        Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
-    });
-
-    Route::middleware('permission:categories.create')->group(function () {
-        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
-        Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
-    });
-
-    Route::middleware('permission:categories.edit')->group(function () {
-        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
-        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-        Route::patch('categories/{category}', [CategoryController::class, 'update']);
-    });
-
-    Route::delete('categories/{category}', [CategoryController::class, 'destroy'])
-        ->middleware('permission:categories.delete')
-        ->name('categories.destroy');
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');

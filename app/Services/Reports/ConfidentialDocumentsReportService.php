@@ -53,7 +53,7 @@ class ConfidentialDocumentsReportService
             ]);
 
         $documentDetails = (clone $documentsQuery)
-            ->with(['department', 'category', 'uploader'])
+            ->with(['department', 'uploader'])
             ->orderByDesc('created_at')
             ->get()
             ->map(fn ($document) => [
@@ -61,7 +61,6 @@ class ConfidentialDocumentsReportService
                 'title' => $document->title,
                 'reference_number' => $document->reference_number ?? '—',
                 'department' => $document->department?->name ?? '—',
-                'category' => $document->category?->name ?? '—',
                 'uploader' => $document->uploader?->name ?? '—',
                 'date' => $document->document_date?->format('Y-m-d') ?? $document->created_at->format('Y-m-d'),
             ]);
@@ -75,7 +74,6 @@ class ConfidentialDocumentsReportService
                 'title' => $attachment->displayName(),
                 'reference_number' => $attachment->reference_number ?? $attachment->transaction?->reference_number ?? '—',
                 'department' => $attachment->transaction?->department?->name ?? '—',
-                'category' => $attachment->document?->category?->name ?? '—',
                 'uploader' => $attachment->uploader?->name ?? '—',
                 'date' => $attachment->created_at->format('Y-m-d'),
             ]);

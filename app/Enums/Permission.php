@@ -23,12 +23,6 @@ enum Permission: string
     case DepartmentsEdit = 'departments.edit';
     case DepartmentsDelete = 'departments.delete';
 
-    // التصنيفات
-    case CategoriesView = 'categories.view';
-    case CategoriesCreate = 'categories.create';
-    case CategoriesEdit = 'categories.edit';
-    case CategoriesDelete = 'categories.delete';
-
     // الإعدادات — عام
     case SettingsView = 'settings.view';
 
@@ -148,11 +142,6 @@ enum Permission: string
             self::DepartmentsCreate,
             self::DepartmentsEdit,
             self::DepartmentsDelete => 'departments',
-
-            self::CategoriesView,
-            self::CategoriesCreate,
-            self::CategoriesEdit,
-            self::CategoriesDelete => 'categories',
 
             self::SettingsView => 'settings',
 

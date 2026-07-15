@@ -16,8 +16,10 @@ return new class extends Migration
         });
 
         if (Schema::hasTable('audit_logs')) {
-            DB::statement('ALTER TABLE audit_logs MODIFY auditable_type VARCHAR(255) NULL');
-            DB::statement('ALTER TABLE audit_logs MODIFY auditable_id BIGINT UNSIGNED NULL');
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::statement('ALTER TABLE audit_logs MODIFY auditable_type VARCHAR(255) NULL');
+                DB::statement('ALTER TABLE audit_logs MODIFY auditable_id BIGINT UNSIGNED NULL');
+            }
 
             Schema::table('audit_logs', function (Blueprint $table) {
                 $table->index('user_id');
@@ -32,8 +34,10 @@ return new class extends Migration
                 $table->dropIndex(['user_id']);
             });
 
-            DB::statement('ALTER TABLE audit_logs MODIFY auditable_type VARCHAR(255) NOT NULL');
-            DB::statement('ALTER TABLE audit_logs MODIFY auditable_id BIGINT UNSIGNED NOT NULL');
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::statement('ALTER TABLE audit_logs MODIFY auditable_type VARCHAR(255) NOT NULL');
+                DB::statement('ALTER TABLE audit_logs MODIFY auditable_id BIGINT UNSIGNED NOT NULL');
+            }
         }
 
         Schema::table('users', function (Blueprint $table) {

@@ -48,7 +48,6 @@
                         <th>{{ __('common.title') }}</th>
                         <th>{{ __('common.reference_number') }}</th>
                         <th>{{ __('common.department') }}</th>
-                        <th>{{ __('documents.category') }}</th>
                         <th>{{ __('reports.uploader') }}</th>
                         <th>{{ __('common.date') }}</th>
                     </tr>
@@ -60,12 +59,11 @@
                             <td>{{ $row['title'] }}</td>
                             <td><code>{{ $row['reference_number'] }}</code></td>
                             <td>{{ $row['department'] }}</td>
-                            <td>{{ $row['category'] }}</td>
                             <td>{{ $row['uploader'] }}</td>
                             <td class="text-muted">{{ $row['date'] }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="table-empty">{{ __('reports.no_confidential') }}</td></tr>
+                        <tr><td colspan="6" class="table-empty">{{ __('reports.no_confidential') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

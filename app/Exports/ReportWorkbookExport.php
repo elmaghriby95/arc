@@ -337,7 +337,7 @@ class ReportWorkbookExport implements WithMultipleSheets
     {
         $rows = collect($data['details'])->map(fn ($row) => [
             $row['source'], $row['title'], $row['reference_number'], $row['department'],
-            $row['category'], $row['uploader'], $row['date'],
+            $row['uploader'], $row['date'],
         ])->all();
 
         return new self([
@@ -346,7 +346,6 @@ class ReportWorkbookExport implements WithMultipleSheets
                 __('common.title'),
                 __('reports.reference_number'),
                 __('common.department'),
-                __('reports.export.col.category'),
                 __('reports.uploader'),
                 __('common.date'),
             ], $rows),

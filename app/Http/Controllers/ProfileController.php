@@ -99,6 +99,11 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->isAdmin()) {
+            return Redirect::route('profile.edit')
+                ->withErrors(['password' => __('messages.user.cannot_delete_admin')], 'userDeletion');
+        }
+
         if ($user->avatar_path) {
             Storage::disk('public')->delete($user->avatar_path);
         }

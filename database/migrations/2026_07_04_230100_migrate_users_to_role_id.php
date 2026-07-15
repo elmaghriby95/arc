@@ -24,9 +24,6 @@ return new class extends Migration
             Permission::DepartmentsView->value,
             Permission::DepartmentsCreate->value,
             Permission::DepartmentsEdit->value,
-            Permission::CategoriesView->value,
-            Permission::CategoriesCreate->value,
-            Permission::CategoriesEdit->value,
             Permission::ProfileView->value,
             Permission::ProfileEdit->value,
         ];
@@ -37,7 +34,6 @@ return new class extends Migration
             Permission::DocumentsCreate->value,
             Permission::DocumentsDownload->value,
             Permission::DepartmentsView->value,
-            Permission::CategoriesView->value,
             Permission::ProfileView->value,
             Permission::ProfileEdit->value,
         ];
@@ -55,7 +51,7 @@ return new class extends Migration
             [
                 'name' => 'مشرف',
                 'slug' => 'manager',
-                'description' => 'إدارة الوثائق والأقسام والتصنيفات',
+                'description' => 'إدارة الوثائق والأقسام',
                 'permissions' => json_encode($managerPermissions),
                 'is_system' => true,
                 'created_at' => now(),

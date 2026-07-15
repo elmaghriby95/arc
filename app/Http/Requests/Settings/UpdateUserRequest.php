@@ -67,7 +67,11 @@ class UpdateUserRequest extends FormRequest
             $user = $this->route('user');
             $role = Role::find($this->input('role_id'));
 
-            if ($user && $user->is($this->user()) && $role && $role->slug !== 'admin') {
+            if ($user?->isAdmin() && $role && ! $role->isSuperAdmin()) {
+                $validator->errors()->add('role_id', __('validation.user.cannot_change_super_admin_role'));
+            }
+
+            if ($user && $user->is($this->user()) && $role && ! $role->isSuperAdmin()) {
                 $validator->errors()->add('role_id', __('validation.user.cannot_demote_self'));
             }
 

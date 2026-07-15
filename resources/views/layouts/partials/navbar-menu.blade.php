@@ -9,9 +9,8 @@
         || auth()->user()?->hasPermission('lending-requests.review')
         || auth()->user()?->hasPermission('lending-requests.handover');
 
-    $structureActive = request()->routeIs('departments.*', 'categories.*');
-    $hasStructureMenu = auth()->user()?->hasPermission('departments.view')
-        || auth()->user()?->hasPermission('categories.view');
+    $structureActive = request()->routeIs('departments.*');
+    $hasStructureMenu = auth()->user()?->hasPermission('departments.view');
 @endphp
 
 <a href="{{ route('dashboard') }}" class="navbar-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
@@ -101,14 +100,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
                     </span>
                     <span>{{ __('nav.departments') }}</span>
-                </a>
-            @endpermission
-            @permission('categories.view')
-                <a href="{{ route('categories.index') }}" class="navbar-nav-subitem {{ request()->routeIs('categories.*') ? 'is-active' : '' }}">
-                    <span class="navbar-nav-subitem-icon" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 0 1 0 2.828l-7 7a2 2 0 0 1-2.828 0l-7-7A2 2 0 0 1 3 12V7a4 4 0 0 1 4-4z"/></svg>
-                    </span>
-                    <span>{{ __('nav.categories') }}</span>
                 </a>
             @endpermission
         </div>

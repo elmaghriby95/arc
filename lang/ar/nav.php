@@ -11,7 +11,6 @@ return [
     'reports' => 'التقارير',
     'structure' => 'الهيكل',
     'departments' => 'الأقسام',
-    'categories' => 'التصنيفات',
     'settings' => 'الإعدادات',
     'notifications' => 'الإشعارات',
     'unread_count' => ':count غير مقروء',
