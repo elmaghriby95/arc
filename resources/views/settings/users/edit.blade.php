@@ -39,9 +39,6 @@
                             <span class="profile-meta-item">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
                                 {{ __('profile.last_login') }}: {{ $user->last_login_at->diffForHumans() }}
-                                @if ($user->last_login_ip)
-                                    <span class="profile-meta-ip">({{ $user->last_login_ip }})</span>
-                                @endif
                             </span>
                         @else
                             <span class="profile-meta-item profile-meta-item--muted">
@@ -196,11 +193,21 @@
                                     <div class="form-grid form-grid-2">
                                         <div class="form-group">
                                             <x-input-label for="role_id" :value="__('common.role')" />
-                                            <select id="role_id" name="role_id" class="form-select" required>
-                                                @foreach ($roles as $role)
-                                                    <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>{{ $role->name }}</option>
-                                                @endforeach
-                                            </select>
+                                            @if ($canAssignUserRole)
+                                                <select id="role_id" name="role_id" class="form-select" required>
+                                                    @foreach ($roles as $role)
+                                                        <option
+                                                            value="{{ $role->id }}"
+                                                            @selected(old('role_id', $user->role_id) == $role->id)
+                                                            @if ($role->slug === 'admin' && ! auth()->user()->isAdmin()) disabled @endif
+                                                        >{{ $role->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <input type="hidden" name="role_id" value="{{ $user->role_id }}">
+                                                <div class="form-readonly-value">{{ $user->role?->name ?? '—' }}</div>
+                                                <p class="form-hint">{{ __('settings.users.role_assign_permission_required') }}</p>
+                                            @endif
                                             @error('role_id')<p class="form-error">{{ $message }}</p>@enderror
                                         </div>
 

@@ -11,6 +11,8 @@ use Illuminate\Validation\Rules;
 
 class StoreUserRequest extends FormRequest
 {
+    private const DEFAULT_ROLE_SLUG = 'user';
+
     public function authorize(): bool
     {
         return $this->user()?->hasPermission(Permission::SettingsUsersCreate->value) ?? false;
@@ -55,5 +57,14 @@ class StoreUserRequest extends FormRequest
                 $validator->errors()->add('role_id', __('validation.user.cannot_assign_admin'));
             }
         });
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (! $this->user()?->hasPermission(Permission::SettingsUsersAssignRole->value)) {
+            $this->merge([
+                'role_id' => Role::where('slug', self::DEFAULT_ROLE_SLUG)->value('id'),
+            ]);
+        }
     }
 }

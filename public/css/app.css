@@ -3412,6 +3412,18 @@ textarea.form-control:focus {
     color: var(--muted);
 }
 
+.form-readonly-value {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0.72rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #f8fafc;
+    color: var(--text);
+    font-weight: 600;
+}
+
 .txn-advance-form {
     margin-top: 1rem;
     padding-top: 1rem;

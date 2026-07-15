@@ -346,7 +346,6 @@ class SystemOperationsReportService
                 notes: $audit->status === 'failure' ? $audit->failure_reason : null,
                 url: $tx ? route('transactions.show', $tx) : null,
                 meta: [
-                    'ip' => $audit->ip_address,
                     'status' => $audit->status,
                 ],
             );
@@ -475,12 +474,12 @@ class SystemOperationsReportService
                 transactionRef: null,
                 transactionTitle: null,
                 details: $this->auditChangeSummary($log),
-                notes: $log->ip_address,
+                notes: null,
                 url: null,
                 meta: [
                     'action' => $log->action,
-                    'old_values' => $log->old_values,
-                    'new_values' => $log->new_values,
+                    'old_values' => $this->withoutIpValues($log->old_values ?? []),
+                    'new_values' => $this->withoutIpValues($log->new_values ?? []),
                 ],
             );
         });
@@ -579,8 +578,8 @@ class SystemOperationsReportService
 
     private function auditChangeSummary(AuditLog $log): string
     {
-        $old = $log->old_values ?? [];
-        $new = $log->new_values ?? [];
+        $old = $this->withoutIpValues($log->old_values ?? []);
+        $new = $this->withoutIpValues($log->new_values ?? []);
         $name = $new['name'] ?? $old['name'] ?? null;
         $email = $new['email'] ?? $old['email'] ?? null;
 
@@ -624,5 +623,13 @@ class SystemOperationsReportService
 
             return $key.': '.$from.' → '.$to;
         })->implode(' · ');
+    }
+
+    /** @param array<string, mixed> $values */
+    private function withoutIpValues(array $values): array
+    {
+        unset($values['ip_address'], $values['last_login_ip']);
+
+        return $values;
     }
 }

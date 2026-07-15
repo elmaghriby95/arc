@@ -86,5 +86,11 @@ class UpdateUserRequest extends FormRequest
         if ($this->input('employee_number') === '') {
             $this->merge(['employee_number' => null]);
         }
+
+        if (! $this->user()?->hasPermission(Permission::SettingsUsersAssignRole->value)) {
+            $this->merge([
+                'role_id' => $this->route('user')?->role_id,
+            ]);
+        }
     }
 }

@@ -16,6 +16,7 @@ return [
     'settings_users_view' => 'عرض المستخدمين',
     'settings_users_create' => 'إنشاء مستخدم',
     'settings_users_edit' => 'تعديل المستخدمين',
+    'settings_users_assign-role' => 'تعيين الدرجة الوظيفية للمستخدمين',
     'settings_roles_view' => 'عرض الأدوار',
     'settings_roles_create' => 'إنشاء دور',
     'settings_roles_edit' => 'تعديل دور',

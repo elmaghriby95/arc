@@ -118,24 +118,32 @@
                     <div class="form-grid form-grid-2">
                         <div class="form-group">
                             <x-input-label for="role_id" :value="__('common.role')" />
-                            <select id="role_id" name="role_id" class="form-select" required data-role-select>
-                                <option value="" disabled @selected(! old('role_id'))>{{ __('settings.users.choose_role') }}</option>
-                                @foreach ($roles as $role)
-                                    <option
-                                        value="{{ $role->id }}"
-                                        data-slug="{{ $role->slug }}"
-                                        data-description="{{ $role->description }}"
-                                        @selected(old('role_id') == $role->id)
-                                        @if ($role->slug === 'admin' && ! auth()->user()->isAdmin()) disabled @endif
-                                    >{{ $role->name }}</option>
-                                @endforeach
-                            </select>
+                            @if ($canAssignUserRole)
+                                <select id="role_id" name="role_id" class="form-select" required data-role-select>
+                                    <option value="" disabled @selected(! old('role_id'))>{{ __('settings.users.choose_role') }}</option>
+                                    @foreach ($roles as $role)
+                                        <option
+                                            value="{{ $role->id }}"
+                                            data-slug="{{ $role->slug }}"
+                                            data-description="{{ $role->description }}"
+                                            @selected(old('role_id') == $role->id)
+                                            @if ($role->slug === 'admin' && ! auth()->user()->isAdmin()) disabled @endif
+                                        >{{ $role->name }}</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="hidden" name="role_id" value="{{ $defaultRole?->id }}">
+                                <div class="form-readonly-value">{{ $defaultRole?->name ?? __('settings.users.default_role') }}</div>
+                                <p class="form-hint">{{ __('settings.users.role_assign_permission_required') }}</p>
+                            @endif
                             @error('role_id')<p class="form-error">{{ $message }}</p>@enderror
 
-                            <div class="role-description-preview" data-role-description hidden>
-                                <span class="role-description-preview-label">{{ __('settings.users.role_description') }}</span>
-                                <span data-role-description-text></span>
-                            </div>
+                            @if ($canAssignUserRole)
+                                <div class="role-description-preview" data-role-description hidden>
+                                    <span class="role-description-preview-label">{{ __('settings.users.role_description') }}</span>
+                                    <span data-role-description-text></span>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="form-group">

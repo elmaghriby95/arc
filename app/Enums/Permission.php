@@ -30,6 +30,7 @@ enum Permission: string
     case SettingsUsersView = 'settings.users.view';
     case SettingsUsersCreate = 'settings.users.create';
     case SettingsUsersEdit = 'settings.users.edit';
+    case SettingsUsersAssignRole = 'settings.users.assign-role';
 
     // إدارة الأدوار
     case SettingsRolesView = 'settings.roles.view';
@@ -147,7 +148,8 @@ enum Permission: string
 
             self::SettingsUsersView,
             self::SettingsUsersCreate,
-            self::SettingsUsersEdit => 'users_management',
+            self::SettingsUsersEdit,
+            self::SettingsUsersAssignRole => 'users_management',
 
             self::SettingsRolesView,
             self::SettingsRolesCreate,

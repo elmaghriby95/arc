@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Enums\Permission;
 use App\Http\Requests\Settings\StoreUserRequest;
 use App\Http\Requests\Settings\UpdateUserRequest;
 use App\Models\Department;
@@ -38,7 +39,6 @@ class UserManagementController extends Controller
                             ->orWhere('name', 'like', $like)
                             ->orWhere('email', 'like', $like)
                             ->orWhere('employee_number', 'like', $like)
-                            ->orWhere('last_login_ip', 'like', $like)
                             ->orWhere('last_login_at', 'like', $like)
                             ->orWhere('created_at', 'like', $like)
                             ->orWhere('updated_at', 'like', $like)
@@ -98,6 +98,8 @@ class UserManagementController extends Controller
     {
         return view('settings.users.create', [
             'roles' => Role::orderByDesc('is_system')->orderBy('name')->get(),
+            'defaultRole' => Role::where('slug', 'user')->first(),
+            'canAssignUserRole' => auth()->user()?->hasPermission(Permission::SettingsUsersAssignRole->value) ?? false,
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),
         ]);
@@ -122,6 +124,7 @@ class UserManagementController extends Controller
         return view('settings.users.edit', [
             'user' => $user->load(['department', 'role', 'language']),
             'roles' => Role::orderByDesc('is_system')->orderBy('name')->get(),
+            'canAssignUserRole' => auth()->user()?->hasPermission(Permission::SettingsUsersAssignRole->value) ?? false,
             'languages' => Language::query()->where('is_active', true)->orderByDesc('is_default')->orderBy('name')->get(),
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),
