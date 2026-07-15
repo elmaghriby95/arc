@@ -91,7 +91,7 @@ class DashboardTest extends TestCase
             });
     }
 
-    public function test_reviewer_sees_review_card_for_direct_department_only(): void
+    public function test_reviewer_sees_review_card_by_permission_scope(): void
     {
         $department = $this->department('REV');
         $otherDepartment = $this->department('OPS');
@@ -116,10 +116,43 @@ class DashboardTest extends TestCase
 
                 return $cards->has('review')
                     && $cards->count() === 5
-                    && $cards['review']['value'] === 1
+                    && $cards['review']['value'] === 2
                     && $cards['review']['url'] === null
                     && $cards['transactions']['value'] === 2
                     && $cards['documents']['value'] === 2;
+            });
+    }
+
+    public function test_review_and_archive_cards_work_for_users_without_department(): void
+    {
+        $department = $this->department('NO-DEPT-A');
+        $otherDepartment = $this->department('NO-DEPT-B');
+        $reviewStatus = TransactionStatus::where('code', 'REVIEW')->firstOrFail();
+        $archivedStatus = TransactionStatus::where('is_final', true)->firstOrFail();
+        $role = $this->roleWith([
+            $reviewStatus->required_permission,
+            $archivedStatus->required_permission,
+        ]);
+        $user = User::factory()->create([
+            'role_id' => $role->id,
+            'department_id' => null,
+        ]);
+
+        $this->transactionWithAttachment($department, $user, $reviewStatus, 'Review without department 1');
+        $this->transactionWithAttachment($otherDepartment, $user, $reviewStatus, 'Review without department 2');
+        $this->transactionWithAttachment($otherDepartment, $user, $archivedStatus, 'Archive without department');
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response
+            ->assertOk()
+            ->assertViewHas('statCards', function (array $cards) {
+                $cards = collect($cards)->keyBy('key');
+
+                return $cards['transactions']['value'] === 0
+                    && $cards['documents']['value'] === 0
+                    && $cards['review']['value'] === 2
+                    && $cards['archived']['value'] === 1;
             });
     }
 

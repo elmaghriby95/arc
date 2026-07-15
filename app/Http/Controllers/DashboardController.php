@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use App\Models\TransactionAttachment;
 use App\Models\TransactionStatus;
 use App\Models\User;
+use App\Services\LendingScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
@@ -96,9 +97,7 @@ class DashboardController extends Controller
             $this->statCard(
                 'review',
                 __('dashboard.pending_review'),
-                $reviewStatusIds === []
-                    ? 0
-                    : (clone $transactionsQuery)->whereIn('transaction_status_id', $reviewStatusIds)->count(),
+                $this->reviewTransactionsCount($user),
                 'amber',
                 'review',
                 $user->hasPermission('transactions.view') && $reviewStatusIds !== []
@@ -108,7 +107,7 @@ class DashboardController extends Controller
             $this->statCard(
                 'archived',
                 __('dashboard.archived_transactions'),
-                (clone $transactionsQuery)->whereHas('status', fn (Builder $query) => $query->where('is_final', true))->count(),
+                $this->archivedTransactionsCount($user, $transactionsQuery),
                 'emerald',
                 'archive',
                 $user->hasPermission('transactions.view') ? route('transactions.index') : null,
@@ -133,15 +132,85 @@ class DashboardController extends Controller
     /** @return list<int> */
     private function reviewStatusIds(User $user): array
     {
+        return $this->workflowStatusesForUser($user, isFinal: false)
+            ->pluck('id')
+            ->all();
+    }
+
+    private function reviewTransactionsCount(User $user): int
+    {
+        return $this->countWorkflowScopedTransactions(
+            $user,
+            $this->workflowStatusesForUser($user, isFinal: false),
+        );
+    }
+
+    /** @param Builder<Transaction> $transactionsQuery */
+    private function archivedTransactionsCount(User $user, Builder $transactionsQuery): int
+    {
+        $permittedStatuses = $this->workflowStatusesForUser($user, isFinal: true);
+
+        if ($this->hasGlobalDashboardScope($user)) {
+            return (clone $transactionsQuery)
+                ->whereHas('status', fn (Builder $query) => $query->where('is_final', true))
+                ->count();
+        }
+
+        if ((! $user->hasPermission('transactions.view') || ! $user->department_id) && $permittedStatuses->isEmpty()) {
+            return 0;
+        }
+
+        return Transaction::query()
+            ->whereHas('status', fn (Builder $query) => $query->where('is_final', true))
+            ->where(function (Builder $query) use ($user, $permittedStatuses) {
+                if ($user->hasPermission('transactions.view') && $user->department_id) {
+                    $query->orWhere('department_id', $user->department_id);
+                }
+
+                $this->applyWorkflowStatusRules($query, $user, $permittedStatuses);
+            })
+            ->count();
+    }
+
+    private function countWorkflowScopedTransactions(User $user, $statuses): int
+    {
+        if ($statuses->isEmpty()) {
+            return 0;
+        }
+
+        return Transaction::query()
+            ->where(function (Builder $query) use ($user, $statuses) {
+                $this->applyWorkflowStatusRules($query, $user, $statuses);
+            })
+            ->count();
+    }
+
+    private function applyWorkflowStatusRules(Builder $query, User $user, $statuses): void
+    {
+        foreach ($statuses as $status) {
+            $query->orWhere(function (Builder $statusQuery) use ($user, $status) {
+                $statusQuery->where('transaction_status_id', $status->id);
+
+                if ($status->isGlobalScope()) {
+                    return;
+                }
+
+                $user->department_id
+                    ? $statusQuery->where('department_id', $user->department_id)
+                    : $statusQuery->whereRaw('0 = 1');
+            });
+        }
+    }
+
+    private function workflowStatusesForUser(User $user, bool $isFinal)
+    {
         return TransactionStatus::query()
             ->where('is_active', true)
             ->where('is_initial', false)
-            ->where('is_final', false)
+            ->where('is_final', $isFinal)
             ->whereNotNull('required_permission')
-            ->get(['id', 'required_permission'])
-            ->filter(fn (TransactionStatus $status) => $user->hasPermission($status->required_permission))
-            ->pluck('id')
-            ->all();
+            ->get(['id', 'required_permission', 'visibility_scope'])
+            ->filter(fn (TransactionStatus $status) => $user->hasPermission($status->required_permission));
     }
 
     private function canViewLendingSummary(User $user): bool
@@ -156,13 +225,15 @@ class DashboardController extends Controller
 
     private function activeLendingRequestsCount(User $user): int
     {
-        return LendingRequest::query()
+        $query = LendingRequest::query()
             ->whereIn('status', array_map(
                 fn (LendingRequestStatus $status) => $status->value,
                 LendingRequestStatus::activeCases(),
-            ))
-            ->whereHas('transaction', fn (Builder $query) => $this->applyDashboardTransactionScope($query, $user))
-            ->count();
+            ));
+
+        app(LendingScopeService::class)->applyScopeToQuery($query, $user);
+
+        return $query->count();
     }
 
     /** @param list<string> $permissions */
