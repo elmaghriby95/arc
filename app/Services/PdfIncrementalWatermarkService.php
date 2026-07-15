@@ -62,19 +62,26 @@ class PdfIncrementalWatermarkService
             $annotationRefs = [];
 
             if (! empty($context['show_center_text']) && ($context['center_lines'] ?? []) !== []) {
+                $centerLines = array_values(array_filter($context['center_lines']));
+                $centerFontSize = max(8, (int) round(((int) $context['font_size']) * ($width / 800)));
+                $centerRectWidth = $width * 0.75;
+                $centerRectHeight = max(
+                    $centerFontSize * 2.2,
+                    count($centerLines) * $centerFontSize * 1.25,
+                );
                 $annotationNumber = $nextObjectNumber++;
                 $annotationRefs[] = "{$annotationNumber} 0 R";
                 $updates[$annotationNumber] = $this->buildFreeTextAnnotationObject(
                     $annotationNumber,
-                    implode("\n", $context['center_lines']),
+                    implode("\n", $centerLines),
                     [
-                        $box[0] + ($width * 0.08),
-                        $box[1] + ($height * 0.28),
-                        $box[2] - ($width * 0.08),
-                        $box[1] + ($height * 0.72),
+                        $box[0] + (($width - $centerRectWidth) / 2),
+                        $box[1] + (($height - $centerRectHeight) / 2),
+                        $box[0] + (($width + $centerRectWidth) / 2),
+                        $box[1] + (($height + $centerRectHeight) / 2),
                     ],
                     (float) $context['opacity'],
-                    max(8, (int) $context['font_size']),
+                    $centerFontSize,
                     (int) $context['angle'],
                     true,
                 );
