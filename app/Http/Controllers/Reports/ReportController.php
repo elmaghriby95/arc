@@ -75,12 +75,14 @@ class ReportController extends Controller
         $dompdfInstance = $domPdf->getDomPDF();
         $fontFamily = $pdfFonts->familyForPdf($dompdfInstance);
 
+        $displayNow = now()->timezone(config('app.display_timezone', config('app.timezone', 'UTC')));
+
         $viewData = [
             'reportType' => $reportType,
             'filter' => $filter,
             'data' => $data,
             'filterSummary' => $scope->filterSummary($filter),
-            'generatedAt' => now()->format('Y-m-d H:i'),
+            'generatedAt' => $displayNow->format('Y-m-d H:i'),
             'generatedBy' => $user->name,
             'pdfFontFamily' => $fontFamily,
         ];
@@ -94,7 +96,7 @@ class ReportController extends Controller
             ->loadHTML($html)
             ->setPaper('a4', 'landscape');
 
-        $filename = $reportType->value.'-'.now()->format('Y-m-d').'.pdf';
+        $filename = $reportType->value.'-'.$displayNow->format('Y-m-d').'.pdf';
 
         return $pdf->download($filename);
     }

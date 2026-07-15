@@ -502,7 +502,7 @@ class SystemOperationsReportService
         ?string $url = null,
         array $meta = [],
     ): array {
-        $at = $occurredAt ?? now();
+        $at = ($occurredAt ?? now())->copy()->timezone($this->displayTimezone());
 
         return [
             'event_type' => $type,
@@ -522,6 +522,11 @@ class SystemOperationsReportService
             'url' => $url,
             'meta' => $meta,
         ];
+    }
+
+    private function displayTimezone(): string
+    {
+        return (string) config('app.display_timezone', config('app.timezone', 'UTC'));
     }
 
     /** @param Collection<int, array<string, mixed>> $events */
