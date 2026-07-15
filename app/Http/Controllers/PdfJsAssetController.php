@@ -11,7 +11,6 @@ class PdfJsAssetController extends Controller
         $map = [
             'pdf.min.js' => 'pdfjs/pdf.min.js',
             'pdf.worker.min.js' => 'pdfjs/pdf.worker.min.js',
-            'pdf-lib.min.js' => 'pdf-lib/pdf-lib.min.js',
         ];
 
         abort_unless(isset($map[$file]), 404);

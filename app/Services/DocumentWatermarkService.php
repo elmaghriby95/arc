@@ -17,6 +17,10 @@ use Throwable;
 
 class DocumentWatermarkService
 {
+    public function __construct(
+        private readonly PdfIncrementalWatermarkService $pdfIncrementalWatermarkService,
+    ) {}
+
     public function settings(): WatermarkSetting
     {
         return WatermarkSetting::instance();
@@ -74,10 +78,49 @@ class DocumentWatermarkService
         }
 
         return match ($kind) {
-            'pdf' => $this->watermarkPdf($absoluteSource, $context, $dir),
+            'pdf' => $this->watermarkPdfIncremental($absoluteSource, $context, $dir),
             'image' => $this->watermarkImage($absoluteSource, $attachment->effectiveMimeType(), $context, $dir),
             default => throw new RuntimeException('Burn-in watermarking is only supported for PDF and image files.'),
         };
+    }
+
+    /**
+     * @param  array{
+     *     center_lines: list<string>,
+     *     footer: string,
+     *     qr_payload: string|null,
+     *     opacity: float,
+     *     font_size: int,
+     *     angle: int,
+     *     show_center_text: bool,
+     *     show_footer: bool,
+     *     show_qr_code: bool
+     * }  $context
+     * @return array{path: string, mime: string, extension: string}
+     */
+    private function watermarkPdfIncremental(string $sourcePath, array $context, string $dir): array
+    {
+        $output = $dir.DIRECTORY_SEPARATOR.Str::uuid().'.pdf';
+
+        try {
+            $this->pdfIncrementalWatermarkService->watermark($sourcePath, $context, $output);
+        } catch (Throwable $e) {
+            if (is_file($output)) {
+                @unlink($output);
+            }
+
+            throw $e;
+        }
+
+        if (! is_file($output) || filesize($output) === 0) {
+            throw new RuntimeException('Incremental watermarked PDF was not written.');
+        }
+
+        return [
+            'path' => $output,
+            'mime' => 'application/pdf',
+            'extension' => 'pdf',
+        ];
     }
 
     /**

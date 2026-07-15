@@ -127,20 +127,6 @@ class DocumentAccessService
         $audit = $this->auditService->createPending($user, $attachment, 'download', $request);
 
         if ($wantsWatermark) {
-            // PDF: never rebuild — scanned files explode in size (10MB→38MB) and time out.
-            // Deliver original instantly; watermark policy is enforced on view/print + full audit trail.
-            if ($kind === 'pdf') {
-                $this->auditService->markSuccess($audit, false);
-
-                return $this->streamOriginal(
-                    $absolute,
-                    $mime,
-                    $downloadName,
-                    $disposition,
-                    $audit->transaction_id,
-                );
-            }
-
             if (! $canBurnIn) {
                 $this->auditService->markFailure($audit, 'Watermark burn-in not supported for this file type.');
 
@@ -149,7 +135,7 @@ class DocumentAccessService
                     ->with('error', __('messages.watermark.unsupported_type'));
             }
 
-            // Images: GD burn-in is size-safe and fast enough.
+            // PDFs use incremental append; images use GD. Neither path depends on public assets.
             try {
                 $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $audit);
             } catch (Throwable $first) {
