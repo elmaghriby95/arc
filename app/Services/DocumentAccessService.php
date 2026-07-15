@@ -243,7 +243,7 @@ class DocumentAccessService
         $token = (string) $request->query('wm', '');
 
         if ($token === '') {
-            return $downloadAudit;
+            return $this->asViewWatermarkAudit($downloadAudit);
         }
 
         $viewAudit = DocumentAccessAudit::query()
@@ -253,7 +253,24 @@ class DocumentAccessService
             ->where('action_type', 'view')
             ->first();
 
-        return $viewAudit ?: $downloadAudit;
+        return $this->asViewWatermarkAudit($viewAudit ?: $downloadAudit);
+    }
+
+    private function asViewWatermarkAudit(DocumentAccessAudit $audit): DocumentAccessAudit
+    {
+        return new DocumentAccessAudit([
+            'transaction_id' => $audit->transaction_id,
+            'user_id' => $audit->user_id,
+            'attachment_id' => $audit->attachment_id,
+            'document_version' => $audit->document_version,
+            'action_type' => 'view',
+            'ip_address' => $audit->ip_address,
+            'user_agent' => $audit->user_agent,
+            'session_id' => $audit->session_id,
+            'status' => $audit->status,
+            'watermark_applied' => $audit->watermark_applied,
+            'created_at' => $audit->created_at,
+        ]);
     }
 
     private function streamOriginal(
