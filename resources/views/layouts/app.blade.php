@@ -8,26 +8,9 @@
     @if ($systemSettings->hasFavicon())
         <link rel="icon" href="{{ $systemSettings->faviconUrl() }}">
     @endif
-    @php
-        $appCssPath = public_path('css/app.css');
-        $cairoFontPath = public_path('fonts/cairo/cairo-arabic-400.woff2');
-    @endphp
-    @if (is_readable($cairoFontPath))
-        <style>
-            @font-face {
-                font-family: 'Cairo';
-                font-style: normal;
-                font-weight: 400;
-                font-display: swap;
-                src: url('data:font/woff2;base64,{{ base64_encode(file_get_contents($cairoFontPath)) }}') format('woff2');
-            }
-        </style>
-    @endif
-    @if (is_readable($appCssPath))
-        <style>{!! file_get_contents($appCssPath) !!}</style>
-    @else
-        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    @endif
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=cairo:400,500,600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     <x-inline-css file="navbar.css" />
     <x-inline-css file="notifications.css" />
     @stack('styles')

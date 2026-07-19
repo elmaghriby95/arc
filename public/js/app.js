@@ -3,30 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const navbarToggle = document.querySelector('[data-navbar-toggle]');
     const navbarBackdrop = document.querySelector('[data-navbar-backdrop]');
 
-    document.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
-        const toggle = dropdown.querySelector('[data-dropdown-toggle]');
-
-        toggle?.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const willOpen = !dropdown.classList.contains('is-open');
-
-            document.querySelectorAll('[data-dropdown].is-open').forEach((other) => {
-                other.classList.remove('is-open');
-                other.querySelector('[data-dropdown-toggle]')?.setAttribute('aria-expanded', 'false');
-            });
-
-            dropdown.classList.toggle('is-open', willOpen);
-            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-        });
-    });
-
-    document.addEventListener('click', () => {
-        document.querySelectorAll('[data-dropdown].is-open').forEach((dropdown) => {
-            dropdown.classList.remove('is-open');
-            dropdown.querySelector('[data-dropdown-toggle]')?.setAttribute('aria-expanded', 'false');
-        });
-    });
-
     const closeMobileMenu = () => {
         navbarMenu?.classList.remove('is-open');
         navbarToggle?.classList.remove('is-active');
