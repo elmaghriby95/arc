@@ -21,11 +21,10 @@ class UserRoleAssignmentPermissionTest extends TestCase
         URL::forceRootUrl('http://localhost');
     }
 
-    public function test_user_creation_always_uses_default_role(): void
+    public function test_user_creation_uses_selected_role(): void
     {
         $actor = $this->userWithPermissions(['settings.users.create']);
         $managerRole = Role::where('slug', 'manager')->firstOrFail();
-        $defaultRole = Role::where('slug', 'user')->firstOrFail();
 
         $response = $this->actingAs($actor)->post('/settings/users', [
             'name' => 'Created Employee',
@@ -41,10 +40,10 @@ class UserRoleAssignmentPermissionTest extends TestCase
 
         $created = User::where('email', 'created.employee@example.com')->firstOrFail();
 
-        $this->assertSame($defaultRole->id, $created->role_id);
+        $this->assertSame($managerRole->id, $created->role_id);
     }
 
-    public function test_user_editing_keeps_current_role(): void
+    public function test_user_editing_updates_selected_role(): void
     {
         $actor = $this->userWithPermissions(['settings.users.edit']);
         $defaultRole = Role::where('slug', 'user')->firstOrFail();
@@ -65,10 +64,10 @@ class UserRoleAssignmentPermissionTest extends TestCase
 
         $response->assertRedirect("/settings/users/{$target->id}/edit");
 
-        $this->assertSame($defaultRole->id, $target->refresh()->role_id);
+        $this->assertSame($managerRole->id, $target->refresh()->role_id);
     }
 
-    public function test_role_select_is_not_rendered_on_user_forms(): void
+    public function test_role_select_is_rendered_on_user_forms(): void
     {
         $actor = $this->userWithPermissions(['settings.users.create', 'settings.users.edit']);
         $defaultRole = Role::where('slug', 'user')->firstOrFail();
@@ -82,11 +81,11 @@ class UserRoleAssignmentPermissionTest extends TestCase
 
         $createResponse
             ->assertOk()
-            ->assertDontSee('id="role_id"', false);
+            ->assertSee('id="role_id"', false);
 
         $editResponse
             ->assertOk()
-            ->assertDontSee('id="role_id"', false);
+            ->assertSee('id="role_id"', false);
     }
 
     /** @param list<string> $permissions */

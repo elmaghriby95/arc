@@ -315,40 +315,5 @@
             </a>
             @endpermission
         </div>
-
-        @if ($recentUsers->isNotEmpty())
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">{{ __('settings.recent_users') }}</h3>
-                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.view_all') }}</a>
-                </div>
-                <div class="card-body">
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('common.name') }}</th>
-                                    <th>{{ __('common.email') }}</th>
-                                    <th>{{ __('common.department') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($recentUsers as $user)
-                                    <tr>
-                                        <td>
-                                            <div class="user-cell">
-                                                {{ $user->name }}
-                                            </div>
-                                        </td>
-                                        <td>{{ $user->email }}</td>
-                                        <td>{{ $user->department?->name ?? '—' }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
     </div>
 </x-app-layout>

@@ -29,7 +29,7 @@
                             </div>
                             <div class="form-group">
                                 <x-input-label for="due_date-{{ $transaction->id }}" :value="__('lending_requests.due_date')" />
-                                <x-text-input id="due_date-{{ $transaction->id }}" name="due_date" type="date" :value="old('transaction_id') == $transaction->id ? old('due_date') : ''" />
+                                <x-text-input id="due_date-{{ $transaction->id }}" name="due_date" type="date" :value="old('transaction_id') == $transaction->id ? old('due_date') : ''" required />
                                 <x-input-error :messages="$errors->get('due_date')" />
                             </div>
                         </div>

@@ -87,10 +87,14 @@ class UserManagementController extends Controller
         return $matches;
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         return view('settings.users.create', [
-            'defaultRole' => Role::where('slug', 'user')->first(),
+            'roles' => Role::query()
+                ->when(! $request->user()?->isAdmin(), fn ($query) => $query->where('slug', '!=', Role::SUPER_ADMIN_SLUG))
+                ->orderByDesc('is_system')
+                ->orderBy('name')
+                ->get(),
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),
         ]);
@@ -110,10 +114,21 @@ class UserManagementController extends Controller
             ->with('success', __('messages.user.created'));
     }
 
-    public function edit(User $user, UserActivityFeed $activityFeed): View
+    public function edit(Request $request, User $user, UserActivityFeed $activityFeed): View
     {
         return view('settings.users.edit', [
             'user' => $user->load(['department', 'role', 'language']),
+            'roles' => Role::query()
+                ->when(! $request->user()?->isAdmin(), function ($query) use ($user) {
+                    $query->where(function ($roleQuery) use ($user) {
+                        $roleQuery
+                            ->where('slug', '!=', Role::SUPER_ADMIN_SLUG)
+                            ->orWhere('id', $user->role_id);
+                    });
+                })
+                ->orderByDesc('is_system')
+                ->orderBy('name')
+                ->get(),
             'languages' => Language::query()->where('is_active', true)->orderByDesc('is_default')->orderBy('name')->get(),
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),

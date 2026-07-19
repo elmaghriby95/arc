@@ -102,7 +102,7 @@ class LendingRequestController extends Controller
         $validated = $request->validate([
             'transaction_id' => ['required', 'exists:transactions,id'],
             'purpose' => ['nullable', 'string', 'max:1000'],
-            'due_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'due_date' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
         $transaction = \App\Models\Transaction::query()->findOrFail($validated['transaction_id']);
@@ -115,7 +115,7 @@ class LendingRequestController extends Controller
             $request->user(),
             $transaction,
             $validated['purpose'] ?? null,
-            $validated['due_date'] ?? null,
+            $validated['due_date'],
         );
 
         if (! $lendingRequest) {

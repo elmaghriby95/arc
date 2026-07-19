@@ -87,6 +87,10 @@
                                 <dd>{{ $user->employee_number ?: '—' }}</dd>
                             </div>
                             <div class="profile-info-item">
+                                <dt>{{ __('common.role') }}</dt>
+                                <dd><span class="role-pill role-pill--{{ $user->roleSlug() }}">{{ $user->role?->name ?? '—' }}</span></dd>
+                            </div>
+                            <div class="profile-info-item">
                                 <dt>{{ __('profile.department') }}</dt>
                                 <dd>
                                     @if ($orgBreadcrumb)
@@ -125,12 +129,11 @@
                 <form id="user-update-form" method="POST" action="{{ route('settings.users.update', $user) }}">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="role_id" value="{{ $user->role_id }}">
 
                     <div class="profile-tabs" data-profile-tabs>
                         <div class="profile-tabs-nav">
                             <button type="button" class="profile-tab-btn is-active" data-tab="info">{{ __('settings.users.tab.info') }}</button>
-                            <button type="button" class="profile-tab-btn" data-tab="organization">{{ __('settings.users.org_location') }}</button>
+                            <button type="button" class="profile-tab-btn" data-tab="organization">{{ __('settings.users.role_org_title') }}</button>
                             <button type="button" class="profile-tab-btn" data-tab="password">{{ __('settings.users.tab.password') }}</button>
                         </div>
 
@@ -182,11 +185,23 @@
                             <div class="card">
                                 <div class="card-body">
                                     <header class="profile-form-header">
-                                        <h2 class="card-title">{{ __('settings.users.org_location') }}</h2>
-                                        <p class="text-muted">{{ __('settings.users.org_location_desc') }}</p>
+                                        <h2 class="card-title">{{ __('settings.users.role_org_title') }}</h2>
+                                        <p class="text-muted">{{ __('settings.users.role_org_desc') }}</p>
                                     </header>
 
-                                    <div class="form-grid">
+                                    <div class="form-grid form-grid-2">
+                                        <div class="form-group">
+                                            <x-input-label for="role_id" :value="__('common.role')" />
+                                            <select id="role_id" name="role_id" class="form-select" required>
+                                                @foreach ($roles as $role)
+                                                    <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>
+                                                        {{ $role->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('role_id')<p class="form-error">{{ $message }}</p>@enderror
+                                        </div>
+
                                         <div class="form-group">
                                             <x-input-label for="department_id" :value="__('settings.users.org_location')" />
                                             @include('settings.partials.org-unit-select', [

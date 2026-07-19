@@ -71,11 +71,21 @@ class UpdateUserRequest extends FormRequest
                 $validator->errors()->add('role_id', __('validation.user.cannot_change_super_admin_role'));
             }
 
-            if ($user && $user->is($this->user()) && $role && ! $role->isSuperAdmin()) {
+            if (
+                $user
+                && $user->is($this->user())
+                && $role
+                && (int) $role->id !== (int) $user->role_id
+            ) {
                 $validator->errors()->add('role_id', __('validation.user.cannot_demote_self'));
             }
 
-            if ($role && $role->slug === 'admin' && ! $this->user()?->isAdmin()) {
+            if (
+                $role
+                && $role->isSuperAdmin()
+                && ! $this->user()?->isAdmin()
+                && (int) $role->id !== (int) $user?->role_id
+            ) {
                 $validator->errors()->add('role_id', __('validation.user.cannot_assign_admin'));
             }
         });
@@ -87,18 +97,5 @@ class UpdateUserRequest extends FormRequest
             $this->merge(['employee_number' => null]);
         }
 
-        $target = $this->route('user');
-
-        if (
-            $target?->isAdmin()
-            && $this->filled('role_id')
-            && (int) $this->input('role_id') !== (int) $target->role_id
-        ) {
-            return;
-        }
-
-        $this->merge([
-            'role_id' => $target?->role_id,
-        ]);
     }
 }
