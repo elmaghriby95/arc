@@ -526,7 +526,7 @@ class SystemOperationsReportService
 
     private function displayTimezone(): string
     {
-        return (string) config('app.display_timezone', config('app.timezone', 'UTC'));
+        return (string) config('app.display_timezone', config('app.timezone', 'Africa/Tripoli'));
     }
 
     /** @param Collection<int, array<string, mixed>> $events */

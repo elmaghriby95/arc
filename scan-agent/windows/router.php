@@ -20,12 +20,18 @@ final class ScanAgentRouter
         $raw = getenv('SCAN_ALLOWED_ORIGINS') ?: '';
         $origins = array_values(array_filter(array_map('trim', explode(',', $raw))));
 
-        $this->allowedOrigins = $origins !== [] ? $origins : [
+        $defaults = [
             'http://localhost',
             'http://127.0.0.1',
             'https://localhost',
             'https://127.0.0.1',
+            'http://192.168.5.17',
+            'https://192.168.5.17',
+            'http://arch.hqnet.ly',
+            'https://arch.hqnet.ly',
         ];
+
+        $this->allowedOrigins = array_values(array_unique(array_merge($origins, $defaults)));
     }
 
     private function loadEnvFile(): void

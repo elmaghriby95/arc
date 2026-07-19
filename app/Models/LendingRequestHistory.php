@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LendingRequestHistory extends Model
 {
-    public $timestamps = false;
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'lending_request_id',

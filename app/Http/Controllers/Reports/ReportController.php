@@ -75,7 +75,7 @@ class ReportController extends Controller
         $dompdfInstance = $domPdf->getDomPDF();
         $fontFamily = $pdfFonts->familyForPdf($dompdfInstance);
 
-        $displayNow = now()->timezone(config('app.display_timezone', config('app.timezone', 'UTC')));
+        $displayNow = now()->timezone(config('app.display_timezone', config('app.timezone', 'Africa/Tripoli')));
 
         $viewData = [
             'reportType' => $reportType,

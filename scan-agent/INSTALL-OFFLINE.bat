@@ -29,7 +29,7 @@ if not exist "%~dp0agent.env" (
     if exist "%~dp0agent.env.example" (
         copy /Y "%~dp0agent.env.example" "%~dp0agent.env" >nul
     ) else (
-        echo SCAN_ALLOWED_ORIGINS=https://arc.fwit.ly> "%~dp0agent.env"
+        echo SCAN_ALLOWED_ORIGINS=http://192.168.5.17,https://arch.hqnet.ly> "%~dp0agent.env"
     )
 )
 

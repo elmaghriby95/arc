@@ -76,16 +76,18 @@ def subprocess_kwargs() -> dict[str, int]:
 def allowed_origins() -> list[str]:
     raw = os.environ.get("SCAN_ALLOWED_ORIGINS", "")
     origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
-
-    if origins:
-        return origins
-
-    return [
+    defaults = [
         "http://localhost",
         "http://127.0.0.1",
         "https://localhost",
         "https://127.0.0.1",
+        "http://192.168.5.17",
+        "https://192.168.5.17",
+        "http://arch.hqnet.ly",
+        "https://arch.hqnet.ly",
     ]
+
+    return list(dict.fromkeys(origins + defaults))
 
 
 def origin_allowed(origin: str) -> bool:

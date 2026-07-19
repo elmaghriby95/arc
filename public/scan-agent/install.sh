@@ -2,8 +2,9 @@
 # ARC Scan Agent — one-command employee setup (Ubuntu)
 set -euo pipefail
 
-ARC_URL="https://arc.fwit.ly"
-SOURCE_BASE="${ARC_SCAN_SOURCE:-https://arc.fwit.ly/scan-agent}"
+ARC_URL="https://arch.hqnet.ly"
+ALLOWED_ORIGINS="http://192.168.5.17,https://arch.hqnet.ly"
+SOURCE_BASE="${ARC_SCAN_SOURCE:-https://arch.hqnet.ly/scan-agent}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/arc-scan-agent}"
 SERVICE_USER="${SUDO_USER:-$USER}"
 
@@ -44,7 +45,7 @@ echo "==> تثبيت الوكيل..."
 sudo mkdir -p "${INSTALL_DIR}"
 sudo cp "${SCRIPT_DIR}/agent.py" "${INSTALL_DIR}/agent.py"
 sudo cp "${SCRIPT_DIR}/requirements.txt" "${INSTALL_DIR}/requirements.txt"
-echo "SCAN_ALLOWED_ORIGINS=${ARC_URL}" | sudo tee "${INSTALL_DIR}/agent.env" > /dev/null
+echo "SCAN_ALLOWED_ORIGINS=${ALLOWED_ORIGINS}" | sudo tee "${INSTALL_DIR}/agent.env" > /dev/null
 
 if [[ ! -d "${INSTALL_DIR}/venv" ]]; then
     sudo python3 -m venv "${INSTALL_DIR}/venv"
@@ -65,7 +66,7 @@ RestartSec=3
 Environment=SCAN_AGENT_HOST=127.0.0.1
 Environment=SCAN_AGENT_PORT=8765
 Environment=SCAN_DEFAULT_RESOLUTION=120
-Environment=SCAN_ALLOWED_ORIGINS=${ARC_URL}
+Environment=SCAN_ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
 
 [Install]
 WantedBy=default.target

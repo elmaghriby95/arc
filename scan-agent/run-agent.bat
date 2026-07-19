@@ -39,7 +39,7 @@ if not exist "%~dp0agent.env" (
     if exist "%~dp0agent.env.example" (
         copy /Y "%~dp0agent.env.example" "%~dp0agent.env" >nul
     ) else (
-        echo SCAN_ALLOWED_ORIGINS=https://arc.fwit.ly> "%~dp0agent.env"
+        echo SCAN_ALLOWED_ORIGINS=http://192.168.5.17,https://arch.hqnet.ly> "%~dp0agent.env"
     )
 )
 
@@ -50,7 +50,7 @@ echo   http://127.0.0.1:8765
 echo ========================================
 echo.
 echo Keep this window OPEN.
-echo Then open: https://arc.fwit.ly
+echo Then open: https://arch.hqnet.ly or http://192.168.5.17
 echo Press Ctrl+C to stop.
 echo.
 

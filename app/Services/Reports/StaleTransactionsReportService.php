@@ -15,18 +15,20 @@ class StaleTransactionsReportService
     public function generate(ReportFilter $filter): array
     {
         $staleDays = $filter->staleDays;
+        $today = today()->toDateString();
         $baseQuery = $this->scope->applyTransactionFilters($this->scope->transactionsQuery(), $filter);
 
         $items = (clone $baseQuery)
             ->join('transaction_statuses', 'transaction_statuses.id', '=', 'transactions.transaction_status_id')
             ->where('transaction_statuses.is_final', false)
             ->whereRaw(
-                'DATEDIFF(CURDATE(), COALESCE((SELECT MAX(h.created_at) FROM transaction_status_histories h WHERE h.transaction_id = transactions.id), transactions.created_at)) >= ?',
-                [$staleDays]
+                'DATEDIFF(?, COALESCE((SELECT MAX(h.created_at) FROM transaction_status_histories h WHERE h.transaction_id = transactions.id), transactions.created_at)) >= ?',
+                [$today, $staleDays]
             )
             ->select('transactions.*')
             ->selectRaw(
-                'DATEDIFF(CURDATE(), COALESCE((SELECT MAX(h.created_at) FROM transaction_status_histories h WHERE h.transaction_id = transactions.id), transactions.created_at)) as days_stale'
+                'DATEDIFF(?, COALESCE((SELECT MAX(h.created_at) FROM transaction_status_histories h WHERE h.transaction_id = transactions.id), transactions.created_at)) as days_stale',
+                [$today]
             )
             ->orderByDesc('days_stale')
             ->with(['department', 'transactionType', 'status', 'creator'])

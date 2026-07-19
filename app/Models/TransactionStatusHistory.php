@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TransactionStatusHistory extends Model
 {
-    public $timestamps = false;
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'transaction_id',

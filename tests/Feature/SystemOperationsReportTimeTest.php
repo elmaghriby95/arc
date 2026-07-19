@@ -16,11 +16,11 @@ class SystemOperationsReportTimeTest extends TestCase
 
     public function test_system_operations_report_displays_events_in_display_timezone(): void
     {
-        config()->set('app.timezone', 'UTC');
-        config()->set('app.display_timezone', '+02:00');
+        config()->set('app.timezone', 'Africa/Tripoli');
+        config()->set('app.display_timezone', 'Africa/Tripoli');
 
         $actor = User::factory()->create();
-        $eventTime = Carbon::parse('2026-07-15 10:00:00', 'UTC');
+        $eventTime = Carbon::parse('2026-07-15 12:00:00', 'Africa/Tripoli');
 
         $log = AuditLog::create([
             'user_id' => $actor->id,

@@ -1,6 +1,7 @@
 (() => {
     const DEFAULT_URL = 'http://127.0.0.1:8765';
     const SCAN_TIMEOUT_MS = 600000;
+    const TRIPOLI_TIMEZONE = 'Africa/Tripoli';
 
     const resolveAgentUrl = (element) => {
         const host = element?.closest('[data-scan-agent-url]') ?? document.querySelector('[data-scan-agent-url]');
@@ -27,7 +28,20 @@
     };
 
     const scanFileName = (prefix = 'scan', mimeType = 'application/pdf') => {
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        const dateParts = Object.fromEntries(
+            new Intl.DateTimeFormat('en', {
+                timeZone: TRIPOLI_TIMEZONE,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hourCycle: 'h23',
+            }).formatToParts(new Date()).map(({ type, value }) => [type, value]),
+        );
+        const timestamp = `${dateParts.year}-${dateParts.month}-${dateParts.day}`
+            + `-${dateParts.hour}-${dateParts.minute}-${dateParts.second}`;
         const extension = mimeType.includes('jpeg') || mimeType.includes('jpg')
             ? 'jpg'
             : mimeType.includes('png')
@@ -53,7 +67,7 @@
                 'تعذّر الاتصال بـ ARC Scan Agent على جهازك.\n\n'
                 + '• Windows: double-click scan-agent/START.bat\n'
                 + '• First run installs Python automatically (needs internet)\n'
-                + '• Ubuntu: curl -fsSL https://arc.fwit.ly/scan-agent/install.sh | bash\n'
+                + '• Ubuntu: curl -fsSL https://arch.hqnet.ly/scan-agent/install.sh | bash\n'
                 + '• ثم: curl http://127.0.0.1:8765/health',
             );
         }
