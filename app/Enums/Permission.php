@@ -17,6 +17,7 @@ enum Permission: string
     case DocumentsEdit = 'documents.edit';
     case DocumentsDelete = 'documents.delete';
     case DocumentsDownload = 'documents.download';
+    case DocumentsPrint = 'documents.print';
 
     // الأقسام
     case DepartmentsView = 'departments.view';
@@ -139,6 +140,7 @@ enum Permission: string
             self::DocumentsEdit,
             self::DocumentsDelete,
             self::DocumentsDownload,
+            self::DocumentsPrint,
             self::DocumentsReferenceNumberDuplicateOverride => 'documents',
 
             self::DepartmentsView,

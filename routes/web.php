@@ -77,11 +77,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:documents.view')
         ->name('documents.index');
 
+    Route::get('documents/{attachment}/print', [DocumentController::class, 'print'])
+        ->middleware('permission:documents.print')
+        ->name('documents.print');
+
+    Route::get('documents/{attachment}/print-file', [DocumentController::class, 'printFile'])
+        ->middleware('permission:documents.print')
+        ->name('documents.print.file');
+
     // Lending reviewers/handover actors may open attachment preview while handling a request.
     Route::middleware('permission:documents.view,lending-requests.review,lending-requests.handover')->group(function () {
         Route::get('documents/{attachment}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
-        Route::get('documents/{attachment}/print', [DocumentController::class, 'print'])->name('documents.print');
-        Route::get('documents/{attachment}/print-file', [DocumentController::class, 'printFile'])->name('documents.print.file');
         Route::get('documents/{attachment}', [DocumentController::class, 'show'])->name('documents.show');
     });
 

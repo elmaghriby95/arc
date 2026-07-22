@@ -9,6 +9,7 @@ return [
     'documents_edit' => 'تعديل وثيقة',
     'documents_delete' => 'حذف وثيقة',
     'documents_download' => 'تحميل وثيقة',
+    'documents_print' => 'طباعة وثيقة',
     'departments_view' => 'عرض الأقسام',
     'departments_create' => 'إضافة قسم',
     'departments_edit' => 'تعديل قسم',

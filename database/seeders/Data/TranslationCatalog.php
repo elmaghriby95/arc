@@ -782,6 +782,7 @@ class TranslationCatalog
             'documents.edit' => ['ar' => 'تعديل وثيقة', 'en' => 'Edit document', 'fr' => 'Modifier un document'],
             'documents.delete' => ['ar' => 'حذف وثيقة', 'en' => 'Delete document', 'fr' => 'Supprimer un document'],
             'documents.download' => ['ar' => 'تحميل وثيقة', 'en' => 'Download document', 'fr' => 'Télécharger un document'],
+            'documents.print' => ['ar' => 'طباعة وثيقة', 'en' => 'Print document', 'fr' => 'Imprimer un document'],
             'departments.view' => ['ar' => 'عرض الأقسام', 'en' => 'View departments', 'fr' => 'Voir les départements'],
             'departments.create' => ['ar' => 'إضافة قسم', 'en' => 'Create department', 'fr' => 'Créer un département'],
             'departments.edit' => ['ar' => 'تعديل قسم', 'en' => 'Edit department', 'fr' => 'Modifier un département'],

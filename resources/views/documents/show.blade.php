@@ -24,9 +24,11 @@
                         class="btn btn-secondary"
                     >{{ __('common.download') }}</a>
                 @endpermission
-                @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
-                    <a href="{{ route('documents.print', $attachment) }}" target="_blank" rel="noopener" class="btn btn-secondary">{{ __('documents.print') }}</a>
-                @endif
+                @permission('documents.print')
+                    @if ($attachment->fileExists() && ($attachment->isImage() || $attachment->fileKind() === 'pdf'))
+                        <a href="{{ route('documents.print', $attachment) }}" target="_blank" rel="noopener" class="btn btn-secondary">{{ __('documents.print') }}</a>
+                    @endif
+                @endpermission
                 @permission('transactions.view')
                     <a href="{{ route('transactions.show', $attachment->transaction) }}" class="btn btn-primary">{{ __('documents.view_transaction') }}</a>
                 @endpermission
