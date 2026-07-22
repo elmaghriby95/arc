@@ -192,7 +192,6 @@
 }
 
 .reports-stale-badge,
-.reports-confidential-badge,
 .reports-duplicate-badge {
     display: inline-flex;
     padding: 0.2rem 0.6rem;
@@ -202,7 +201,6 @@
 }
 
 .reports-stale-badge { background: #fef3c7; color: #b45309; }
-.reports-confidential-badge { background: #fee2e2; color: #b91c1c; }
 .reports-duplicate-badge { background: #ffedd5; color: #c2410c; }
 
 .reports-split-grid {

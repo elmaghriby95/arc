@@ -24,18 +24,18 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
-# Large document uploads (transaction attachments up to 20 MB)
+# Large document uploads (transaction attachments up to 400 MB)
 <IfModule mod_php.c>
-    php_value upload_max_filesize 64M
-    php_value post_max_size 70M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-    php_value memory_limit 256M
+    php_value upload_max_filesize 400M
+    php_value post_max_size 420M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    php_value memory_limit 512M
 </IfModule>
 <IfModule php_module>
-    php_value upload_max_filesize 64M
-    php_value post_max_size 70M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-    php_value memory_limit 256M
+    php_value upload_max_filesize 400M
+    php_value post_max_size 420M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    php_value memory_limit 512M
 </IfModule>

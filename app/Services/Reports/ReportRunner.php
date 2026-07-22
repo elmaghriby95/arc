@@ -18,7 +18,6 @@ class ReportRunner
         private readonly UserActivityReportService $userActivity,
         private readonly ReferenceNumbersReportService $referenceNumbers,
         private readonly FolderDistributionReportService $folderDistribution,
-        private readonly ConfidentialDocumentsReportService $confidentialDocuments,
         private readonly SystemOperationsReportService $systemOperations,
     ) {}
 
@@ -40,7 +39,6 @@ class ReportRunner
             ReportType::UserActivity => $this->userActivity->generate($filter),
             ReportType::ReferenceNumbers => $this->referenceNumbers->generate($filter),
             ReportType::FolderDistribution => $this->folderDistribution->generate($filter),
-            ReportType::ConfidentialDocuments => $this->confidentialDocuments->generate($filter),
             ReportType::SystemOperations => $this->systemOperations->generate(
                 filter: $filter,
                 user: $user,

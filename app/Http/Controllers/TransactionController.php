@@ -531,7 +531,7 @@ class TransactionController extends Controller
 
     private function maxUploadFileKb(): int
     {
-        return (int) config('uploads.max_file_kb', 65536);
+        return (int) config('uploads.max_file_kb', 409600);
     }
 
     private function findResumableDraft(Request $request): ?Transaction

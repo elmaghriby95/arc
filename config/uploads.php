@@ -8,9 +8,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Must be <= PHP upload_max_filesize and web server body size limits.
-    | Default 65536 KB = 64 MB (matches typical production PHP settings).
+    | Default 409600 KB = 400 MB.
     |
     */
-    'max_file_kb' => (int) env('UPLOAD_MAX_FILE_KB', 65536),
+    'max_file_kb' => (int) env('UPLOAD_MAX_FILE_KB', 409600),
 
 ];

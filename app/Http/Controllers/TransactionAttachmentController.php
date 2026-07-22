@@ -25,7 +25,7 @@ class TransactionAttachmentController extends Controller
         $this->authorizeAccess($transaction);
         $this->authorizeCreateFlowUpload($request, $transaction);
 
-        $maxFileKb = (int) config('uploads.max_file_kb', 65536);
+        $maxFileKb = (int) config('uploads.max_file_kb', 409600);
 
         $validated = $request->validate([
             'file' => [
@@ -65,7 +65,7 @@ class TransactionAttachmentController extends Controller
             'files.*' => [
                 'required',
                 'file',
-                'max:'.(int) config('uploads.max_file_kb', 65536),
+                'max:'.(int) config('uploads.max_file_kb', 409600),
                 File::types(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']),
             ],
             'titles' => ['nullable', 'array'],

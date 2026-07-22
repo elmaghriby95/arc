@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formatSize = (bytes) => bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
 
-    const maxFileBytes = Number(form.dataset.maxFileBytes) || (65536 * 1024);
+    const maxFileBytes = Number(form.dataset.maxFileBytes) || (409600 * 1024);
 
     const validateUploadLimits = () => {
         const oversized = selectedFiles.filter((file) => file.size > maxFileBytes);

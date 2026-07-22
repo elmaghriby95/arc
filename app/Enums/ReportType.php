@@ -13,7 +13,6 @@ enum ReportType: string
     case UserActivity = 'user-activity';
     case ReferenceNumbers = 'reference-numbers';
     case FolderDistribution = 'folder-distribution';
-    case ConfidentialDocuments = 'confidential-documents';
     case SystemOperations = 'system-operations';
 
     public function label(): string
@@ -51,7 +50,6 @@ enum ReportType: string
             self::UserActivity => 'reports-module--slate',
             self::ReferenceNumbers => 'reports-module--orange',
             self::FolderDistribution => 'reports-module--teal',
-            self::ConfidentialDocuments => 'reports-module--rose',
             self::SystemOperations => 'reports-module--navy',
         };
     }

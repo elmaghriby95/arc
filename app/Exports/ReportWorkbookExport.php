@@ -31,7 +31,6 @@ class ReportWorkbookExport implements WithMultipleSheets
             ReportType::UserActivity => self::userActivity($data),
             ReportType::ReferenceNumbers => self::referenceNumbers($data),
             ReportType::FolderDistribution => self::folderDistribution($data),
-            ReportType::ConfidentialDocuments => self::confidentialDocuments($data),
             ReportType::SystemOperations => self::systemOperations($data),
         };
     }
@@ -328,26 +327,6 @@ class ReportWorkbookExport implements WithMultipleSheets
                 __('common.status'),
                 __('common.date'),
             ], $detailRows),
-        ]);
-    }
-
-    /** @param array<string, mixed> $data */
-    private static function confidentialDocuments(array $data): self
-    {
-        $rows = collect($data['details'])->map(fn ($row) => [
-            $row['source'], $row['title'], $row['reference_number'], $row['department'],
-            $row['uploader'], $row['date'],
-        ])->all();
-
-        return new self([
-            new ReportSheetExport(__('reports.export.sheet.confidential'), [
-                __('reports.source'),
-                __('common.title'),
-                __('reports.reference_number'),
-                __('common.department'),
-                __('reports.uploader'),
-                __('common.date'),
-            ], $rows),
         ]);
     }
 
