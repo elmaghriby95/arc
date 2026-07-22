@@ -31,6 +31,30 @@ body {
     color: var(--text);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    /* Keep long unbroken strings (URLs, titles, notes) inside containers */
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+}
+
+/* Flex/grid children must be allowed to shrink so wrap can take effect */
+.app-content,
+.card,
+.card-body,
+.card-header,
+.card-title,
+.card-subtitle,
+.table th,
+.table td,
+.dl-grid,
+.dl-grid dd,
+.modal-body,
+.form-control,
+.alert,
+.badge {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 a { color: var(--primary); text-decoration: none; }
@@ -1063,6 +1087,8 @@ textarea.form-control:focus {
     padding: 0.85rem 0.75rem;
     border-bottom: 1px solid var(--border);
     text-align: right;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 .table th {
@@ -1706,7 +1732,12 @@ textarea.form-control:focus {
 }
 
 .dl-grid dt { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
-.dl-grid dd { margin: 0.15rem 0 0; font-weight: 700; }
+.dl-grid dd {
+    margin: 0.15rem 0 0;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+}
 
 .pagination {
     display: flex;
