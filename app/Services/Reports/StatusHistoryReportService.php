@@ -8,14 +8,10 @@ use App\Support\Reports\ReportFilter;
 
 class StatusHistoryReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
-        $baseQuery = $this->scope->applyHistoryFilters(
+        $baseQuery = $scope->applyHistoryFilters(
             TransactionStatusHistory::query(),
             $filter
         );

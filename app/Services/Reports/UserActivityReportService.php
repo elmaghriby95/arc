@@ -12,15 +12,11 @@ use Illuminate\Support\Facades\DB;
 
 class UserActivityReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
-        $scopedTransactionIds = $this->scope
-            ->applyTransactionFilters($this->scope->transactionsQuery(), $filter)
+        $scopedTransactionIds = $scope
+            ->applyTransactionFilters($scope->transactionsQuery(), $filter)
             ->pluck('id');
 
         if ($scopedTransactionIds->isEmpty()) {

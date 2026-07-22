@@ -9,6 +9,7 @@ enum Permission: string
 
     // التقارير
     case ReportsView = 'reports.view';
+    case ReportsViewAll = 'reports.view-all';
 
     // الوثائق
     case DocumentsView = 'documents.view';
@@ -78,6 +79,7 @@ enum Permission: string
 
     // شجرة المجلدات
     case SettingsFoldersView = 'settings.folders.view';
+    case SettingsFoldersViewAll = 'settings.folders.view-all';
     case SettingsFoldersCreate = 'settings.folders.create';
     case SettingsFoldersEdit = 'settings.folders.edit';
     case SettingsFoldersDelete = 'settings.folders.delete';
@@ -129,7 +131,8 @@ enum Permission: string
         return match ($this) {
             self::DashboardView => 'main_menu',
 
-            self::ReportsView => 'reports',
+            self::ReportsView,
+            self::ReportsViewAll => 'reports',
 
             self::DocumentsView,
             self::DocumentsCreate,
@@ -188,6 +191,7 @@ enum Permission: string
             self::LendingRequestsLogView => 'lending_requests',
 
             self::SettingsFoldersView,
+            self::SettingsFoldersViewAll,
             self::SettingsFoldersCreate,
             self::SettingsFoldersEdit,
             self::SettingsFoldersDelete,

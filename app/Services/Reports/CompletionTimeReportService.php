@@ -8,12 +8,8 @@ use Illuminate\Support\Collection;
 
 class CompletionTimeReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
         $finalStatusIds = TransactionStatus::query()
             ->where('is_active', true)
@@ -21,8 +17,8 @@ class CompletionTimeReportService
             ->pluck('id')
             ->all();
 
-        $transactions = $this->scope
-            ->applyTransactionFilters($this->scope->transactionsQuery(), $filter)
+        $transactions = $scope
+            ->applyTransactionFilters($scope->transactionsQuery(), $filter)
             ->whereHas('status', fn ($query) => $query->where('is_final', true))
             ->with([
                 'department',

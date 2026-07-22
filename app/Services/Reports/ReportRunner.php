@@ -29,16 +29,18 @@ class ReportRunner
     /** @return array<string, mixed> */
     public function run(ReportType $type, User $user, ReportFilter $filter, bool $forExport = false): array
     {
+        $scope = $this->scope($user);
+
         return match ($type) {
-            ReportType::TransactionPipeline => $this->pipeline->generate($filter),
-            ReportType::StaleTransactions => $this->stale->generate($filter),
-            ReportType::DepartmentProductivity => $this->productivity->generate($filter),
-            ReportType::DocumentsAttachments => $this->documents->generate($filter),
-            ReportType::StatusHistory => $this->history->generate($filter),
-            ReportType::CompletionTime => $this->completionTime->generate($filter),
-            ReportType::UserActivity => $this->userActivity->generate($filter),
-            ReportType::ReferenceNumbers => $this->referenceNumbers->generate($filter),
-            ReportType::FolderDistribution => $this->folderDistribution->generate($filter),
+            ReportType::TransactionPipeline => $this->pipeline->generate($filter, $scope),
+            ReportType::StaleTransactions => $this->stale->generate($filter, $scope),
+            ReportType::DepartmentProductivity => $this->productivity->generate($filter, $scope),
+            ReportType::DocumentsAttachments => $this->documents->generate($filter, $scope),
+            ReportType::StatusHistory => $this->history->generate($filter, $scope),
+            ReportType::CompletionTime => $this->completionTime->generate($filter, $scope),
+            ReportType::UserActivity => $this->userActivity->generate($filter, $scope),
+            ReportType::ReferenceNumbers => $this->referenceNumbers->generate($filter, $scope),
+            ReportType::FolderDistribution => $this->folderDistribution->generate($filter, $scope),
             ReportType::SystemOperations => $this->systemOperations->generate(
                 filter: $filter,
                 user: $user,

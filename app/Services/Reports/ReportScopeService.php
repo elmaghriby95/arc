@@ -19,31 +19,43 @@ class ReportScopeService
         private readonly User $user,
     ) {}
 
+    public function user(): User
+    {
+        return $this->user;
+    }
+
+    /**
+     * @return list<int>|null null = unrestricted
+     */
+    public function scopedDepartmentIds(): ?array
+    {
+        return $this->user->reportOrgScopeDepartmentIds();
+    }
+
+    /** @param  list<int>|null  $ids */
+    private function applyDepartmentScope(Builder $query, ?array $ids, string $column = 'department_id'): void
+    {
+        if ($ids === null) {
+            return;
+        }
+
+        $query->whereIn($column, $ids);
+    }
+
     /** @return Builder<Transaction> */
     public function transactionsQuery(): Builder
     {
         $query = Transaction::query();
-
-        if ($ids = $this->user->transactionOrgScopeDepartmentIds()) {
-            $query->whereIn('department_id', $ids);
-        }
+        $this->applyDepartmentScope($query, $this->scopedDepartmentIds());
 
         return $query;
-    }
-
-    /** @return list<int>|null */
-    public function scopedDepartmentIds(): ?array
-    {
-        return $this->user->transactionOrgScopeDepartmentIds();
     }
 
     /** @return Builder<TransactionAttachment> */
     public function attachmentsQuery(): Builder
     {
         return TransactionAttachment::query()->whereHas('transaction', function (Builder $query) {
-            if ($ids = $this->scopedDepartmentIds()) {
-                $query->whereIn('department_id', $ids);
-            }
+            $this->applyDepartmentScope($query, $this->scopedDepartmentIds());
         });
     }
 
@@ -51,20 +63,16 @@ class ReportScopeService
     public function statusHistoryQuery(): Builder
     {
         return TransactionStatusHistory::query()->whereHas('transaction', function (Builder $query) {
-            if ($ids = $this->scopedDepartmentIds()) {
-                $query->whereIn('department_id', $ids);
-            }
+            $this->applyDepartmentScope($query, $this->scopedDepartmentIds());
         });
     }
 
-    /** @param Builder<Transaction> $query */
+    /** @param  Builder<Transaction>  $query */
     public function applyTransactionFilters(Builder $query, ReportFilter $filter): Builder
     {
-        if ($ids = $this->user->transactionOrgScopeDepartmentIds()) {
-            $query->whereIn('department_id', $ids);
-        }
+        $this->applyDepartmentScope($query, $this->scopedDepartmentIds());
 
-        if ($filter->departmentId && $this->user->canAccessDepartment($filter->departmentId)) {
+        if ($filter->departmentId && $this->user->canAccessDepartmentInReportScope($filter->departmentId)) {
             $query->where('department_id', $filter->departmentId);
         }
 
@@ -87,13 +95,13 @@ class ReportScopeService
         return $query;
     }
 
-    /** @param Builder<TransactionAttachment> $query */
+    /** @param  Builder<TransactionAttachment>  $query */
     public function applyAttachmentFilters(Builder $query, ReportFilter $filter): Builder
     {
         return $query->whereHas('transaction', fn (Builder $transactionQuery) => $this->applyTransactionFilters($transactionQuery, $filter));
     }
 
-    /** @param Builder<TransactionStatusHistory> $query */
+    /** @param  Builder<TransactionStatusHistory>  $query */
     public function applyHistoryFilters(Builder $query, ReportFilter $filter): Builder
     {
         $query->whereHas('transaction', fn (Builder $transactionQuery) => $this->applyTransactionFilters($transactionQuery, $filter));
@@ -109,14 +117,12 @@ class ReportScopeService
         return $query;
     }
 
-    /** @param Builder<Document> $query */
+    /** @param  Builder<Document>  $query */
     public function applyDocumentFilters(Builder $query, ReportFilter $filter): Builder
     {
-        if ($ids = $this->scopedDepartmentIds()) {
-            $query->whereIn('department_id', $ids);
-        }
+        $this->applyDepartmentScope($query, $this->scopedDepartmentIds());
 
-        if ($filter->departmentId && $this->user->canAccessDepartment($filter->departmentId)) {
+        if ($filter->departmentId && $this->user->canAccessDepartmentInReportScope($filter->departmentId)) {
             $query->where('department_id', $filter->departmentId);
         }
 
@@ -135,8 +141,9 @@ class ReportScopeService
     public function orgUnitOptions(): array
     {
         $options = Department::optionsForSelect();
+        $ids = $this->scopedDepartmentIds();
 
-        if ($ids = $this->user->transactionOrgScopeDepartmentIds()) {
+        if ($ids !== null) {
             $ids = array_map(intval(...), $ids);
             $options = array_values(array_filter(
                 $options,
@@ -236,11 +243,9 @@ class ReportScopeService
      */
     public function applySystemOperationsTransactionFilters(Builder $query, ReportFilter $filter): Builder
     {
-        if ($ids = $this->user->transactionOrgScopeDepartmentIds()) {
-            $query->whereIn('department_id', $ids);
-        }
+        $this->applyDepartmentScope($query, $this->scopedDepartmentIds());
 
-        if ($filter->departmentId && $this->user->canAccessDepartment($filter->departmentId)) {
+        if ($filter->departmentId && $this->user->canAccessDepartmentInReportScope($filter->departmentId)) {
             $query->where('department_id', $filter->departmentId);
         }
 

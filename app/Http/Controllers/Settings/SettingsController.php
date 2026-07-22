@@ -18,7 +18,7 @@ class SettingsController extends Controller
     public function index(): View
     {
         $user = auth()->user();
-        $folderScope = $user?->orgScopeDepartmentIds();
+        $folderScope = $user?->folderOrgScopeDepartmentIds();
 
         $roleCounts = Role::withCount('users')->orderBy('name')->get();
 

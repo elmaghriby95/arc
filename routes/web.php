@@ -48,6 +48,10 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('session/keepalive', function () {
+        return response()->noContent();
+    })->name('session.keepalive');
+
     Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])
         ->name('notifications.read');
 

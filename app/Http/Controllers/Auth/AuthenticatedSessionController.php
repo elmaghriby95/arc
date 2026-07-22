@@ -45,6 +45,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request, UserActivityLogger $logger): RedirectResponse
     {
+        $wasIdle = $request->boolean('idle');
+
         if ($user = $request->user()) {
             $logger->logLogout($user, $request);
         }
@@ -55,6 +57,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        $redirect = redirect()->route('login');
+
+        if ($wasIdle) {
+            return $redirect->with('status', __('auth.idle_logged_out'));
+        }
+
+        return $redirect;
     }
 }

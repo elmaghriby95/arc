@@ -7,16 +7,12 @@ use Illuminate\Support\Facades\DB;
 
 class StaleTransactionsReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
         $staleDays = $filter->staleDays;
         $today = today()->toDateString();
-        $baseQuery = $this->scope->applyTransactionFilters($this->scope->transactionsQuery(), $filter);
+        $baseQuery = $scope->applyTransactionFilters($scope->transactionsQuery(), $filter);
 
         $items = (clone $baseQuery)
             ->join('transaction_statuses', 'transaction_statuses.id', '=', 'transactions.transaction_status_id')

@@ -8,17 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class DepartmentProductivityReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
         $statuses = TransactionStatus::where('is_active', true)->orderBy('sort_order')->get();
         $finalStatusIds = $statuses->where('is_final', true)->pluck('id')->all();
 
-        $baseQuery = $this->scope->applyTransactionFilters($this->scope->transactionsQuery(), $filter);
+        $baseQuery = $scope->applyTransactionFilters($scope->transactionsQuery(), $filter);
 
         $rows = (clone $baseQuery)
             ->join('departments', 'departments.id', '=', 'transactions.department_id')
@@ -66,7 +62,7 @@ class DepartmentProductivityReportService
                 $completedQuery->where('h.created_at', '<=', $filter->dateTo);
             }
 
-            if (($scopedIds = $this->scope->scopedDepartmentIds()) !== null) {
+            if (($scopedIds = $scope->scopedDepartmentIds()) !== null) {
                 $completedQuery->whereIn('t.department_id', $scopedIds);
             }
 

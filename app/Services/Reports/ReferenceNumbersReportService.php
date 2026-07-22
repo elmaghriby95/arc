@@ -11,14 +11,10 @@ class ReferenceNumbersReportService
 {
     private const ATTACHMENTS = 'transaction_attachments';
 
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return \Illuminate\Database\Eloquent\Builder<TransactionAttachment> */
-    private function attachmentRefQuery(ReportFilter $filter)
+    private function attachmentRefQuery(ReportFilter $filter, ReportScopeService $scope)
     {
-        return $this->scope->applyAttachmentFilters(
+        return $scope->applyAttachmentFilters(
             TransactionAttachment::query()
                 ->whereNotNull(self::ATTACHMENTS.'.reference_number')
                 ->where(self::ATTACHMENTS.'.reference_number', '!=', ''),
@@ -27,9 +23,9 @@ class ReferenceNumbersReportService
     }
 
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
-        $attachmentQuery = $this->attachmentRefQuery($filter);
+        $attachmentQuery = $this->attachmentRefQuery($filter, $scope);
 
         $totalWithRef = (clone $attachmentQuery)->count();
 
@@ -69,7 +65,7 @@ class ReferenceNumbersReportService
                 'count' => (int) $row->total,
             ]);
 
-        $transactionRefs = $this->scope
+        $transactionRefs = $scope
             ->applyTransactionFilters(Transaction::query(), $filter)
             ->whereNotNull('reference_number')
             ->count();

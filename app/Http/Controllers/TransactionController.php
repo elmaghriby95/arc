@@ -71,7 +71,7 @@ class TransactionController extends Controller
     {
         $user = $request->user();
         $initialStatus = TransactionStatus::initial();
-        $departmentIds = $user->orgScopeDepartmentIds();
+        $departmentIds = $user->folderOrgScopeDepartmentIds();
 
         return view('transactions.create', [
             'orgUnits' => $this->scopedOrgUnitOptions($user, forMutation: true),
@@ -443,7 +443,7 @@ class TransactionController extends Controller
     /** @return \Illuminate\Database\Eloquent\Collection<int, Folder> */
     private function scopedFolders(User $user)
     {
-        return Folder::scopedQuery($user->orgScopeDepartmentIds())
+        return Folder::scopedQuery($user->folderOrgScopeDepartmentIds())
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('name')

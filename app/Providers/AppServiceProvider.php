@@ -59,6 +59,8 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
+        $this->syncSessionLifetimeFromSettings();
+
         \Illuminate\Support\Facades\Blade::if('permission', function (string ...$permissions) {
             $user = auth()->user();
 
@@ -74,5 +76,23 @@ class AppServiceProvider extends ServiceProvider
 
             return false;
         });
+    }
+
+    private function syncSessionLifetimeFromSettings(): void
+    {
+        try {
+            if (! Schema::hasTable('system_settings')
+                || ! Schema::hasColumn('system_settings', 'idle_timeout_minutes')) {
+                return;
+            }
+
+            $minutes = \App\Models\SystemSetting::instance()->idleTimeoutMinutes();
+
+            if ($minutes > 0) {
+                config(['session.lifetime' => $minutes]);
+            }
+        } catch (\Throwable) {
+            // Ignore during early boot / migrations.
+        }
     }
 }

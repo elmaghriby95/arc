@@ -17,7 +17,7 @@ class FolderTreeController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
-        $scope = $user->orgScopeDepartmentIds();
+        $scope = $user->folderOrgScopeDepartmentIds();
 
         return view('settings.folders.index', [
             'folders' => Folder::scopedTree($scope),
@@ -50,7 +50,7 @@ class FolderTreeController extends Controller
 
         $departmentId = $validated['department_id'];
 
-        if (! $user->canAccessDepartment($departmentId)) {
+        if (! $user->canAccessDepartmentInFolderScope($departmentId)) {
             return back()
                 ->withInput()
                 ->withErrors(['department_id' => __('messages.folder.department_denied')]);
@@ -94,7 +94,7 @@ class FolderTreeController extends Controller
 
         $departmentId = $validated['department_id'];
 
-        if (! $user->canAccessDepartment($departmentId)) {
+        if (! $user->canAccessDepartmentInFolderScope($departmentId)) {
             return back()
                 ->withInput()
                 ->withErrors(['department_id' => __('messages.folder.department_denied')]);
@@ -180,11 +180,13 @@ class FolderTreeController extends Controller
     private function scopedOrgUnitOptions(User $user): array
     {
         $options = Department::optionsForSelect();
+        $ids = $user->folderOrgScopeDepartmentIds();
 
-        if ($ids = $user->orgScopeDepartmentIds()) {
+        if ($ids !== null) {
+            $ids = array_map(intval(...), $ids);
             $options = array_values(array_filter(
                 $options,
-                fn (array $option) => in_array($option['id'], $ids, true)
+                fn (array $option) => in_array((int) $option['id'], $ids, true)
             ));
         }
 

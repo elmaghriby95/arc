@@ -9,15 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionPipelineReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
         $statuses = TransactionStatus::where('is_active', true)->orderBy('sort_order')->get();
-        $baseQuery = $this->scope->applyTransactionFilters($this->scope->transactionsQuery(), $filter);
+        $baseQuery = $scope->applyTransactionFilters($scope->transactionsQuery(), $filter);
 
         $statusCounts = (clone $baseQuery)
             ->select('transaction_status_id', DB::raw('COUNT(*) as total'))

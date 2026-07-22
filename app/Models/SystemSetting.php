@@ -28,6 +28,12 @@ class SystemSetting extends Model
         'copyright' => 'login_copyright',
     ];
 
+    public const IDLE_TIMEOUT_MIN = 0;
+
+    public const IDLE_TIMEOUT_MAX = 480;
+
+    public const IDLE_TIMEOUT_DEFAULT = 1;
+
     protected $fillable = [
         'app_name',
         'logo_path',
@@ -38,6 +44,7 @@ class SystemSetting extends Model
         'favicon_path',
         'support_email',
         'support_phone',
+        'idle_timeout_minutes',
         'login_texts',
     ];
 
@@ -45,7 +52,21 @@ class SystemSetting extends Model
     {
         return [
             'login_texts' => 'array',
+            'idle_timeout_minutes' => 'integer',
         ];
+    }
+
+    /** Minutes of inactivity before auto-logout. 0 = disabled. */
+    public function idleTimeoutMinutes(): int
+    {
+        $minutes = (int) ($this->idle_timeout_minutes ?? self::IDLE_TIMEOUT_DEFAULT);
+
+        return max(self::IDLE_TIMEOUT_MIN, min(self::IDLE_TIMEOUT_MAX, $minutes));
+    }
+
+    public function idleTimeoutEnabled(): bool
+    {
+        return $this->idleTimeoutMinutes() > 0;
     }
 
     public static function instance(): self

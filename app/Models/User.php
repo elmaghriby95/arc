@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use App\Enums\Permission;
 use App\Services\LendingScopeService;
 use App\Services\TransactionScopeService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -204,7 +205,7 @@ class User extends Authenticatable
 
     public function canAccessFolder(Folder $folder): bool
     {
-        return $this->canAccessDepartment($folder->department_id);
+        return $this->canAccessDepartmentInFolderScope($folder->department_id);
     }
 
     public function canAccessTransaction(Transaction $transaction): bool
@@ -215,10 +216,86 @@ class User extends Authenticatable
     /** @return list<int>|null null = unrestricted (transactions.view-all only) */
     public function transactionOrgScopeDepartmentIds(): ?array
     {
-        if ($this->hasPermission('transactions.view-all')) {
+        if ($this->hasPermission(Permission::TransactionsViewAll->value)) {
             return null;
         }
 
         return $this->orgScopeDepartmentIds();
+    }
+
+    /**
+     * Org scope for reports. null = all organizational units.
+     *
+     * @return list<int>|null
+     */
+    public function reportOrgScopeDepartmentIds(): ?array
+    {
+        if ($this->hasUnrestrictedReportAccess()) {
+            return null;
+        }
+
+        return $this->orgScopeDepartmentIds();
+    }
+
+    public function hasUnrestrictedReportAccess(): bool
+    {
+        return $this->isAdmin()
+            || $this->hasPermission(Permission::ReportsViewAll->value);
+    }
+
+    /**
+     * Org scope for folder trees/pickers. null = all folders.
+     *
+     * @return list<int>|null
+     */
+    public function folderOrgScopeDepartmentIds(): ?array
+    {
+        if ($this->hasUnrestrictedFolderAccess()) {
+            return null;
+        }
+
+        return $this->orgScopeDepartmentIds();
+    }
+
+    public function hasUnrestrictedFolderAccess(): bool
+    {
+        return $this->isAdmin()
+            || $this->hasPermission(Permission::SettingsFoldersViewAll->value);
+    }
+
+    public function canAccessDepartmentInFolderScope(?int $departmentId): bool
+    {
+        $scope = $this->folderOrgScopeDepartmentIds();
+
+        if ($scope === null) {
+            return true;
+        }
+
+        if ($departmentId === null) {
+            return false;
+        }
+
+        $departmentId = (int) $departmentId;
+        $scope = array_map(intval(...), $scope);
+
+        return in_array($departmentId, $scope, true);
+    }
+
+    public function canAccessDepartmentInReportScope(?int $departmentId): bool
+    {
+        $scope = $this->reportOrgScopeDepartmentIds();
+
+        if ($scope === null) {
+            return true;
+        }
+
+        if ($departmentId === null) {
+            return false;
+        }
+
+        $departmentId = (int) $departmentId;
+        $scope = array_map(intval(...), $scope);
+
+        return in_array($departmentId, $scope, true);
     }
 }

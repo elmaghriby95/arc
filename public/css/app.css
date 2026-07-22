@@ -4180,6 +4180,16 @@ textarea.form-control:focus {
     color: var(--muted);
 }
 
+.idle-session-countdown {
+    margin: 0.75rem 0 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--danger);
+    text-align: center;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 1024px) {
     .txn-layout {
         grid-template-columns: 1fr;

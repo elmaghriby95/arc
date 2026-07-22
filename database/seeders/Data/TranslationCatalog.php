@@ -121,6 +121,10 @@ class TranslationCatalog
             ['group' => 'auth', 'key' => 'forgot_password_intro', 'values' => ['ar' => 'نسيت كلمة المرور؟ لا مشكلة. أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور.', 'en' => 'Forgot your password? No problem. Just let us know your email address and we will email you a password reset link.', 'fr' => 'Mot de passe oublié ? Indiquez votre e-mail et nous vous enverrons un lien de réinitialisation.']],
             ['group' => 'auth', 'key' => 'email_password_reset_link', 'values' => ['ar' => 'إرسال رابط إعادة تعيين كلمة المرور', 'en' => 'Email Password Reset Link', 'fr' => 'Envoyer le lien de réinitialisation']],
             ['group' => 'auth', 'key' => 'reset_password', 'values' => ['ar' => 'إعادة تعيين كلمة المرور', 'en' => 'Reset Password', 'fr' => 'Réinitialiser le mot de passe']],
+            ['group' => 'auth', 'key' => 'idle_logged_out', 'values' => ['ar' => 'تم تسجيل خروجك تلقائياً بسبب عدم النشاط.', 'en' => 'You were logged out automatically due to inactivity.', 'fr' => 'Vous avez été déconnecté automatiquement en raison d\'inactivité.']],
+            ['group' => 'auth', 'key' => 'idle_warning_title', 'values' => ['ar' => 'انتهاء الجلسة قريباً', 'en' => 'Session expiring soon', 'fr' => 'Session bientôt expirée']],
+            ['group' => 'auth', 'key' => 'idle_warning_body', 'values' => ['ar' => 'سيتم تسجيل خروجك تلقائياً بسبب عدم النشاط خلال ثوانٍ.', 'en' => 'You will be logged out automatically due to inactivity in a few seconds.', 'fr' => 'Vous serez déconnecté automatiquement pour inactivité dans quelques secondes.']],
+            ['group' => 'auth', 'key' => 'idle_stay_signed_in', 'values' => ['ar' => 'البقاء متصلاً', 'en' => 'Stay signed in', 'fr' => 'Rester connecté']],
         ];
     }
 
@@ -603,6 +607,10 @@ class TranslationCatalog
             ['group' => 'settings.general', 'key' => 'contact_title', 'values' => ['ar' => 'معلومات التواصل', 'en' => 'Contact information', 'fr' => 'Coordonnées']],
             ['group' => 'settings.general', 'key' => 'support_email', 'values' => ['ar' => 'البريد الإلكتروني للدعم', 'en' => 'Support email', 'fr' => 'E-mail de support']],
             ['group' => 'settings.general', 'key' => 'support_phone', 'values' => ['ar' => 'هاتف الدعم', 'en' => 'Support phone', 'fr' => 'Téléphone de support']],
+            ['group' => 'settings.general', 'key' => 'session_title', 'values' => ['ar' => 'أمان الجلسة', 'en' => 'Session security', 'fr' => 'Sécurité de session']],
+            ['group' => 'settings.general', 'key' => 'session_desc', 'values' => ['ar' => 'تسجيل الخروج التلقائي عند توقف استخدام المنظومة', 'en' => 'Automatic logout when the system is unused', 'fr' => 'Déconnexion automatique en cas d\'inactivité']],
+            ['group' => 'settings.general', 'key' => 'idle_timeout_minutes', 'values' => ['ar' => 'مهلة الخمول (بالدقائق)', 'en' => 'Idle timeout (minutes)', 'fr' => 'Délai d\'inactivité (minutes)']],
+            ['group' => 'settings.general', 'key' => 'idle_timeout_minutes_desc', 'values' => ['ar' => 'إذا لم يتفاعل المستخدم مع المنظومة خلال هذه المدة يتم تسجيل خروجه تلقائياً. القيمة 0 تعطّل الميزة. الحد الأقصى: 480 دقيقة (8 ساعات). الافتراضي: دقيقة واحدة.', 'en' => 'Users are logged out automatically after this many minutes of inactivity. Use 0 to disable. Maximum: 480 minutes (8 hours). Default: 1 minute.', 'fr' => 'Les utilisateurs sont déconnectés automatiquement après ce nombre de minutes d\'inactivité. 0 pour désactiver. Maximum : 480 minutes (8 heures). Par défaut : 1 minute.']],
             ['group' => 'settings.general', 'key' => 'save', 'values' => ['ar' => 'حفظ الإعدادات', 'en' => 'Save settings', 'fr' => 'Enregistrer les paramètres']],
             ['group' => 'settings.general', 'key' => 'readonly', 'values' => ['ar' => 'لديك صلاحية العرض فقط — لا يمكنك تعديل هذه الإعدادات.', 'en' => 'View-only access — you cannot edit these settings.', 'fr' => 'Accès lecture seule — modification impossible.']],
             ['group' => 'settings.general', 'key' => 'login_texts_title', 'values' => ['ar' => 'نصوص صفحة تسجيل الدخول', 'en' => 'Login page texts', 'fr' => 'Textes de la page de connexion']],
@@ -768,6 +776,7 @@ class TranslationCatalog
         return self::permissionEntries([
             'dashboard.view' => ['ar' => 'عرض لوحة التحكم', 'en' => 'View dashboard', 'fr' => 'Voir le tableau de bord'],
             'reports.view' => ['ar' => 'الوصول لمركز التقارير', 'en' => 'Access reports center', 'fr' => 'Accès au centre de rapports'],
+            'reports.view-all' => ['ar' => 'عرض تقارير كل الوحدات التنظيمية', 'en' => 'View reports for all organizational units', 'fr' => 'Voir les rapports de toutes les unités organisationnelles'],
             'documents.view' => ['ar' => 'عرض الوثائق (مستندات المعاملات)', 'en' => 'View documents (transaction attachments)', 'fr' => 'Voir les documents'],
             'documents.create' => ['ar' => 'إضافة وثيقة', 'en' => 'Create document', 'fr' => 'Créer un document'],
             'documents.edit' => ['ar' => 'تعديل وثيقة', 'en' => 'Edit document', 'fr' => 'Modifier un document'],
@@ -808,6 +817,7 @@ class TranslationCatalog
             'transactions.status.archive' => ['ar' => 'أرشفة المعاملة', 'en' => 'Archive transaction', 'fr' => 'Archiver la transaction'],
             'transactions.review-log.view' => ['ar' => 'عرض سجل المراجعة', 'en' => 'View review log', 'fr' => 'Voir le journal de révision'],
             'settings.folders.view' => ['ar' => 'عرض شجرة المجلدات', 'en' => 'View folder tree', 'fr' => 'Voir l\'arborescence'],
+            'settings.folders.view-all' => ['ar' => 'عرض كل المجلدات', 'en' => 'View all folders', 'fr' => 'Voir tous les dossiers'],
             'settings.folders.create' => ['ar' => 'إضافة مجلد', 'en' => 'Create folder', 'fr' => 'Créer un dossier'],
             'settings.folders.edit' => ['ar' => 'تعديل مجلد', 'en' => 'Edit folder', 'fr' => 'Modifier un dossier'],
             'settings.folders.delete' => ['ar' => 'حذف مجلد', 'en' => 'Delete folder', 'fr' => 'Supprimer un dossier'],

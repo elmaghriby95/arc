@@ -133,6 +133,30 @@
 
             <div class="card">
                 <div class="card-header">
+                    <h3 class="card-title">{{ __('settings.general.session_title') }}</h3>
+                    <p class="card-subtitle">{{ __('settings.general.session_desc') }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <x-input-label for="idle_timeout_minutes" :value="__('settings.general.idle_timeout_minutes')" />
+                        <x-text-input
+                            id="idle_timeout_minutes"
+                            name="idle_timeout_minutes"
+                            type="number"
+                            min="{{ \App\Models\SystemSetting::IDLE_TIMEOUT_MIN }}"
+                            max="{{ \App\Models\SystemSetting::IDLE_TIMEOUT_MAX }}"
+                            class="form-control"
+                            :value="old('idle_timeout_minutes', $settings->idleTimeoutMinutes())"
+                            required
+                        />
+                        <p class="form-hint">{{ __('settings.general.idle_timeout_minutes_desc') }}</p>
+                        <x-input-error :messages="$errors->get('idle_timeout_minutes')" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
                     <h3 class="card-title">{{ __('settings.general.login_texts_title') }}</h3>
                     <p class="card-subtitle">{{ __('settings.general.login_texts_desc') }}</p>
                 </div>

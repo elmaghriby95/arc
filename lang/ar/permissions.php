@@ -3,6 +3,7 @@
 return [
     'dashboard_view' => 'عرض لوحة التحكم',
     'reports_view' => 'عرض التقارير',
+    'reports_view-all' => 'عرض تقارير كل الوحدات التنظيمية',
     'documents_view' => 'عرض الوثائق (مستندات المعاملات)',
     'documents_create' => 'إضافة وثيقة',
     'documents_edit' => 'تعديل وثيقة',
@@ -48,6 +49,7 @@ return [
     'lending-requests_handover' => 'تسليم وإرجاع مستندات الإعارة',
     'lending-requests_log_view' => 'عرض سجل الإعارة',
     'settings_folders_view' => 'عرض شجرة المجلدات',
+    'settings_folders_view-all' => 'عرض كل المجلدات',
     'settings_folders_create' => 'إضافة مجلد',
     'settings_folders_edit' => 'تعديل مجلد',
     'settings_folders_delete' => 'حذف مجلد',

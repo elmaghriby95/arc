@@ -10,14 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class FolderDistributionReportService
 {
-    public function __construct(
-        private readonly ReportScopeService $scope,
-    ) {}
-
     /** @return array<string, mixed> */
-    public function generate(ReportFilter $filter): array
+    public function generate(ReportFilter $filter, ReportScopeService $scope): array
     {
-        $baseQuery = $this->scope->applyTransactionFilters($this->scope->transactionsQuery(), $filter);
+        $baseQuery = $scope->applyTransactionFilters($scope->transactionsQuery(), $filter);
 
         $withoutFolder = (clone $baseQuery)->whereNull('folder_id')->count();
 
@@ -48,7 +44,7 @@ class FolderDistributionReportService
                 ->all();
         }
 
-        $folderLabels = $this->folderPathMap($this->scope->scopedDepartmentIds());
+        $folderLabels = $this->folderPathMap($scope->scopedDepartmentIds());
 
         $byFolder = $rows->map(fn ($row) => [
             'folder' => $folderLabels[$row->folder_id] ?? $row->folder_name,
