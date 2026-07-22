@@ -27,7 +27,7 @@
     <div class="stats-grid reports-stats-grid">
         <div class="stat-card stat-card--amber">
             <div class="stat-card-body">
-                <span class="stat-label">{{ __('reports.stale_transactions') }}</span>
+                <span class="stat-label">{{ __('reports.stale_transactions.label') }}</span>
                 <span class="stat-value">{{ $data['total'] }}</span>
             </div>
         </div>

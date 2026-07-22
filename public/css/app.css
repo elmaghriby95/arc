@@ -1074,6 +1074,10 @@ textarea.form-control:focus {
     background: #f8fafc;
 }
 
+.table-modern {
+    table-layout: fixed;
+}
+
 .table-modern tbody tr {
     transition: background 0.15s;
 }
@@ -1085,6 +1089,31 @@ textarea.form-control:focus {
 .table-title {
     font-weight: 600;
     color: var(--text);
+}
+
+/* Prevent long unbroken text from expanding columns */
+.table-cell-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
+}
+
+.table-cell-truncate code {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-col-date {
+    width: 7rem;
+    white-space: nowrap;
+}
+
+.table-col-actions {
+    width: 5.5rem;
+    white-space: nowrap;
 }
 
 .table-actions a {
@@ -1748,7 +1777,10 @@ textarea.form-control:focus {
 
 @media (max-width: 1100px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
+/* Icons-only navbar before labels collide with language/user controls */
+@media (max-width: 1400px) {
     .navbar-brand-tagline {
         display: none;
     }
@@ -1758,7 +1790,8 @@ textarea.form-control:focus {
     }
 
     .navbar-link {
-        padding-inline: 0.75rem;
+        padding-inline: 0.7rem;
+        font-size: 0.8rem;
     }
 
     .navbar-link-text {
@@ -1769,9 +1802,17 @@ textarea.form-control:focus {
         width: 1.2rem;
         height: 1.2rem;
     }
+
+    .navbar-user-meta {
+        display: none;
+    }
+
+    .navbar-user-btn {
+        padding: 0.3rem;
+    }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
     .navbar {
         --navbar-inner-height: 4.15rem;
     }
@@ -3322,8 +3363,8 @@ textarea.form-control:focus {
 
 /* ===== Transaction workflow ===== */
 .txn-status-badge {
-    display: inline-flex;
-    align-items: center;
+    display: inline-block;
+    max-width: 100%;
     padding: 0.2rem 0.65rem;
     border-radius: 999px;
     font-size: 0.78rem;
@@ -3331,6 +3372,10 @@ textarea.form-control:focus {
     background: color-mix(in srgb, var(--txn-status-color, #64748b) 15%, white);
     color: var(--txn-status-color, #64748b);
     border: 1px solid color-mix(in srgb, var(--txn-status-color, #64748b) 30%, white);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
 }
 
 .txn-workflow-steps {

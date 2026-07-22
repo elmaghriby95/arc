@@ -17,7 +17,7 @@
     <div class="stats-grid reports-stats-grid">
         <div class="stat-card stat-card--rose">
             <div class="stat-card-body">
-                <span class="stat-label">{{ __('reports.confidential_documents') }}</span>
+                <span class="stat-label">{{ __('reports.confidential_documents.label') }}</span>
                 <span class="stat-value">{{ $data['total_documents'] }}</span>
             </div>
         </div>

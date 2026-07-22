@@ -3,7 +3,7 @@
 @section('content')
     <table class="pdf-stats">
         <tr>
-            <td><span class="label">{{ __('reports.confidential_documents') }}</span><span class="value">{{ $data['total_documents'] }}</span></td>
+            <td><span class="label">{{ __('reports.confidential_documents.label') }}</span><span class="value">{{ $data['total_documents'] }}</span></td>
             <td><span class="label">{{ __('reports.linked_attachments') }}</span><span class="value">{{ $data['total_linked_attachments'] }}</span></td>
         </tr>
     </table>

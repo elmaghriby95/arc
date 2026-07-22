@@ -95,21 +95,21 @@
                             <th>{{ __('common.org_unit') }}</th>
                             <th>{{ __('common.folder') }}</th>
                             <th>{{ __('common.status') }}</th>
-                            <th>{{ __('common.date') }}</th>
-                            <th></th>
+                            <th class="table-col-date">{{ __('common.date') }}</th>
+                            <th class="table-col-actions"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($transactions as $transaction)
                             <tr>
-                                <td><code>{{ $transaction->archival_reference }}</code></td>
-                                <td>{{ $transaction->title }}</td>
-                                <td>{{ $transaction->transactionType?->name ?? '—' }}</td>
-                                <td>{{ $transaction->department?->name ?? '—' }}</td>
-                                <td>{{ $transaction->folder?->name ?? '—' }}</td>
-                                <td><x-transaction-status-badge :status="$transaction->status" /></td>
-                                <td>{{ $transaction->transaction_date?->format('Y-m-d') ?? $transaction->created_at->format('Y-m-d') }}</td>
-                                <td>
+                                <td class="table-cell-truncate" title="{{ $transaction->archival_reference }}"><code>{{ $transaction->archival_reference }}</code></td>
+                                <td class="table-cell-truncate" title="{{ $transaction->title }}">{{ $transaction->title }}</td>
+                                <td class="table-cell-truncate" title="{{ $transaction->transactionType?->name }}">{{ $transaction->transactionType?->name ?? '—' }}</td>
+                                <td class="table-cell-truncate" title="{{ $transaction->department?->name }}">{{ $transaction->department?->name ?? '—' }}</td>
+                                <td class="table-cell-truncate" title="{{ $transaction->folder?->name }}">{{ $transaction->folder?->name ?? '—' }}</td>
+                                <td class="table-cell-truncate" title="{{ $transaction->status?->name }}"><x-transaction-status-badge :status="$transaction->status" /></td>
+                                <td class="table-col-date">{{ $transaction->transaction_date?->format('Y-m-d') ?? $transaction->created_at->format('Y-m-d') }}</td>
+                                <td class="table-col-actions">
                                     <a href="{{ route('transactions.show', $transaction) }}" class="btn btn-secondary btn-sm">{{ __('common.view') }}</a>
                                 </td>
                             </tr>

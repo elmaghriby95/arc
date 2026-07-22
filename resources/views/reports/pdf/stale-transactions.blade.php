@@ -3,7 +3,7 @@
 @section('content')
     <table class="pdf-stats">
         <tr>
-            <td><span class="label">{{ __('reports.stale_transactions') }}</span><span class="value">{{ $data['total'] }}</span></td>
+            <td><span class="label">{{ __('reports.stale_transactions.label') }}</span><span class="value">{{ $data['total'] }}</span></td>
             <td><span class="label">{{ __('reports.avg_stale_days') }}</span><span class="value">{{ $data['avg_days'] }}</span></td>
             <td><span class="label">{{ __('reports.max_stale_days') }}</span><span class="value">{{ $data['max_days'] }}</span></td>
             <td><span class="label">{{ __('reports.stale_threshold') }}</span><span class="value">{{ $data['stale_days'] }}+</span></td>

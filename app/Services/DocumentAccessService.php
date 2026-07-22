@@ -115,9 +115,12 @@ class DocumentAccessService
         }
 
         $settings = WatermarkSetting::instance();
-        $wantsWatermark = $settings->shouldApplyFor($action);
+        // When the master switch is on, downloads must always carry a burned-in watermark
+        // matching the view overlay — never serve the clean original.
+        $wantsWatermark = $action === 'download'
+            ? $settings->is_enabled
+            : $settings->shouldApplyFor($action);
         $canBurnIn = $this->watermarkService->supportsBurnIn($attachment);
-        $kind = $attachment->fileKind();
 
         $downloadName = $attachment->effectiveFileName() ?? $attachment->displayName();
         $absolute = Storage::disk('local')->path($path);
@@ -156,7 +159,7 @@ class DocumentAccessService
                     ->with('error', __('messages.watermark.unsupported_type'));
             }
 
-            // PDFs use incremental append; images use GD. Neither path depends on public assets.
+            // Stamp into a temp copy (PDF/image) using the same context as the view overlay.
             try {
                 $copy = $this->watermarkService->createWatermarkedCopy($attachment, $user, $watermarkAudit);
             } catch (Throwable $first) {

@@ -60,7 +60,7 @@ class DocumentWatermarkService
 
         $absoluteSource = Storage::disk('local')->path($sourcePath);
         $kind = $attachment->fileKind();
-        $context = $this->buildContext($user, $audit);
+        $context = $this->alignContextWithViewOverlay($this->buildContext($user, $audit), $user, $audit);
 
         if ($reduceFeatures) {
             $context['show_qr_code'] = false;
@@ -78,10 +78,49 @@ class DocumentWatermarkService
         }
 
         return match ($kind) {
-            'pdf' => $this->watermarkPdfIncremental($absoluteSource, $context, $dir),
+            // Prefer FPDI stamp so download matches the view overlay (Arabic + layout).
+            // Incremental annotations are a size-friendly fallback when rewriting fails.
+            'pdf' => $this->watermarkPdfWithFallback($absoluteSource, $context, $dir),
             'image' => $this->watermarkImage($absoluteSource, $attachment->effectiveMimeType(), $context, $dir),
             default => throw new RuntimeException('Burn-in watermarking is only supported for PDF and image files.'),
         };
+    }
+
+    /**
+     * Mirror prepareViewWatermark fallbacks so download content matches the overlay.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    private function alignContextWithViewOverlay(array $context, User $user, DocumentAccessAudit $audit): array
+    {
+        if (
+            empty($context['show_center_text'])
+            && empty($context['show_footer'])
+            && empty($context['show_qr_code'])
+        ) {
+            $context['center_lines'] = [$user->name, $audit->transaction_id];
+            $context['footer'] = implode(' | ', $context['center_lines']);
+            $context['show_center_text'] = true;
+            $context['show_footer'] = true;
+        }
+
+        return $context;
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array{path: string, mime: string, extension: string}
+     */
+    private function watermarkPdfWithFallback(string $sourcePath, array $context, string $dir): array
+    {
+        try {
+            return $this->watermarkPdf($sourcePath, $context, $dir);
+        } catch (Throwable $e) {
+            report($e);
+
+            return $this->watermarkPdfIncremental($sourcePath, $context, $dir);
+        }
     }
 
     /**
@@ -336,23 +375,26 @@ class DocumentWatermarkService
     private function stampPdfPage(Fpdi $pdf, float $width, float $height, array $context): void
     {
         if ($context['show_center_text'] && $context['center_lines'] !== []) {
-            $pdf->SetTextColor(80, 80, 80);
-            $this->applyPdfFont($pdf, 'B', max(8, (float) $context['font_size']));
+            $pdf->SetTextColor(60, 60, 60);
+            $scaledFont = max(8.0, (float) $context['font_size'] * min(1.25, $width / 210));
+            $this->applyPdfFont($pdf, 'B', $scaledFont);
             $this->applyPdfAlpha($pdf, (float) $context['opacity']);
 
             $text = implode("\n", $context['center_lines']);
+            $lineHeight = max(4.0, $scaledFont * 0.45);
+            $blockHeight = count($context['center_lines']) * $scaledFont * 0.55;
             $pdf->StartTransform();
             $pdf->Rotate($context['angle'], $width / 2, $height / 2);
             $pdf->MultiCell(
                 $width * 0.75,
-                max(4, $context['font_size'] * 0.45),
+                $lineHeight,
                 $text,
                 0,
                 'C',
                 false,
                 1,
                 $width * 0.125,
-                $height / 2 - (count($context['center_lines']) * $context['font_size'] * 0.25),
+                ($height / 2) - ($blockHeight / 2),
                 true,
                 0,
                 false,
@@ -367,7 +409,7 @@ class DocumentWatermarkService
         if ($context['show_footer'] && $context['footer'] !== '') {
             $this->applyPdfAlpha($pdf, max(0.35, min(0.75, $context['opacity'] + 0.25)));
             $pdf->SetTextColor(40, 40, 40);
-            $this->applyPdfFont($pdf, '', 7);
+            $this->applyPdfFont($pdf, '', max(6.0, ((float) $context['font_size']) * 0.28));
             $footerY = max(4, $height - 10);
             $pdf->SetXY(8, $footerY);
             $pdf->Cell($width - ($context['show_qr_code'] ? 28 : 16), 6, $context['footer'], 0, 0, 'L', false, '', 1);

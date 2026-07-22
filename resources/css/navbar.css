@@ -15,6 +15,12 @@
 .navbar-end,
 .navbar-brand {
     flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.navbar-end {
+    gap: 0.75rem;
 }
 
 /* ===== details/summary menus (no JS required to open) ===== */
@@ -119,26 +125,36 @@
     height: 100%;
 }
 
-/* ===== responsive ===== */
+/* ===== responsive =====
+   Overlap zone was ~961–1280px: nowrap pills + flex-shrink:0 end
+   controls painted over each other because overflow stays visible
+   for dropdown panels. Hide labels sooner, then collapse to mobile.
+*/
 
-@media (max-width: 1280px) {
+@media (max-width: 1400px) {
+    .navbar-inner {
+        gap: 1rem;
+    }
+
+    .navbar-start {
+        gap: 0.75rem;
+    }
+
+    .navbar-end {
+        gap: 0.55rem;
+    }
+
     .navbar-brand-tagline {
         display: none;
     }
 
-    .navbar-link {
-        padding-inline: 0.8rem;
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 1100px) {
     .navbar-menu {
         margin-inline-start: 0;
     }
 
     .navbar-link {
         padding-inline: 0.7rem;
+        font-size: 0.8rem;
     }
 
     .navbar-link-text {
@@ -153,18 +169,79 @@
         width: 1.2rem;
         height: 1.2rem;
     }
+
+    .navbar-user-meta {
+        display: none;
+    }
+
+    .navbar-user-btn {
+        padding: 0.3rem;
+    }
+
+    .navbar-language-btn {
+        padding: 0.4rem 0.55rem;
+    }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
+    .navbar {
+        --navbar-inner-height: 4.15rem;
+    }
+
     .navbar-inner {
         gap: 0.75rem;
+        padding: 0 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .navbar-menu {
+        display: none;
+        order: 3;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        margin: 0;
+        padding: 0.65rem;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-lg, 0.75rem);
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: var(--shadow-lg, 0 20px 50px rgba(15, 23, 42, 0.14));
+        gap: 0.25rem;
+        max-height: 0;
+        overflow: hidden !important;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: max-height 0.35s ease, opacity 0.25s ease, transform 0.25s ease, padding 0.25s ease;
     }
 
     .navbar-menu.is-open {
+        display: flex;
         max-height: min(32rem, calc(100vh - var(--navbar-height, 4.5rem) - 2rem));
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        opacity: 1;
+        transform: translateY(0);
+        margin-top: 0.35rem;
+        margin-bottom: 0.65rem;
         border-radius: var(--radius-lg, 0.75rem);
+    }
+
+    .navbar-link {
+        padding: 0.8rem 0.95rem;
+        border-radius: 0.65rem;
+    }
+
+    .navbar-link-text {
+        display: inline;
+    }
+
+    .navbar-link--summary .navbar-link-chevron {
+        display: flex;
+    }
+
+    .navbar-toggle {
+        display: flex;
     }
 
     .navbar-nav-details {
@@ -203,5 +280,9 @@
     .navbar-nav-subitem {
         padding: 0.8rem 0.95rem;
         border-radius: 0.65rem;
+    }
+
+    .navbar-mobile-backdrop {
+        display: block;
     }
 }
