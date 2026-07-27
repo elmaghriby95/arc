@@ -509,23 +509,28 @@ class TransactionController extends Controller
         return redirect($url)->with('success', __('messages.transaction.created'));
     }
 
-    /** @return array{max_file_bytes: int, php_upload_bytes: int, php_post_bytes: int} */
+    /** @return array{max_file_bytes: int, php_upload_bytes: int, php_post_bytes: int, app_max_bytes: int} */
     private function transactionUploadLimits(): array
     {
-        $maxFileBytes = $this->maxUploadFileKb() * 1024;
+        $appMaxBytes = $this->maxUploadFileKb() * 1024;
         $phpUploadBytes = $this->iniSizeToBytes(ini_get('upload_max_filesize'));
         $phpPostBytes = $this->iniSizeToBytes(ini_get('post_max_size'));
 
-        $effectiveMax = $maxFileBytes;
+        $effectiveMax = $appMaxBytes;
 
         if ($phpUploadBytes > 0) {
             $effectiveMax = min($effectiveMax, $phpUploadBytes);
         }
 
+        if ($phpPostBytes > 0) {
+            $effectiveMax = min($effectiveMax, $phpPostBytes);
+        }
+
         return [
-            'max_file_bytes' => $effectiveMax,
+            'max_file_bytes' => max(0, $effectiveMax),
             'php_upload_bytes' => $phpUploadBytes,
             'php_post_bytes' => $phpPostBytes,
+            'app_max_bytes' => $appMaxBytes,
         ];
     }
 
@@ -559,14 +564,21 @@ class TransactionController extends Controller
             return 0;
         }
 
-        $value = trim($value);
-        $unit = strtolower(substr($value, -1));
-        $number = (float) $value;
+        $value = strtolower(trim($value));
+        $value = preg_replace('/\s+/', '', $value) ?? $value;
+
+        if (! preg_match('/^(\d+(?:\.\d+)?)([kmgt]?b?)?$/', $value, $matches)) {
+            return 0;
+        }
+
+        $number = (float) $matches[1];
+        $unit = $matches[2] !== '' ? $matches[2][0] : '';
 
         return (int) match ($unit) {
             'g' => $number * 1024 * 1024 * 1024,
             'm' => $number * 1024 * 1024,
             'k' => $number * 1024,
+            't' => $number * 1024 * 1024 * 1024 * 1024,
             default => $number,
         };
     }
@@ -595,6 +607,7 @@ class TransactionController extends Controller
             'upload_preparing' => __('transactions.js.upload_preparing'),
             'upload_failed' => __('transactions.js.upload_failed'),
             'upload_too_large' => __('transactions.js.upload_too_large'),
+            'upload_too_large_dynamic' => __('transactions.js.upload_too_large_dynamic'),
             'upload_server_limit' => __('transactions.js.upload_server_limit'),
             'upload_creating' => __('transactions.js.upload_creating'),
             'upload_partial' => __('transactions.js.upload_partial'),

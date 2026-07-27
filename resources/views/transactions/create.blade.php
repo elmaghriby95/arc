@@ -73,6 +73,7 @@
                       data-max-file-bytes="{{ $uploadLimits['max_file_bytes'] }}"
                       data-php-upload-bytes="{{ $uploadLimits['php_upload_bytes'] }}"
                       data-php-post-bytes="{{ $uploadLimits['php_post_bytes'] }}"
+                      data-app-max-bytes="{{ $uploadLimits['app_max_bytes'] }}"
                       data-attachment-upload-url="{{ route('transactions.attachments.create-upload', ['transaction' => '__ID__']) }}"
                       data-initial-step="{{ $errors->has('folder_id') ? 2 : 1 }}">
                     @csrf
@@ -217,7 +218,19 @@
                                                     {{ __('transactions.scan_direct') }}
                                                 </button>
                                             </div>
-                                            <small>{{ __('transactions.upload_formats') }} · {{ __('transactions.scan_agent_hint') }}</small>
+                                            <small>
+                                                {{ __('transactions.upload_formats') }}
+                                                · {{ __('transactions.upload_effective_limit', ['max' => number_format($uploadLimits['max_file_bytes'] / 1048576, 0).' MB']) }}
+                                                · {{ __('transactions.scan_agent_hint') }}
+                                            </small>
+                                            @if ($uploadLimits['php_upload_bytes'] > 0 && $uploadLimits['php_upload_bytes'] < $uploadLimits['app_max_bytes'])
+                                                <small class="form-error" style="display:block;margin-top:.35rem">
+                                                    {{ __('transactions.upload_php_limit_warning', [
+                                                        'php' => number_format($uploadLimits['php_upload_bytes'] / 1048576, 0).' MB',
+                                                        'app' => number_format($uploadLimits['app_max_bytes'] / 1048576, 0).' MB',
+                                                    ]) }}
+                                                </small>
+                                            @endif
                                         </div>
                                         <div class="txnw-upload-queue is-hidden" data-txn-queue>
                                             <ul class="txnw-upload-list" data-txn-file-list></ul>

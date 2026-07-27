@@ -45,17 +45,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatSize = (bytes) => bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
 
     const maxFileBytes = Number(form.dataset.maxFileBytes) || (409600 * 1024);
+    const phpUploadBytes = Number(form.dataset.phpUploadBytes) || 0;
+    const phpPostBytes = Number(form.dataset.phpPostBytes) || 0;
 
     const validateUploadLimits = () => {
         const oversized = selectedFiles.filter((file) => file.size > maxFileBytes);
 
         if (oversized.length) {
-            const limitMb = (maxFileBytes / 1048576).toFixed(0);
+            const limitLabel = formatSize(maxFileBytes);
+            const details = [
+                (i18n.upload_too_large_dynamic || 'حجم الملف أكبر من الحد الفعلي المسموح (:max).')
+                    .replace(':max', limitLabel),
+                ...oversized.map((f) => `${f.name} (${formatSize(f.size)})`),
+            ];
 
-            alert(
-                (i18n.upload_too_large || `حجم الملف أكبر من المسموح (${limitMb} ميجابايت).`)
-                    + `\n${oversized.map((f) => `${f.name} (${formatSize(f.size)})`).join('\n')}`,
-            );
+            if (phpUploadBytes > 0 || phpPostBytes > 0) {
+                details.push(
+                    `PHP upload_max_filesize=${phpUploadBytes ? formatSize(phpUploadBytes) : '—'} ، post_max_size=${phpPostBytes ? formatSize(phpPostBytes) : '—'}`,
+                );
+            }
+
+            const message = details.join('\n');
+            showValidationErrors({ files: details });
+            alert(message);
 
             return false;
         }
