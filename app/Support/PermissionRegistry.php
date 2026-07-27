@@ -9,11 +9,23 @@ use App\Models\TransactionStatus;
 class PermissionRegistry
 {
     /** @return array<string, list<PermissionOption>> */
-    public static function grouped(): array
+    public static function grouped(bool $assignableOnly = true): array
     {
         $groups = [];
+        $superAdminOnly = array_flip(Permission::superAdminOnlyValues());
 
         foreach (Permission::grouped() as $group => $permissions) {
+            if ($assignableOnly) {
+                $permissions = array_values(array_filter(
+                    $permissions,
+                    fn (Permission $permission) => ! isset($superAdminOnly[$permission->value]),
+                ));
+            }
+
+            if ($permissions === []) {
+                continue;
+            }
+
             $options = array_map(
                 fn (Permission $permission) => new PermissionOption($permission->value, $permission->label()),
                 $permissions
@@ -33,6 +45,17 @@ class PermissionRegistry
         }
 
         return $groups;
+    }
+
+    /** @return list<string> */
+    public static function assignableValues(): array
+    {
+        $blocked = array_flip(Permission::superAdminOnlyValues());
+
+        return array_values(array_filter(
+            self::allValues(),
+            fn (string $permission) => ! isset($blocked[$permission]),
+        ));
     }
 
     /** @return list<PermissionOption> */

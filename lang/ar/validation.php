@@ -38,6 +38,13 @@ return [
         'cannot_change_super_admin_role' => 'لا يمكن تغيير دور مدير النظام.',
     ],
 
+    'database_clean' => [
+        'confirmation_required' => 'يجب كتابة عبارة التأكيد.',
+        'confirmation_mismatch' => 'عبارة التأكيد غير مطابقة.',
+        'password_required' => 'كلمة المرور مطلوبة لتأكيد العملية.',
+        'password_incorrect' => 'كلمة المرور غير صحيحة.',
+    ],
+
     'attributes' => [
         'title' => 'عنوان المعاملة',
         'archival_reference' => 'الرقم الإشاري للمعاملة',

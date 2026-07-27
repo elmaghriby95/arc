@@ -11,12 +11,17 @@ use App\Models\Role;
 use App\Models\TransactionStatus;
 use App\Models\TransactionType;
 use App\Models\User;
+use App\Services\DatabaseCleanBootstrap;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
     public function index(): View
     {
+        if (auth()->user()?->isAdmin()) {
+            DatabaseCleanBootstrap::ensure();
+        }
+
         $user = auth()->user();
         $folderScope = $user?->folderOrgScopeDepartmentIds();
 

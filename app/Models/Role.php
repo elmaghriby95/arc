@@ -73,7 +73,7 @@ class Role extends Model
     /** @param  list<string>|null  $permissions */
     public static function normalizePermissions(?array $permissions): array
     {
-        $valid = PermissionRegistry::allValues();
+        $valid = PermissionRegistry::assignableValues();
         $filtered = array_values(array_intersect($permissions ?? [], $valid));
 
         return array_values(array_unique(array_merge(

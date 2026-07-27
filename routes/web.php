@@ -14,6 +14,7 @@ use App\Http\Controllers\ScanAgentProxyController;
 use App\Http\Controllers\TransactionAttachmentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransactionReviewLogController;
+use App\Http\Controllers\Settings\DatabaseCleanController;
 use App\Http\Controllers\Settings\DocumentTypeController;
 use App\Http\Controllers\Settings\FolderTreeController;
 use App\Http\Controllers\Settings\LanguageController;
@@ -380,6 +381,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:settings.general.edit')->group(function () {
             Route::put('/general', [GeneralSettingsController::class, 'update'])->name('general.update');
             Route::patch('/general', [GeneralSettingsController::class, 'update']);
+        });
+
+        Route::middleware(['admin', 'permission:settings.database-clean'])->group(function () {
+            Route::get('/database-clean', [DatabaseCleanController::class, 'index'])->name('database-clean.index');
+            Route::delete('/database-clean', [DatabaseCleanController::class, 'destroy'])->name('database-clean.destroy');
         });
     });
 });

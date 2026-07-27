@@ -21,7 +21,7 @@ class UpdateRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'permissions' => ['required', 'array', 'min:1'],
-            'permissions.*' => ['string', Rule::in(PermissionRegistry::allValues())],
+            'permissions.*' => ['string', Rule::in(PermissionRegistry::assignableValues())],
         ];
     }
 

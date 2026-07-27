@@ -68,6 +68,7 @@ return [
     'settings_watermark_edit' => 'تعديل إعدادات العلامة المائية',
     'settings_general_view' => 'عرض الإعدادات العامة',
     'settings_general_edit' => 'تعديل الإعدادات العامة',
+    'settings_database-clean' => 'تنظيف قاعدة البيانات (سوبر أدمن فقط)',
     'documents_reference-number_duplicate-override' => 'السماح بتكرار الرقم الإشاري',
     'profile_view' => 'عرض الملف الشخصي',
     'profile_edit' => 'تعديل الملف الشخصي',
@@ -93,6 +94,7 @@ return [
         'qr_code' => 'إعدادات رمز QR',
         'watermark' => 'إعدادات العلامة المائية',
         'general_settings' => 'الإعدادات العامة',
+        'database_clean' => 'تنظيف قاعدة البيانات',
         'profile' => 'الملف الشخصي',
     ],
 ];

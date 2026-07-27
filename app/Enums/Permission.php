@@ -109,6 +109,9 @@ enum Permission: string
     case SettingsGeneralView = 'settings.general.view';
     case SettingsGeneralEdit = 'settings.general.edit';
 
+    // تنظيف قاعدة البيانات (سوبر أدمن فقط)
+    case SettingsDatabaseClean = 'settings.database-clean';
+
     // تجاوز تكرار الرقم الإشاري
     case DocumentsReferenceNumberDuplicateOverride = 'documents.reference-number.duplicate-override';
 
@@ -217,10 +220,27 @@ enum Permission: string
             self::SettingsGeneralView,
             self::SettingsGeneralEdit => 'general_settings',
 
+            self::SettingsDatabaseClean => 'database_clean',
+
             self::ProfileView,
             self::ProfileEdit,
             self::ProfileDelete => 'profile',
         };
+    }
+
+    /** صلاحيات لا تُمنح إلا لدور مدير النظام ولا تظهر في نماذج الأدوار الأخرى. */
+    public function isSuperAdminOnly(): bool
+    {
+        return $this === self::SettingsDatabaseClean;
+    }
+
+    /** @return list<string> */
+    public static function superAdminOnlyValues(): array
+    {
+        return array_values(array_map(
+            fn (self $permission) => $permission->value,
+            array_filter(self::cases(), fn (self $permission) => $permission->isSuperAdminOnly()),
+        ));
     }
 
     /** @return array<string, list<self>> */
