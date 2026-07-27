@@ -417,8 +417,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const escapeHtml = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
     const showValidationErrors = (errors) => {
-        const items = Object.values(errors || {}).flat();
+        const items = Object.values(errors || {}).flat().filter(Boolean);
 
         if (! items.length) {
             return;
@@ -435,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (alert) {
-            alert.innerHTML = `<strong>${i18n.validation_heading || 'Please correct the following errors:'}</strong><ul>${items.map((e) => `<li>${e}</li>`).join('')}</ul>`;
+            alert.innerHTML = `<strong>${escapeHtml(i18n.validation_heading || 'Please correct the following errors:')}</strong><ul>${items.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`;
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -486,6 +493,130 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const summarizeRawBody = (text) => {
+        if (! text) {
+            return '';
+        }
+
+        return text
+            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 280);
+    };
+
+    const collectErrorMessages = (payload) => {
+        if (! payload) {
+            return [];
+        }
+
+        if (typeof payload === 'string') {
+            return payload.trim() ? [payload.trim()] : [];
+        }
+
+        if (payload instanceof Error) {
+            if (payload.message === 'network') {
+                return [i18n.upload_network || 'تعذّر الاتصال بالخادم أثناء الرفع. تحقق من الشبكة ثم أعد المحاولة.'];
+            }
+
+            return payload.message ? [payload.message] : [];
+        }
+
+        const items = [];
+
+        if (payload.errors && typeof payload.errors === 'object') {
+            Object.values(payload.errors).flat().forEach((item) => {
+                if (item) {
+                    items.push(String(item));
+                }
+            });
+        }
+
+        if (payload.message) {
+            const message = String(payload.message);
+
+            if (! items.includes(message)) {
+                items.push(message);
+            }
+        }
+
+        if (payload.limits) {
+            const limits = payload.limits;
+            items.push(
+                `حدود PHP الآن: upload_max_filesize=${limits.upload_max_filesize || '—'} ، post_max_size=${limits.post_max_size || '—'}`,
+            );
+        }
+
+        return items;
+    };
+
+    const formatUploadError = (error, fallback) => {
+        const messages = collectErrorMessages(error);
+
+        if (messages.length) {
+            return messages.join('\n');
+        }
+
+        if (error?.status === 413) {
+            return i18n.upload_server_limit || fallback;
+        }
+
+        if (error?.status === 419) {
+            return i18n.upload_session_expired || 'انتهت صلاحية الجلسة. حدّث الصفحة ثم أعد المحاولة.';
+        }
+
+        if (error?.status >= 500) {
+            const raw = summarizeRawBody(error?.raw || '');
+
+            return (i18n.upload_server_error || 'خطأ في الخادم (:status).')
+                .replace(':status', String(error.status))
+                + (raw ? `\n${raw}` : '');
+        }
+
+        if (error?.status) {
+            const raw = summarizeRawBody(error?.raw || '');
+
+            return (i18n.upload_http_error || 'فشل الرفع (رمز HTTP :status).')
+                .replace(':status', String(error.status))
+                + (raw ? `\n${raw}` : '');
+        }
+
+        return fallback || i18n.upload_failed || 'Upload failed.';
+    };
+
+    const rejectUploadResponse = (xhr, fallback) => {
+        const data = parseJsonResponse(xhr.responseText);
+        const raw = xhr.responseText || '';
+        const status = xhr.status;
+        const base = data && typeof data === 'object' ? { ...data } : {};
+        const messages = collectErrorMessages(base);
+        let message = messages[0] || null;
+
+        if (! message) {
+            if (status === 413) {
+                message = i18n.upload_server_limit || fallback;
+            } else if (status === 419) {
+                message = i18n.upload_session_expired || 'انتهت صلاحية الجلسة. حدّث الصفحة ثم أعد المحاولة.';
+            } else if (status >= 500) {
+                message = (i18n.upload_server_error || 'خطأ في الخادم (:status).').replace(':status', String(status));
+            } else {
+                message = summarizeRawBody(raw) || fallback || i18n.upload_failed || 'Upload failed.';
+            }
+        }
+
+        return {
+            ...base,
+            status,
+            raw,
+            message,
+            errors: base.errors && Object.keys(base.errors).length
+                ? base.errors
+                : { files: [message] },
+        };
+    };
+
     const appendCreateFileMeta = (fd, sourceIndex) => {
         const meta = collectFileMeta(sourceIndex);
         const fields = {
@@ -530,21 +661,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         xhr.addEventListener('load', () => {
-            const data = parseJsonResponse(xhr.responseText);
-
-            if (xhr.status === 422 || xhr.status === 413) {
-                reject(data || { errors: { files: [i18n.upload_failed || 'Upload failed.'] } });
-
-                return;
-            }
-
             if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(data);
+                resolve(parseJsonResponse(xhr.responseText));
 
                 return;
             }
 
-            reject(data || new Error('create failed'));
+            reject(rejectUploadResponse(xhr, i18n.upload_failed || 'Upload failed.'));
         });
 
         xhr.addEventListener('error', () => reject(new Error('network')));
@@ -575,21 +698,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         xhr.addEventListener('load', () => {
-            const data = parseJsonResponse(xhr.responseText);
-
-            if (xhr.status === 422 || xhr.status === 413) {
-                reject(data || { errors: { files: [i18n.upload_failed || 'Upload failed.'] } });
-
-                return;
-            }
-
             if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(data);
+                resolve(parseJsonResponse(xhr.responseText));
 
                 return;
             }
 
-            reject(data || new Error('upload failed'));
+            reject(rejectUploadResponse(xhr, i18n.upload_failed || 'Upload failed.'));
         });
 
         xhr.addEventListener('error', () => reject(new Error('network')));
@@ -618,8 +733,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             setFormLocked(false);
             resetUploadProgress();
-            showValidationErrors(error?.errors);
-            alert(i18n.upload_failed || 'Upload failed.');
+            const detail = formatUploadError(error, i18n.upload_failed || 'Upload failed.');
+            showValidationErrors(error?.errors || { files: [detail] });
+            alert(detail);
 
             return;
         }
@@ -631,7 +747,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (! transactionId || ! uploadUrlTemplate || ! showUrl) {
             setFormLocked(false);
             resetUploadProgress();
-            alert(i18n.upload_failed || 'Upload failed.');
+            const detail = i18n.upload_failed_response || 'استجابة غير مكتملة من الخادم بعد إنشاء المعاملة.';
+            showValidationErrors({ files: [detail] });
+            alert(detail);
 
             return;
         }
@@ -653,9 +771,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             setFormLocked(false);
             resetUploadProgress();
-            showValidationErrors(error?.errors);
+            const detail = [
+                i18n.upload_partial || 'Transaction created but a document failed to upload.',
+                formatUploadError(error, i18n.upload_failed || 'Upload failed.'),
+            ].join('\n');
+            showValidationErrors(error?.errors || { files: [detail] });
 
-            alert(i18n.upload_partial || 'Transaction created but a document failed to upload.');
+            alert(detail);
             window.location.assign(showUrl);
 
             return;

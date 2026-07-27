@@ -598,6 +598,11 @@ class TransactionController extends Controller
             'upload_server_limit' => __('transactions.js.upload_server_limit'),
             'upload_creating' => __('transactions.js.upload_creating'),
             'upload_partial' => __('transactions.js.upload_partial'),
+            'upload_network' => __('transactions.js.upload_network'),
+            'upload_session_expired' => __('transactions.js.upload_session_expired'),
+            'upload_server_error' => __('transactions.js.upload_server_error'),
+            'upload_http_error' => __('transactions.js.upload_http_error'),
+            'upload_failed_response' => __('transactions.js.upload_failed_response'),
             'validation_heading' => __('transactions.js.validation_heading'),
         ];
     }

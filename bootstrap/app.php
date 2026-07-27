@@ -28,11 +28,30 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->render(function (PostTooLargeException $e, Request $request) {
+            $contentLength = (int) $request->server('CONTENT_LENGTH', 0);
+            $detail = __('validation.post_too_large_detail', [
+                'content' => $contentLength > 0 ? round($contentLength / 1048576, 1).' MB' : '—',
+                'post_max' => (string) ini_get('post_max_size'),
+                'upload_max' => (string) ini_get('upload_max_filesize'),
+            ]);
+
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => __('validation.post_too_large'),
-                    'errors' => ['files' => [__('validation.post_too_large')]],
+                    'message' => $detail,
+                    'errors' => ['files' => [$detail]],
+                    'code' => 'post_too_large',
+                    'limits' => [
+                        'content_length' => $contentLength,
+                        'post_max_size' => ini_get('post_max_size'),
+                        'upload_max_filesize' => ini_get('upload_max_filesize'),
+                    ],
                 ], 413);
             }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['files' => $detail])
+                ->with('error', $detail);
         });
     })->create();

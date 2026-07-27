@@ -15,6 +15,7 @@ return [
     'file' => 'يجب أن يكون :attribute ملفاً صالحاً.',
     'uploaded' => 'فشل رفع :attribute. تحقق من حجم الملف وإعدادات الخادم.',
     'post_too_large' => 'حجم الطلب أكبر من الحد المسموح في الخادم. اطلب من مسؤول السيرفر رفع client_max_body_size في Nginx و post_max_size في PHP.',
+    'post_too_large_detail' => 'حجم الطلب (:content) أكبر من حد الخادم. post_max_size=:post_max ، upload_max_filesize=:upload_max.',
 
     'role' => [
         'name_required' => 'اسم الدور مطلوب.',
