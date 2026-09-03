@@ -9,21 +9,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->string('archival_reference')->nullable()->after('reference_number');
-        });
+        if (! Schema::hasColumn('transactions', 'archival_reference')) {
+            Schema::table('transactions', function (Blueprint $table) {
+                $table->string('archival_reference', 191)->nullable()->after('reference_number');
+            });
+        }
 
         DB::table('transactions')
             ->whereNull('archival_reference')
             ->update(['archival_reference' => DB::raw('reference_number')]);
 
         if (Schema::getConnection()->getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE transactions MODIFY archival_reference VARCHAR(255) NOT NULL');
+            DB::statement('ALTER TABLE transactions MODIFY archival_reference VARCHAR(191) NOT NULL');
         }
 
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->unique('archival_reference');
-        });
+        $indexes = collect(DB::select('SHOW INDEX FROM transactions'))
+            ->pluck('Key_name')
+            ->unique();
+
+        if (! $indexes->contains('transactions_archival_reference_unique')) {
+            Schema::table('transactions', function (Blueprint $table) {
+                $table->unique('archival_reference');
+            });
+        }
     }
 
     public function down(): void

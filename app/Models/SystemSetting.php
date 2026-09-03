@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\BrandingStorage;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class SystemSetting extends Model
 {
@@ -71,7 +72,18 @@ class SystemSetting extends Model
 
     public static function instance(): self
     {
-        return self::$resolved ??= static::query()->firstOrCreate([]);
+        if (self::$resolved instanceof self) {
+            return self::$resolved;
+        }
+
+        if (! Schema::hasTable('system_settings')) {
+            return self::$resolved = new self([
+                'app_name' => config('app.name'),
+                'idle_timeout_minutes' => self::IDLE_TIMEOUT_DEFAULT,
+            ]);
+        }
+
+        return self::$resolved = static::query()->firstOrCreate([]);
     }
 
     public static function clearCache(): void
