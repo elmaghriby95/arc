@@ -1,4 +1,8 @@
 <x-app-layout>
+    @push('styles')
+        <x-inline-css file="folder-tree.css" />
+    @endpush
+
     <x-slot name="header">
         <div class="page-header">
             <div>
