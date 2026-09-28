@@ -91,7 +91,7 @@
         <div class="card org-tree-card-wrapper">
             <div class="card-header">
                 <h3 class="card-title">{{ __('settings.folders.tree_title') }}</h3>
-                <button type="button" class="btn btn-secondary" data-org-expand-all>{{ __('common.expand_all') }}</button>
+                <button type="button" class="btn btn-secondary" data-org-expand-all onclick="document.querySelectorAll('[data-folder-tree] [data-org-toggle]').forEach(function(button){ button.setAttribute('aria-expanded','true'); var node=button.closest('[data-org-node]'); if(node) node.classList.remove('is-collapsed'); });">{{ __('common.expand_all') }}</button>
             </div>
             <div class="card-body">
                 @if ($folders->isEmpty())
@@ -113,45 +113,4 @@
             </div>
         </div>
     </div>
-
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const tree = document.querySelector('[data-folder-tree]');
-
-                if (! tree) {
-                    return;
-                }
-
-                const setExpanded = (node, expanded) => {
-                    const toggle = node.querySelector(':scope > .org-tree-item [data-org-toggle]');
-                    const children = node.querySelector(':scope > [data-org-children]');
-
-                    if (! toggle || ! children) {
-                        return;
-                    }
-
-                    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-                    node.classList.toggle('is-collapsed', ! expanded);
-                    children.classList.toggle('is-hidden', ! expanded);
-                };
-
-                tree.querySelectorAll('[data-org-toggle]').forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const node = button.closest('[data-org-node]');
-
-                        if (! node) {
-                            return;
-                        }
-
-                        setExpanded(node, button.getAttribute('aria-expanded') !== 'true');
-                    });
-                });
-
-                document.querySelector('[data-org-expand-all]')?.addEventListener('click', () => {
-                    tree.querySelectorAll('[data-org-node]').forEach((node) => setExpanded(node, true));
-                });
-            });
-        </script>
-    @endpush
 </x-app-layout>

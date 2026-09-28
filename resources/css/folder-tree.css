@@ -32,8 +32,14 @@
     padding-right: 0.75rem;
 }
 
+.org-tree--folders .org-tree-node.is-collapsed > .org-tree-children {
+    display: none;
+}
+
 .org-tree--folders .org-tree-toggle {
-    margin-top: 0.4rem;
+    position: relative;
+    z-index: 2;
+    margin-top: 0.35rem;
 }
 
 .org-tree--folders .folder-tree-card {

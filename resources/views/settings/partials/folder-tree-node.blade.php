@@ -10,7 +10,7 @@
 <li class="org-tree-node folder-tree-node {{ $hasChildren ? 'is-collapsed' : '' }}" data-org-node>
     <div class="org-tree-item">
         @if ($hasChildren)
-            <button type="button" class="org-tree-toggle" data-org-toggle aria-expanded="false" aria-label="{{ __('transactions.show_subfolders') }}">
+            <button type="button" class="org-tree-toggle" data-org-toggle aria-expanded="false" aria-label="{{ __('transactions.show_subfolders') }}" onclick="var node=this.closest('[data-org-node]'); if(!node)return; var open=this.getAttribute('aria-expanded')!=='true'; this.setAttribute('aria-expanded', open?'true':'false'); node.classList.toggle('is-collapsed', !open);">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
@@ -132,7 +132,7 @@
     </div>
 
     @if ($hasChildren)
-        <ul class="org-tree-children is-hidden" data-org-children>
+        <ul class="org-tree-children" data-org-children>
             @foreach ($folder->children as $child)
                 @include('settings.partials.folder-tree-node', ['folder' => $child, 'depth' => $depth + 1, 'breadcrumbs' => $breadcrumbs, 'orgUnits' => $orgUnits])
             @endforeach
