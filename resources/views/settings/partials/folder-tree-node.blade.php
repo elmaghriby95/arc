@@ -1,8 +1,15 @@
 @props(['folder', 'depth' => 0])
 
+@php
+    $hasChildren = $folder->children->isNotEmpty();
+    $canCreateFolder = auth()->user()?->hasPermission('settings.folders.create') ?? false;
+    $subfolderContext = 'tree-'.$folder->id;
+    $restoreSubfolder = old('add_context') === $subfolderContext;
+@endphp
+
 <li class="org-tree-node" data-org-node>
     <div class="org-tree-item" style="--depth: {{ $depth }}">
-        @if ($folder->children->isNotEmpty())
+        @if ($hasChildren)
             <button type="button" class="org-tree-toggle" data-org-toggle aria-expanded="true">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -117,11 +124,30 @@
         </div>
     </div>
 
-    @if ($folder->children->isNotEmpty())
-        <ul class="org-tree-children" data-org-children>
+    @if ($hasChildren || $canCreateFolder)
+        <ul class="org-tree-children{{ $hasChildren ? '' : ' org-tree-children--empty' }}" data-org-children>
             @foreach ($folder->children as $child)
                 @include('settings.partials.folder-tree-node', ['folder' => $child, 'depth' => $depth + 1, 'breadcrumbs' => $breadcrumbs, 'orgUnits' => $orgUnits])
             @endforeach
+
+            @if ($canCreateFolder)
+                <li class="org-tree-add-node">
+                    <details class="org-tree-add" @if($restoreSubfolder) open @endif>
+                        <summary class="org-tree-add-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            {{ __('settings.folders.add_sub_folder') }}
+                        </summary>
+                        @include('settings.partials.folder-subfolder-form', [
+                            'parentFolder' => $folder,
+                            'orgUnits' => $orgUnits,
+                            'idPrefix' => 'sub_'.$folder->id.'_',
+                            'restoreOld' => $restoreSubfolder,
+                        ])
+                    </details>
+                </li>
+            @endif
         </ul>
     @endif
 </li>

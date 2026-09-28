@@ -59,6 +59,40 @@ class FolderDeletionTest extends TestCase
         $this->assertNull($folder->fresh());
     }
 
+    public function test_folder_tree_shows_subfolder_form_with_parent_filled(): void
+    {
+        $admin = $this->adminUser();
+        $department = $this->department();
+        $folder = $this->folder($department);
+
+        $this->actingAs($admin)
+            ->get(route('settings.folders.index'))
+            ->assertOk()
+            ->assertSee('folder-subfolder-form', false)
+            ->assertSee('name="add_context" value="tree-'.$folder->id.'"', false)
+            ->assertSee('name="parent_id" value="'.$folder->id.'"', false)
+            ->assertSee(__('settings.folders.add_sub_folder'), false)
+            ->assertSee($folder->name, false);
+
+        $this->actingAs($admin)
+            ->post(route('settings.folders.store'), [
+                'add_context' => 'tree-'.$folder->id,
+                'name' => 'مجلد فرعي',
+                'parent_id' => $folder->id,
+                'department_id' => $department->id,
+                'cabinet_number' => '1',
+                'row_number' => '2',
+                'box_number' => '3',
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('settings.folders.index'))
+            ->assertSessionHas('success');
+
+        $child = Folder::query()->where('name', 'مجلد فرعي')->first();
+        $this->assertNotNull($child);
+        $this->assertSame($folder->id, $child->parent_id);
+    }
+
     public function test_model_delete_is_blocked_when_folder_has_transactions(): void
     {
         $admin = $this->adminUser();

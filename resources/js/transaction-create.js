@@ -299,18 +299,93 @@ document.addEventListener('DOMContentLoaded', () => {
     ['dragleave', 'drop'].forEach((e) => dropzone?.addEventListener(e, (ev) => { ev.preventDefault(); dropzone.classList.remove('is-dragover'); }));
     dropzone?.addEventListener('drop', (ev) => ev.dataTransfer?.files?.length && addFiles(ev.dataTransfer.files));
 
-    const filterFolders = () => {
-        const deptId = departmentSelect?.value;
+    const showSubfoldersLabel = folderPicker?.dataset.labelShow || '';
+    const hideSubfoldersLabel = folderPicker?.dataset.labelHide || '';
 
-        folderPicker?.querySelectorAll('[data-folder-node]').forEach((node) => {
-            const folderDept = node.dataset.department || '';
-            const matches = ! deptId || (folderDept !== '' && folderDept === deptId);
-            node.classList.toggle('is-hidden', ! matches);
-        });
+    const setFolderExpanded = (node, expanded) => {
+        const children = node.querySelector(':scope > [data-folder-children]');
+        const toggle = node.querySelector(':scope > .txnw-folder-row > [data-folder-toggle]');
+
+        if (! children || ! toggle) {
+            return;
+        }
+
+        children.classList.toggle('is-collapsed', ! expanded);
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        toggle.setAttribute('aria-label', expanded ? hideSubfoldersLabel : showSubfoldersLabel);
+        toggle.setAttribute('title', expanded ? hideSubfoldersLabel : showSubfoldersLabel);
+    };
+
+    const expandFolderAncestors = (node) => {
+        let parent = node.parentElement?.closest('[data-folder-node]');
+
+        while (parent) {
+            setFolderExpanded(parent, true);
+            parent = parent.parentElement?.closest('[data-folder-node]');
+        }
+    };
+
+    const collapseFolderTree = () => {
+        folderPicker?.querySelectorAll('[data-folder-node]').forEach((node) => setFolderExpanded(node, false));
 
         const selectedNode = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
 
-        if (selectedNode?.classList.contains('is-hidden')) {
+        if (selectedNode) {
+            expandFolderAncestors(selectedNode);
+        }
+    };
+
+    const filterFolders = ({ collapse = false } = {}) => {
+        if (! folderPicker) {
+            return;
+        }
+
+        const q = (folderSearch?.value || '').trim().toLowerCase();
+        const deptId = departmentSelect?.value || '';
+        const nodes = [...folderPicker.querySelectorAll('[data-folder-node]')];
+        const selfMatch = new Map();
+
+        nodes.forEach((node) => {
+            const name = (node.dataset.folderName || '').toLowerCase();
+            const folderDept = node.dataset.department || '';
+            const searchMatch = ! q || name.includes(q);
+            const deptMatch = ! deptId || (folderDept !== '' && folderDept === deptId);
+            selfMatch.set(node, searchMatch && deptMatch);
+        });
+
+        const visible = new Map();
+
+        [...nodes].reverse().forEach((node) => {
+            const children = [...node.querySelectorAll(':scope > [data-folder-children] > [data-folder-node]')];
+            const descendantVisible = children.some((child) => visible.get(child));
+            visible.set(node, selfMatch.get(node) || descendantVisible);
+        });
+
+        nodes.forEach((node) => {
+            node.classList.toggle('is-hidden', ! visible.get(node));
+        });
+
+        if (q) {
+            nodes.forEach((node) => {
+                if (! visible.get(node)) {
+                    return;
+                }
+
+                const children = [...node.querySelectorAll(':scope > [data-folder-children] > [data-folder-node]')];
+
+                if (children.some((child) => visible.get(child))) {
+                    setFolderExpanded(node, true);
+                }
+            });
+        } else if (collapse) {
+            collapseFolderTree();
+        }
+
+        const selectedNode = folderPicker.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
+        const selectedDept = selectedNode?.dataset.department || '';
+        const selectedDeptMatch = ! selectedNode || ! deptId || (selectedDept !== '' && selectedDept === deptId);
+
+        if (selectedNode?.classList.contains('is-hidden') && ! selectedDeptMatch) {
             folderInput.value = '';
             folderPicker.querySelectorAll('[data-folder-select]').forEach((b) => {
                 b.classList.remove('is-selected');
@@ -320,10 +395,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    folderPicker?.querySelectorAll('[data-folder-toggle]').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const node = btn.closest('[data-folder-node]');
+
+            if (! node) {
+                return;
+            }
+
+            setFolderExpanded(node, btn.getAttribute('aria-expanded') !== 'true');
+        });
+    });
+
     const syncDepartmentFromFolder = (node) => {
         const folderDeptId = node?.dataset.department;
 
-        if (! folderDeptId || ! departmentSelect) {
+        if (! folderDeptId || ! departmentSelect || departmentSelect.dataset.locked === '1') {
             return;
         }
 
@@ -355,20 +445,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     folderSearch?.addEventListener('input', () => {
-        const q = folderSearch.value.trim().toLowerCase();
-        const deptId = departmentSelect?.value;
-
-        folderPicker?.querySelectorAll('[data-folder-node]').forEach((node) => {
-            const name = (node.dataset.folderName || '').toLowerCase();
-            const folderDept = node.dataset.department || '';
-            const searchMatch = ! q || name.includes(q);
-            const deptMatch = ! deptId || (folderDept !== '' && folderDept === deptId);
-            node.classList.toggle('is-hidden', ! (searchMatch && deptMatch));
-        });
+        filterFolders({ collapse: folderSearch.value.trim() === '' });
     });
 
-    departmentSelect?.addEventListener('change', filterFolders);
-    filterFolders();
+    departmentSelect?.addEventListener('change', () => filterFolders());
+    filterFolders({ collapse: true });
 
     const init = folderPicker?.querySelector('[data-folder-select].is-selected')?.closest('[data-folder-node]');
 

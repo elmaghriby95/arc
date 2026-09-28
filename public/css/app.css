@@ -1026,6 +1026,11 @@ textarea.form-control:focus {
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
 }
 
+.form-control[readonly] {
+    background: #f8fafc;
+    cursor: default;
+}
+
 .form-check {
     display: flex;
     align-items: center;
@@ -2312,6 +2317,10 @@ textarea.form-control:focus {
     margin-top: 0.5rem;
 }
 
+.org-tree-add .folder-subfolder-form {
+    width: min(36rem, 100%);
+}
+
 .card > .card-body > .org-inline-form--root {
     display: block;
 }
@@ -2352,11 +2361,20 @@ textarea.form-control:focus {
     font-size: inherit;
 }
 
-.org-unit-picker-hint {
+.org-unit-picker-hint,
+.org-unit-locked-hint {
     margin: 0.35rem 0 0;
     font-size: 0.8rem;
     color: var(--muted);
     line-height: 1.5;
+}
+
+.org-unit-picker.is-locked select {
+    background: #f8fafc;
+    color: #0f172a;
+    cursor: not-allowed;
+    opacity: 1;
+    -webkit-text-fill-color: #0f172a;
 }
 
 .org-unit-select option {

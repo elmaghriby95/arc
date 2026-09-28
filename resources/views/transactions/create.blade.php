@@ -123,6 +123,7 @@
                                                 'selectClass' => 'txnw-input txnw-select',
                                                 'showHint' => false,
                                                 'required' => true,
+                                                'lockWhenSingle' => true,
                                                 'placeholder' => __('common.choose_org_unit'),
                                             ])
                                         </div>

@@ -24,19 +24,23 @@
                 <h3 class="card-title">{{ __('settings.folders.add_title') }}</h3>
             </div>
             <div class="card-body">
+                @php
+                    $restoreRoot = old('add_context') === null || old('add_context') === 'root';
+                @endphp
                 <form method="POST" action="{{ route('settings.folders.store') }}">
                     @csrf
+                    <input type="hidden" name="add_context" value="root">
                     <div class="form-grid">
                         <div class="form-group">
                             <x-input-label for="name" :value="__('settings.folders.name')" />
-                            <x-text-input id="name" name="name" type="text" :value="old('name')" required />
+                            <x-text-input id="name" name="name" type="text" :value="$restoreRoot ? old('name') : ''" required />
                         </div>
                         <div class="form-group">
                             <x-input-label for="parent_id" :value="__('settings.folders.parent')" />
                             <select id="parent_id" name="parent_id" class="form-select">
                                 <option value="">{{ __('settings.folders.root_folder') }}</option>
                                 @foreach ($parents as $parent)
-                                    <option value="{{ $parent->id }}" @selected(old('parent_id') == $parent->id)>{{ $parent->name }}</option>
+                                    <option value="{{ $parent->id }}" @selected($restoreRoot && old('parent_id') == $parent->id)>{{ $parent->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -44,32 +48,35 @@
                             <x-input-label for="department_id" :value="__('common.org_unit')" />
                             @include('settings.partials.org-unit-select', [
                                 'orgUnits' => $orgUnits,
-                                'selected' => old('department_id'),
+                                'selected' => $restoreRoot ? old('department_id') : null,
+                                'ignoreOld' => ! $restoreRoot,
                                 'placeholder' => __('common.choose_org_unit'),
                                 'showHint' => false,
                                 'required' => true,
                             ])
                             <p class="form-hint">{{ __('settings.folders.org_unit_hint') }}</p>
-                            @error('department_id')<p class="form-error">{{ $message }}</p>@enderror
+                            @if ($restoreRoot)
+                                @error('department_id')<p class="form-error">{{ $message }}</p>@enderror
+                            @endif
                         </div>
                         @permission('settings.folders.location.edit')
-                            @include('settings.partials.folder-location-fields', ['idPrefix' => ''])
+                            @include('settings.partials.folder-location-fields', ['idPrefix' => '', 'useOld' => $restoreRoot])
                         @endpermission
                         <div class="form-group">
                             <x-input-label for="color" :value="__('settings.folders.color')" />
-                            <x-text-input id="color" name="color" type="text" :value="old('color')" placeholder="#4338ca" />
+                            <x-text-input id="color" name="color" type="text" :value="$restoreRoot ? old('color') : ''" placeholder="#4338ca" />
                         </div>
                         <div class="form-group">
                             <x-input-label for="sort_order" :value="__('settings.folders.sort_order')" />
-                            <x-text-input id="sort_order" name="sort_order" type="number" :value="old('sort_order', 0)" min="0" />
+                            <x-text-input id="sort_order" name="sort_order" type="number" :value="$restoreRoot ? old('sort_order', 0) : 0" min="0" />
                         </div>
                     </div>
                     <div class="form-group">
                         <x-input-label for="description" :value="__('common.description')" />
-                        <textarea id="description" name="description" rows="2" class="form-control">{{ old('description') }}</textarea>
+                        <textarea id="description" name="description" rows="2" class="form-control">{{ $restoreRoot ? old('description') : '' }}</textarea>
                     </div>
                     <div class="form-check form-group">
-                        <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', true))>
+                        <input id="is_active" name="is_active" type="checkbox" value="1" @checked(! $restoreRoot || old('is_active', true))>
                         <x-input-label for="is_active" :value="__('common.active')" />
                     </div>
                     <x-primary-button>{{ __('settings.folders.add_button') }}</x-primary-button>

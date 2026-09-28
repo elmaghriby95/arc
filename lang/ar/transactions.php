@@ -22,10 +22,13 @@ return [
     'archival_reference' => 'الرقم الإشاري للمعاملة',
     'archival_reference_placeholder' => 'أدخل الرقم الإشاري الرسمي للمعاملة',
     'archival_reference_hint' => 'حقل إلزامي — يُستخدم في رمز QR وفي البحث عن المعاملة',
+    'org_unit_locked' => 'وحدتك التنظيمية محددة تلقائياً ولا يمكن تغييرها.',
     'qr_code_title' => 'رمز QR للمعاملة',
     'qr_code_hint' => 'يتضمن: الرقم الإشاري | رقم الدولاب | رقم الصف | رقم الصندوق',
     'qr_code_print' => 'طباعة رمز QR',
     'validation_heading' => 'يرجى تصحيح الأخطاء التالية:',
+    'show_subfolders' => 'عرض المجلدات الفرعية',
+    'hide_subfolders' => 'إخفاء المجلدات الفرعية',
 
     'js' => [
         'select_folder_required' => 'يرجى اختيار مجلد لحفظ المعاملة.',
