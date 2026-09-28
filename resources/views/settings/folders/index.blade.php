@@ -100,7 +100,7 @@
                         <p>{{ __('settings.folders.empty') }}</p>
                     </div>
                 @else
-                    <ul class="org-tree" data-org-tree>
+                    <ul class="org-tree org-tree--folders" data-org-tree data-folder-tree>
                         @foreach ($folders as $folder)
                             @include('settings.partials.folder-tree-node', ['folder' => $folder, 'depth' => 0, 'breadcrumbs' => $breadcrumbs, 'orgUnits' => $orgUnits])
                         @endforeach
@@ -109,4 +109,45 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const tree = document.querySelector('[data-folder-tree]');
+
+                if (! tree) {
+                    return;
+                }
+
+                const setExpanded = (node, expanded) => {
+                    const toggle = node.querySelector(':scope > .org-tree-item [data-org-toggle]');
+                    const children = node.querySelector(':scope > [data-org-children]');
+
+                    if (! toggle || ! children) {
+                        return;
+                    }
+
+                    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                    node.classList.toggle('is-collapsed', ! expanded);
+                    children.classList.toggle('is-hidden', ! expanded);
+                };
+
+                tree.querySelectorAll('[data-org-toggle]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const node = button.closest('[data-org-node]');
+
+                        if (! node) {
+                            return;
+                        }
+
+                        setExpanded(node, button.getAttribute('aria-expanded') !== 'true');
+                    });
+                });
+
+                document.querySelector('[data-org-expand-all]')?.addEventListener('click', () => {
+                    tree.querySelectorAll('[data-org-node]').forEach((node) => setExpanded(node, true));
+                });
+            });
+        </script>
+    @endpush
 </x-app-layout>
