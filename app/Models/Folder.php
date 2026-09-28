@@ -30,6 +30,17 @@ class Folder extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Folder $folder): ?bool {
+            if ($folder->transactions()->exists()) {
+                return false;
+            }
+
+            return null;
+        });
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Folder::class, 'parent_id');
@@ -38,6 +49,11 @@ class Folder extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 
     public function children(): HasMany
@@ -55,9 +71,13 @@ class Folder extends Model
     }
 
     /** @param list<int>|null $departmentIds null = unrestricted (admin) */
-    public static function scopedTree(?array $departmentIds, bool $activeOnly = false): Collection
+    public static function scopedTree(?array $departmentIds, bool $activeOnly = false, bool $withTransactionCount = false): Collection
     {
         $query = static::scopedQuery($departmentIds)->with('department');
+
+        if ($withTransactionCount) {
+            $query->withCount('transactions');
+        }
 
         if ($activeOnly) {
             $query->where('is_active', true);

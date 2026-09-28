@@ -7,8 +7,6 @@ use App\Http\Requests\Settings\StoreUserRequest;
 use App\Http\Requests\Settings\UpdateUserRequest;
 use App\Models\Department;
 use App\Models\Language;
-use App\Models\LendingRequest;
-use App\Models\LendingRequestHistory;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserActivityFeed;
@@ -140,7 +138,7 @@ class UserManagementController extends Controller
 
     public function update(UpdateUserRequest $request, User $user, UserActivityLogger $logger): RedirectResponse
     {
-        $oldValues = $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'language_id']);
+        $oldValues = $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'view_descendant_units', 'language_id']);
         $validated = $request->validated();
 
         $passwordChanged = filled($validated['password'] ?? null);
@@ -162,7 +160,7 @@ class UserManagementController extends Controller
             $request->user(),
             $user,
             $oldValues,
-            $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'language_id']),
+            $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'view_descendant_units', 'language_id']),
             $request,
         );
 
@@ -221,35 +219,12 @@ class UserManagementController extends Controller
             ->with('success', __('messages.user.avatar_removed'));
     }
 
-    public function destroy(Request $request, User $user, UserActivityLogger $logger): RedirectResponse
+    public function destroy(Request $request, User $user): RedirectResponse
     {
         abort_unless($request->user()?->hasPermission('settings.users.edit'), 403);
 
-        if ($request->user()?->is($user)) {
-            return back()->withErrors(['user' => __('messages.user.cannot_delete_self')]);
-        }
-
-        if ($user->isAdmin()) {
-            return back()->withErrors(['user' => __('messages.user.cannot_delete_admin')]);
-        }
-
-        if (
-            LendingRequest::where('requested_by', $user->id)->exists()
-            || LendingRequestHistory::where('performed_by', $user->id)->exists()
-        ) {
-            return back()->withErrors(['user' => __('messages.user.cannot_delete_lending_history')]);
-        }
-
-        $logger->logUserDeleted($request->user(), $user, $request);
-
-        if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
-        }
-
-        $user->delete();
-
-        return redirect()
-            ->route('settings.users.index')
-            ->with('success', __('messages.user.deleted'));
+        return back()->withErrors([
+            'user' => __('messages.user.cannot_permanently_delete'),
+        ]);
     }
 }

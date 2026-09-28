@@ -85,7 +85,27 @@ class UserRoleAssignmentPermissionTest extends TestCase
 
         $editResponse
             ->assertOk()
-            ->assertSee('id="role_id"', false);
+            ->assertSee('id="role_id"', false)
+            ->assertDontSee('value="DELETE"', false);
+    }
+
+    public function test_user_cannot_be_permanently_deleted(): void
+    {
+        $actor = $this->userWithPermissions(['settings.users.edit']);
+        $target = User::factory()->create([
+            'employee_number' => 'EMP-ROLE-004',
+        ]);
+
+        $response = $this
+            ->actingAs($actor)
+            ->from("/settings/users/{$target->id}/edit")
+            ->delete("/settings/users/{$target->id}");
+
+        $response
+            ->assertRedirect("/settings/users/{$target->id}/edit")
+            ->assertSessionHasErrors('user');
+
+        $this->assertNotNull($target->fresh());
     }
 
     /** @param list<string> $permissions */

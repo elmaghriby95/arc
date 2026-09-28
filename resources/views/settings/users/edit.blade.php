@@ -219,6 +219,14 @@
                                         </div>
                                     @endif
 
+                                    <div class="form-group">
+                                        <label class="inline-flex items-center gap-2" for="view_descendant_units">
+                                            <input type="checkbox" id="view_descendant_units" name="view_descendant_units" value="1" @checked(in_array(old('view_descendant_units', $user->view_descendant_units ? '1' : '0'), [true, 1, '1'], true))>
+                                            <span>{{ __('settings.users.view_descendant_units') }}</span>
+                                        </label>
+                                        <p class="form-hint">{{ __('settings.users.view_descendant_units_hint') }}</p>
+                                    </div>
+
                                     <div class="org-scope-info">
                                         <strong>{{ __('settings.users.scope_title') }}</strong>
                                         <ul>
@@ -263,13 +271,6 @@
                 <div class="form-actions profile-form-actions">
                     <x-primary-button form="user-update-form">{{ __('settings.users.save_changes') }}</x-primary-button>
                     <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
-                    @if (! $user->is(auth()->user()) && ! $user->isAdmin())
-                        <form method="POST" action="{{ route('settings.users.destroy', $user) }}" onsubmit="return confirm('{{ __('settings.users.delete_confirm') }}')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">{{ __('settings.users.delete') }}</button>
-                        </form>
-                    @endif
                 </div>
             </div>
 

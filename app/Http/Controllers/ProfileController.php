@@ -7,7 +7,6 @@ use App\Services\UserActivityFeed;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\File;
@@ -93,28 +92,8 @@ class ProfileController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
-        $user = $request->user();
-
-        if ($user->isAdmin()) {
-            return Redirect::route('profile.edit')
-                ->withErrors(['password' => __('messages.user.cannot_delete_admin')], 'userDeletion');
-        }
-
-        if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
-        }
-
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return Redirect::route('profile.edit')
+            ->with('error', __('messages.user.cannot_permanently_delete'))
+            ->withErrors(['password' => __('messages.user.cannot_permanently_delete')], 'userDeletion');
     }
 }

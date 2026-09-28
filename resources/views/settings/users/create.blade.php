@@ -141,6 +141,14 @@
                         <span class="org-path" data-org-preview-text></span>
                     </div>
 
+                    <div class="form-group">
+                        <label class="inline-flex items-center gap-2" for="view_descendant_units">
+                            <input type="checkbox" id="view_descendant_units" name="view_descendant_units" value="1" @checked(in_array(old('view_descendant_units', '1'), [true, 1, '1'], true))>
+                            <span>{{ __('settings.users.view_descendant_units') }}</span>
+                        </label>
+                        <p class="form-hint">{{ __('settings.users.view_descendant_units_hint') }}</p>
+                    </div>
+
                     <div class="org-scope-info">
                         <strong>{{ __('settings.users.scope_title') }}</strong>
                         <ul>

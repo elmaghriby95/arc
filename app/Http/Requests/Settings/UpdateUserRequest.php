@@ -40,6 +40,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'role_id' => ['required', Rule::exists('roles', 'id')],
             'department_id' => ['nullable', Rule::exists('departments', 'id')],
+            'view_descendant_units' => ['boolean'],
             'language_id' => ['nullable', Rule::exists('languages', 'id')],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ];
@@ -93,9 +94,9 @@ class UpdateUserRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->input('employee_number') === '') {
-            $this->merge(['employee_number' => null]);
-        }
-
+        $this->merge([
+            'employee_number' => $this->input('employee_number') === '' ? null : $this->input('employee_number'),
+            'view_descendant_units' => $this->boolean('view_descendant_units'),
+        ]);
     }
 }

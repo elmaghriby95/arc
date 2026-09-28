@@ -97,6 +97,7 @@ class UserActivityLogger
             'email' => $created->email,
             'role_id' => $created->role_id,
             'department_id' => $created->department_id,
+            'view_descendant_units' => $created->view_descendant_units,
         ], $request);
     }
 

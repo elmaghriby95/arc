@@ -103,11 +103,15 @@
                 </form>
                 <div class="form-actions">
                     <x-primary-button form="folder-update-form-{{ $folder->id }}">{{ __('common.save') }}</x-primary-button>
-                    <form method="POST" action="{{ route('settings.folders.destroy', $folder) }}" onsubmit="return confirm(@json(__('common.confirm_delete')))">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">{{ __('common.delete') }}</button>
-                    </form>
+                    @if (($folder->transactions_count ?? 0) > 0)
+                        <p class="form-hint">{{ __('messages.folder.cannot_delete_in_use') }}</p>
+                    @else
+                        <form method="POST" action="{{ route('settings.folders.destroy', $folder) }}" onsubmit="return confirm(@json(__('common.confirm_delete')))">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">{{ __('common.delete') }}</button>
+                        </form>
+                    @endif
                 </div>
             </details>
         </div>

@@ -20,7 +20,7 @@ class FolderTreeController extends Controller
         $scope = $user->folderOrgScopeDepartmentIds();
 
         return view('settings.folders.index', [
-            'folders' => Folder::scopedTree($scope),
+            'folders' => Folder::scopedTree($scope, withTransactionCount: true),
             'totalFolders' => Folder::scopedQuery($scope)->count(),
             'parents' => Folder::scopedQuery($scope)->orderBy('name')->get(),
             'orgUnits' => $this->scopedOrgUnitOptions($user),
@@ -129,8 +129,13 @@ class FolderTreeController extends Controller
         $user = $request->user();
         $this->authorizeFolderAccess($user, $folder);
 
+        if ($folder->transactions()->exists() || ! $folder->delete()) {
+            return redirect()
+                ->route('settings.folders.index')
+                ->with('error', __('messages.folder.cannot_delete_in_use'));
+        }
+
         $logger->logFolderDeleted($user, $folder, $request);
-        $folder->delete();
 
         return redirect()
             ->route('settings.folders.index')

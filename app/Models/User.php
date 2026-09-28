@@ -15,7 +15,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'employee_number', 'password', 'role_id', 'department_id', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
+#[Fillable(['name', 'email', 'employee_number', 'password', 'role_id', 'department_id', 'view_descendant_units', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,7 +30,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'view_descendant_units' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (): bool {
+            return false;
+        });
     }
 
     public function auditLogs(): HasMany
@@ -149,6 +157,25 @@ class User extends Authenticatable
         return $this->department?->breadcrumb();
     }
 
+    /**
+     * Units this user is assigned to see.
+     * The descendant option includes child administrations and departments.
+     *
+     * @return list<int>
+     */
+    public function assignedOrgUnitIds(): array
+    {
+        if (! $this->department_id) {
+            return [];
+        }
+
+        if ($this->view_descendant_units) {
+            return Department::descendantIdsIncludingSelf((int) $this->department_id);
+        }
+
+        return [(int) $this->department_id];
+    }
+
     /** @return list<int>|null null = unrestricted (admin) */
     public function orgScopeDepartmentIds(): ?array
     {
@@ -156,11 +183,7 @@ class User extends Authenticatable
             return null;
         }
 
-        if (! $this->department_id) {
-            return [];
-        }
-
-        return Department::descendantIdsIncludingSelf($this->department_id);
+        return $this->assignedOrgUnitIds();
     }
 
     public function appliesOrgScope(): bool

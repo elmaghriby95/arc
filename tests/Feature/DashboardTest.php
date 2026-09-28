@@ -41,6 +41,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create([
             'role_id' => $role->id,
             'department_id' => $department->id,
+            'view_descendant_units' => false,
         ]);
         $draft = TransactionStatus::where('is_initial', true)->firstOrFail();
 
@@ -65,6 +66,39 @@ class DashboardTest extends TestCase
                     && $cards['transactions']['value'] === 2
                     && $cards['documents']['value'] === 2
                     && $cards['lending']['value'] === 1;
+            });
+    }
+
+    public function test_dashboard_includes_descendant_units_when_the_option_is_enabled(): void
+    {
+        $department = $this->department('HQ2');
+        $childDepartment = $this->department('HQ2-OPS', $department);
+        $otherDepartment = $this->department('FIN2');
+        $role = $this->roleWith([
+            'transactions.view',
+            'transactions.create',
+            'documents.view',
+        ]);
+        $user = User::factory()->create([
+            'role_id' => $role->id,
+            'department_id' => $department->id,
+            'view_descendant_units' => true,
+        ]);
+        $draft = TransactionStatus::where('is_initial', true)->firstOrFail();
+
+        $this->transactionWithAttachment($department, $user, $draft, 'Enabled own attachment');
+        $this->transactionWithAttachment($childDepartment, $user, $draft, 'Enabled child attachment');
+        $this->transactionWithAttachment($otherDepartment, $user, $draft, 'Enabled other attachment');
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response
+            ->assertOk()
+            ->assertViewHas('statCards', function (array $cards) {
+                $cards = collect($cards)->keyBy('key');
+
+                return $cards['transactions']['value'] === 2
+                    && $cards['documents']['value'] === 2;
             });
     }
 
