@@ -5,6 +5,7 @@ namespace App\Http\Requests\Settings;
 use App\Enums\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\PermissionRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
@@ -43,6 +44,9 @@ class UpdateUserRequest extends FormRequest
             'view_descendant_units' => ['boolean'],
             'language_id' => ['nullable', Rule::exists('languages', 'id')],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'permissions_submitted' => ['sometimes', 'boolean'],
+            'permissions' => ['exclude_unless:permissions_submitted,1', 'array'],
+            'permissions.*' => ['string', Rule::in(PermissionRegistry::allValues())],
         ];
     }
 
@@ -59,6 +63,7 @@ class UpdateUserRequest extends FormRequest
             'password.confirmed' => __('validation.user.password_confirmed'),
             'role_id.required' => __('validation.user.role_required'),
             'department_id.exists' => __('validation.user.department_exists'),
+            'permissions.*.in' => __('validation.user.permission_invalid'),
         ];
     }
 
@@ -89,6 +94,20 @@ class UpdateUserRequest extends FormRequest
             ) {
                 $validator->errors()->add('role_id', __('validation.user.cannot_assign_admin'));
             }
+
+            if (
+                $this->boolean('permissions_submitted')
+                && $user
+                && $user->is($this->user())
+                && $role
+                && (! $role->isSuperAdmin() || $this->user()?->isAdmin())
+            ) {
+                $permissions = $this->input('permissions', []);
+
+                if (! is_array($permissions) || ! in_array(Permission::SettingsUsersEdit->value, $permissions, true)) {
+                    $validator->errors()->add('permissions', __('validation.user.cannot_remove_own_user_edit'));
+                }
+            }
         });
     }
 
@@ -97,6 +116,9 @@ class UpdateUserRequest extends FormRequest
         $this->merge([
             'employee_number' => $this->input('employee_number') === '' ? null : $this->input('employee_number'),
             'view_descendant_units' => $this->boolean('view_descendant_units'),
+            'permissions' => $this->boolean('permissions_submitted') && ! $this->has('permissions')
+                ? []
+                : $this->input('permissions'),
         ]);
     }
 }

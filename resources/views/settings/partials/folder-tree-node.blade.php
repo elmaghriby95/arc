@@ -7,19 +7,27 @@
     $restoreSubfolder = old('add_context') === $subfolderContext;
 @endphp
 
-<li class="org-tree-node folder-tree-node {{ $hasChildren ? 'is-collapsed' : '' }}" data-org-node>
+<li class="org-tree-node folder-tree-node"
+    data-org-node
+    data-folder-node
+    data-folder-name="{{ $folder->name }}"
+    data-folder-location="{{ $folder->locationLabel() }}"
+    data-department="{{ $folder->department_id }}">
+    @if ($hasChildren)
+        <input type="checkbox" class="folder-branch-check" id="folder-branch-{{ $folder->id }}">
+    @endif
     <div class="org-tree-item">
         @if ($hasChildren)
-            <button type="button" class="org-tree-toggle" data-org-toggle aria-expanded="false" aria-label="{{ __('transactions.show_subfolders') }}" onclick="var node=this.closest('[data-org-node]'); if(!node)return; var open=this.getAttribute('aria-expanded')!=='true'; this.setAttribute('aria-expanded', open?'true':'false'); node.classList.toggle('is-collapsed', !open);">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <label class="org-tree-toggle" for="folder-branch-{{ $folder->id }}" title="{{ __('transactions.show_subfolders') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
-            </button>
+            </label>
         @else
             <span class="org-tree-spacer"></span>
         @endif
 
-        <div class="org-tree-card folder-tree-card {{ $folder->is_active ? '' : 'org-tree-card--inactive' }}" @if($folder->color) style="border-right-color: {{ $folder->color }};" @endif>
+        <div class="org-tree-card folder-tree-card {{ $folder->is_active ? '' : 'org-tree-card--inactive' }} {{ $folder->is_closed ? 'folder-tree-card--closed' : '' }}" @if($folder->color) style="border-right-color: {{ $folder->color }};" @endif>
             <div class="org-tree-card-icon folder-tree-icon" @if($folder->color) style="background: {{ $folder->color }}20; color: {{ $folder->color }};" @endif>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
@@ -34,6 +42,9 @@
                     @unless ($folder->is_active)
                         <span class="settings-badge settings-badge--danger">{{ __('common.inactive') }}</span>
                     @endunless
+                    @if ($folder->is_closed)
+                        <span class="settings-badge settings-badge--danger">{{ __('settings.folders.closed_badge') }}</span>
+                    @endif
                     @permission('settings.folders.location.view')
                         @if ($folder->locationLabel())
                             <span class="settings-badge settings-badge--primary">{{ $folder->locationLabel() }}</span>
@@ -60,6 +71,15 @@
                         ])
                     </details>
                 @endif
+                @permission('settings.folders.edit')
+                    <form method="POST" action="{{ route('settings.folders.closure', $folder) }}" class="folder-tree-close" @unless($folder->is_closed) onsubmit="return confirm(@json(__('settings.folders.close_confirm')))" @endunless>
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="folder-tree-close-btn {{ $folder->is_closed ? 'is-reopen' : '' }}" title="{{ $folder->is_closed ? __('settings.folders.reopen') : __('settings.folders.close') }}">
+                            {{ $folder->is_closed ? __('settings.folders.reopen_short') : __('settings.folders.close_short') }}
+                        </button>
+                    </form>
+                @endpermission
             <details class="folder-tree-edit">
                 <summary class="org-tree-edit" title="{{ __('common.edit') }}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -111,6 +131,11 @@
                     <div class="form-check form-group">
                         <input name="is_active" type="checkbox" value="1" @checked($folder->is_active)>
                         <x-input-label :value="__('common.active')" />
+                    </div>
+                    <div class="form-check form-group">
+                        <input name="is_closed" type="checkbox" value="1" @checked($folder->is_closed)>
+                        <x-input-label :value="__('settings.folders.closed_label')" />
+                        <p class="form-hint">{{ __('settings.folders.closed_hint') }}</p>
                     </div>
                 </form>
                 <div class="form-actions">

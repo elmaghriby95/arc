@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use App\Enums\Permission;
 use App\Services\LendingScopeService;
 use App\Services\TransactionScopeService;
+use App\Support\PermissionRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,6 +32,8 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'view_descendant_units' => 'boolean',
+            'granted_permissions' => 'array',
+            'revoked_permissions' => 'array',
         ];
     }
 
@@ -92,7 +95,64 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
+        if (in_array($permission, $this->revoked_permissions ?? [], true)) {
+            return false;
+        }
+
+        if (in_array($permission, $this->granted_permissions ?? [], true)) {
+            return true;
+        }
+
         return $this->role?->hasPermission($permission) ?? false;
+    }
+
+    public function permissionsCanBeCustomizedBy(User $actor): bool
+    {
+        return ! $this->isAdmin() || $actor->isAdmin();
+    }
+
+    /** @return list<string> */
+    public function effectivePermissionValues(): array
+    {
+        $rolePermissions = self::permissionValuesForRole($this->role);
+
+        return array_values(array_unique(array_merge(
+            array_values(array_diff($rolePermissions, $this->revoked_permissions ?? [])),
+            $this->granted_permissions ?? [],
+        )));
+    }
+
+    /** @param  list<string>  $desired */
+    public function syncPermissionOverrides(Role $role, array $desired): void
+    {
+        $allowed = $role->isSuperAdmin()
+            ? PermissionRegistry::allValues()
+            : PermissionRegistry::assignableValues();
+
+        $desired = array_values(array_unique(array_intersect($desired, $allowed)));
+        $rolePermissions = self::permissionValuesForRole($role);
+
+        $granted = array_values(array_diff($desired, $rolePermissions));
+        $revoked = array_values(array_diff($rolePermissions, $desired));
+        sort($granted);
+        sort($revoked);
+
+        $this->granted_permissions = $granted === [] ? null : $granted;
+        $this->revoked_permissions = $revoked === [] ? null : $revoked;
+    }
+
+    /** @return list<string> */
+    public static function permissionValuesForRole(?Role $role): array
+    {
+        if (! $role) {
+            return [];
+        }
+
+        if ($role->isSuperAdmin()) {
+            return PermissionRegistry::allValues();
+        }
+
+        return array_values(array_unique($role->permissions ?? []));
     }
 
     public function canAccessReports(): bool
@@ -134,14 +194,14 @@ class User extends Authenticatable
             'profile.view' => 'profile.edit',
         ];
 
-        if ($this->canAccessReports()) {
-            return route('reports.index', absolute: false);
-        }
-
         foreach ($routes as $permission => $route) {
             if ($this->hasPermission($permission)) {
                 return route($route, absolute: false);
             }
+        }
+
+        if ($this->canAccessReports()) {
+            return route('reports.index', absolute: false);
         }
 
         abort(403, __('messages.no_access'));

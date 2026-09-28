@@ -86,6 +86,7 @@ class FolderTreeController extends Controller
             'color' => ['nullable', 'string', 'max:20'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'is_closed' => ['nullable', 'boolean'],
         ]);
 
         if ($validated['parent_id'] ?? null) {
@@ -102,26 +103,48 @@ class FolderTreeController extends Controller
 
         $this->stripLocationFieldsUnlessAllowed($validated, $user, $folder);
 
-        $oldValues = $folder->only(['name', 'department_id', 'parent_id', 'cabinet_number', 'row_number', 'box_number', 'is_active']);
+        $oldValues = $folder->only(['name', 'department_id', 'parent_id', 'cabinet_number', 'row_number', 'box_number', 'is_active', 'is_closed']);
 
         $folder->update([
             ...$validated,
             'department_id' => $departmentId,
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => $request->boolean('is_active'),
+            'is_closed' => $request->boolean('is_closed'),
         ]);
 
         $logger->logFolderUpdated(
             $user,
             $folder,
             $oldValues,
-            $folder->only(['name', 'department_id', 'parent_id', 'cabinet_number', 'row_number', 'box_number', 'is_active']),
+            $folder->only(['name', 'department_id', 'parent_id', 'cabinet_number', 'row_number', 'box_number', 'is_active', 'is_closed']),
             $request,
         );
 
         return redirect()
             ->route('settings.folders.index')
             ->with('success', __('messages.folder.updated'));
+    }
+
+    public function toggleClosure(Request $request, Folder $folder, UserActivityLogger $logger): RedirectResponse
+    {
+        $user = $request->user();
+        $this->authorizeFolderAccess($user, $folder);
+
+        $wasClosed = (bool) $folder->is_closed;
+        $folder->update(['is_closed' => ! $wasClosed]);
+
+        $logger->logFolderUpdated(
+            $user,
+            $folder,
+            ['is_closed' => $wasClosed],
+            ['is_closed' => (bool) $folder->is_closed],
+            $request,
+        );
+
+        return redirect()
+            ->route('settings.folders.index')
+            ->with('success', $folder->is_closed ? __('messages.folder.closed') : __('messages.folder.reopened'));
     }
 
     public function destroy(Request $request, Folder $folder, UserActivityLogger $logger): RedirectResponse

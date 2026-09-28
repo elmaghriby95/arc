@@ -91,9 +91,33 @@
         <div class="card org-tree-card-wrapper">
             <div class="card-header">
                 <h3 class="card-title">{{ __('settings.folders.tree_title') }}</h3>
-                <button type="button" class="btn btn-secondary" data-org-expand-all onclick="document.querySelectorAll('[data-folder-tree] [data-org-toggle]').forEach(function(button){ button.setAttribute('aria-expanded','true'); var node=button.closest('[data-org-node]'); if(node) node.classList.remove('is-collapsed'); });">{{ __('common.expand_all') }}</button>
+                <button type="button" class="btn btn-secondary" data-org-expand-all onclick="document.querySelectorAll('.folder-branch-check').forEach(function(box){ box.checked = true; });">{{ __('common.expand_all') }}</button>
             </div>
             <div class="card-body">
+                @unless ($folders->isEmpty())
+                    <div class="folder-tree-filters">
+                        <div class="form-group">
+                            <x-input-label for="folder-filter-name" :value="__('settings.folders.filter_name')" />
+                            <x-text-input
+                                id="folder-filter-name"
+                                type="search"
+                                data-folder-filter-name
+                                :placeholder="__('settings.folders.filter_name_placeholder')"
+                                autocomplete="off"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <x-input-label for="folder-filter-unit" :value="__('settings.folders.filter_unit')" />
+                            <select id="folder-filter-unit" class="form-select" data-folder-filter-unit>
+                                <option value="">{{ __('settings.folders.filter_unit_all') }}</option>
+                                @foreach ($orgUnits as $unit)
+                                    <option value="{{ $unit['id'] }}">{{ str_repeat(' ', $unit['depth']) }}{{ $unit['depth'] > 0 ? '↳ ' : '' }}{{ $unit['label'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <p class="folder-tree-filter-empty" data-folder-filter-empty hidden>{{ __('settings.folders.filter_empty') }}</p>
+                @endunless
                 @if ($folders->isEmpty())
                     <div class="settings-empty">
                         <div class="settings-empty-icon">
@@ -113,4 +137,79 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const tree = document.querySelector('[data-folder-tree]');
+                const nameInput = document.querySelector('[data-folder-filter-name]');
+                const unitSelect = document.querySelector('[data-folder-filter-unit]');
+                const empty = document.querySelector('[data-folder-filter-empty]');
+
+                if (! tree || ! nameInput || ! unitSelect) {
+                    return;
+                }
+
+                const nodes = () => [...tree.querySelectorAll('[data-folder-node]')];
+                const openedByFilter = new Set();
+
+                const apply = () => {
+                    const query = nameInput.value.trim().toLowerCase();
+                    const unit = unitSelect.value;
+                    const filtering = query !== '' || unit !== '';
+                    const list = nodes();
+                    const selfMatch = new Map();
+
+                    list.forEach((node) => {
+                        const haystack = `${node.dataset.folderName || ''} ${node.dataset.folderLocation || ''}`.toLowerCase();
+                        const nameMatch = query === '' || haystack.includes(query);
+                        const unitMatch = unit === '' || (node.dataset.department || '') === unit;
+                        selfMatch.set(node, nameMatch && unitMatch);
+                    });
+
+                    const visible = new Map();
+
+                    [...list].reverse().forEach((node) => {
+                        const children = [...node.querySelectorAll(':scope > .org-tree-children > [data-folder-node]')];
+                        const childVisible = children.some((child) => visible.get(child));
+                        visible.set(node, selfMatch.get(node) || childVisible);
+                    });
+
+                    let anyMatch = false;
+
+                    list.forEach((node) => {
+                        const show = Boolean(visible.get(node));
+                        node.classList.toggle('is-filter-hidden', filtering && ! show);
+                        anyMatch = anyMatch || Boolean(selfMatch.get(node));
+
+                        const box = node.querySelector(':scope > .folder-branch-check');
+
+                        if (! box) {
+                            return;
+                        }
+
+                        const children = [...node.querySelectorAll(':scope > .org-tree-children > [data-folder-node]')];
+                        const shouldOpen = filtering && show && children.some((child) => visible.get(child));
+
+                        if (shouldOpen) {
+                            if (! box.checked) {
+                                box.checked = true;
+                                openedByFilter.add(box);
+                            }
+                        } else if (openedByFilter.has(box)) {
+                            box.checked = false;
+                            openedByFilter.delete(box);
+                        }
+                    });
+
+                    if (empty) {
+                        empty.hidden = ! filtering || anyMatch;
+                    }
+                };
+
+                nameInput.addEventListener('input', apply);
+                unitSelect.addEventListener('change', apply);
+            });
+        </script>
+    @endpush
 </x-app-layout>

@@ -266,6 +266,17 @@
                         </div>
                     </div>
 
+                    @if ($canCustomizePermissions)
+                        @include('settings.users.partials.permissions-form', [
+                            'permissionGroups' => $permissionGroups,
+                            'selected' => $selectedPermissions,
+                            'granted' => $grantedPermissions,
+                            'revoked' => $revokedPermissions,
+                        ])
+
+                        <script type="application/json" id="user-role-permissions">@json($rolePermissionMap)</script>
+                    @endif
+
                 </form>
 
                 <div class="form-actions profile-form-actions">
@@ -291,6 +302,122 @@
                 });
             });
         });
+
+        (function () {
+            var root = document.querySelector('[data-user-permissions]');
+            if (!root) return;
+
+            var mapEl = document.getElementById('user-role-permissions');
+            var map = {};
+            if (mapEl) {
+                try { map = JSON.parse(mapEl.textContent); } catch (e) { map = {}; }
+            }
+            var roleSelect = document.getElementById('role_id');
+            var addedLabel = root.dataset.addedLabel || '';
+            var removedLabel = root.dataset.removedLabel || '';
+
+            function currentRolePermissions() {
+                if (!roleSelect) return [];
+                return map[roleSelect.value] || [];
+            }
+
+            function refreshItem(item) {
+                var input = item.querySelector('[data-user-permission]');
+                var badge = item.querySelector('[data-permission-badge]');
+                if (!input || !badge) return;
+
+                var inRole = currentRolePermissions().indexOf(input.value) !== -1;
+                badge.classList.remove('permission-checkbox-badge--added', 'permission-checkbox-badge--removed');
+
+                if (input.checked && !inRole) {
+                    badge.hidden = false;
+                    badge.textContent = addedLabel;
+                    badge.classList.add('permission-checkbox-badge--added');
+                } else if (!input.checked && inRole) {
+                    badge.hidden = false;
+                    badge.textContent = removedLabel;
+                    badge.classList.add('permission-checkbox-badge--removed');
+                } else {
+                    badge.hidden = true;
+                    badge.textContent = '';
+                }
+            }
+
+            function refreshAll() {
+                root.querySelectorAll('[data-user-permission-item]').forEach(refreshItem);
+            }
+
+            root.querySelectorAll('[data-user-permission]').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    refreshItem(input.closest('[data-user-permission-item]'));
+                });
+            });
+
+            if (roleSelect) {
+                roleSelect.addEventListener('change', function () {
+                    var perms = currentRolePermissions();
+                    root.querySelectorAll('[data-user-permission]').forEach(function (input) {
+                        input.checked = perms.indexOf(input.value) !== -1;
+                    });
+                    refreshAll();
+                });
+            }
+
+            var selectAll = root.querySelector('[data-permissions-select-all]');
+            if (selectAll) {
+                selectAll.addEventListener('click', function () {
+                    root.querySelectorAll('[data-user-permission-item]').forEach(function (item) {
+                        if (item.hidden) return;
+                        var input = item.querySelector('[data-user-permission]');
+                        if (input) input.checked = true;
+                    });
+                    refreshAll();
+                });
+            }
+
+            var clearAll = root.querySelector('[data-permissions-clear-all]');
+            if (clearAll) {
+                clearAll.addEventListener('click', function () {
+                    root.querySelectorAll('[data-user-permission-item]').forEach(function (item) {
+                        if (item.hidden) return;
+                        var input = item.querySelector('[data-user-permission]');
+                        if (input) input.checked = false;
+                    });
+                    refreshAll();
+                });
+            }
+
+            root.querySelectorAll('[data-permission-group-toggle]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var group = btn.closest('[data-permission-group]');
+                    var inputs = Array.from(group.querySelectorAll('[data-user-permission]'));
+                    var allChecked = inputs.every(function (input) { return input.checked; });
+                    inputs.forEach(function (input) { input.checked = !allChecked; });
+                    refreshAll();
+                });
+            });
+
+            var search = root.querySelector('[data-user-permission-search]');
+            if (search) {
+                search.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') event.preventDefault();
+                });
+                search.addEventListener('input', function () {
+                    var q = search.value.trim().toLowerCase();
+                    root.querySelectorAll('[data-permission-group]').forEach(function (group) {
+                        var visible = 0;
+                        group.querySelectorAll('[data-user-permission-item]').forEach(function (item) {
+                            var match = q === '' || item.textContent.toLowerCase().indexOf(q) !== -1;
+                            item.hidden = !match;
+                            if (match) visible += 1;
+                        });
+                        group.hidden = visible === 0;
+                    });
+                });
+            }
+
+            refreshAll();
+        })();
     </script>
     @endpush
 </x-app-layout>

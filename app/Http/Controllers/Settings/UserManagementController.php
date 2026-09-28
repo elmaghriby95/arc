@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\Language;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\PermissionRegistry;
 use App\Services\UserActivityFeed;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
@@ -114,35 +115,53 @@ class UserManagementController extends Controller
 
     public function edit(Request $request, User $user, UserActivityFeed $activityFeed): View
     {
+        $user->load(['department', 'role', 'language']);
+
+        $roles = Role::query()
+            ->when(! $request->user()?->isAdmin(), function ($query) use ($user) {
+                $query->where(function ($roleQuery) use ($user) {
+                    $roleQuery
+                        ->where('slug', '!=', Role::SUPER_ADMIN_SLUG)
+                        ->orWhere('id', $user->role_id);
+                });
+            })
+            ->orderByDesc('is_system')
+            ->orderBy('name')
+            ->get();
+
+        $selectedPermissions = $request->old('permissions_submitted')
+            ? array_values((array) $request->old('permissions', []))
+            : $user->effectivePermissionValues();
+
         return view('settings.users.edit', [
-            'user' => $user->load(['department', 'role', 'language']),
-            'roles' => Role::query()
-                ->when(! $request->user()?->isAdmin(), function ($query) use ($user) {
-                    $query->where(function ($roleQuery) use ($user) {
-                        $roleQuery
-                            ->where('slug', '!=', Role::SUPER_ADMIN_SLUG)
-                            ->orWhere('id', $user->role_id);
-                    });
-                })
-                ->orderByDesc('is_system')
-                ->orderBy('name')
-                ->get(),
+            'user' => $user,
+            'roles' => $roles,
             'languages' => Language::query()->where('is_active', true)->orderByDesc('is_default')->orderBy('name')->get(),
             'orgUnits' => Department::optionsForSelect(),
             'breadcrumbs' => Department::breadcrumbMap(),
             'stats' => $activityFeed->statsFor($user),
             'activities' => $activityFeed->forUser($user),
             'orgBreadcrumb' => $user->orgBreadcrumb(),
+            'canCustomizePermissions' => $user->permissionsCanBeCustomizedBy($request->user()),
+            'permissionGroups' => PermissionRegistry::grouped(assignableOnly: ! $user->isAdmin()),
+            'selectedPermissions' => $selectedPermissions,
+            'grantedPermissions' => $request->old('permissions_submitted') ? [] : ($user->granted_permissions ?? []),
+            'revokedPermissions' => $request->old('permissions_submitted') ? [] : ($user->revoked_permissions ?? []),
+            'rolePermissionMap' => $roles->mapWithKeys(fn (Role $role) => [
+                $role->id => User::permissionValuesForRole($role),
+            ]),
         ]);
     }
 
     public function update(UpdateUserRequest $request, User $user, UserActivityLogger $logger): RedirectResponse
     {
         $oldValues = $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'view_descendant_units', 'language_id']);
+        $oldValues['granted_permissions'] = $user->granted_permissions ?? [];
+        $oldValues['revoked_permissions'] = $user->revoked_permissions ?? [];
         $validated = $request->validated();
 
         $passwordChanged = filled($validated['password'] ?? null);
-        unset($validated['password'], $validated['password_confirmation']);
+        unset($validated['password'], $validated['password_confirmation'], $validated['permissions'], $validated['permissions_submitted']);
 
         if ($validated['email'] !== $user->email) {
             $user->email_verified_at = now();
@@ -154,13 +173,24 @@ class UserManagementController extends Controller
             $user->password = $request->input('password');
         }
 
+        $role = Role::query()->findOrFail($user->role_id);
+        $actor = $request->user();
+
+        if ($request->boolean('permissions_submitted') && $actor && (! $role->isSuperAdmin() || $actor->isAdmin())) {
+            $user->syncPermissionOverrides($role, array_values((array) $request->input('permissions', [])));
+        }
+
         $user->save();
+
+        $newValues = $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'view_descendant_units', 'language_id']);
+        $newValues['granted_permissions'] = $user->granted_permissions ?? [];
+        $newValues['revoked_permissions'] = $user->revoked_permissions ?? [];
 
         $logger->logAdminUserUpdate(
             $request->user(),
             $user,
             $oldValues,
-            $user->only(['name', 'email', 'employee_number', 'role_id', 'department_id', 'view_descendant_units', 'language_id']),
+            $newValues,
             $request,
         );
 

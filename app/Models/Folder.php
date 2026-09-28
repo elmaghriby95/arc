@@ -21,12 +21,14 @@ class Folder extends Model
         'color',
         'sort_order',
         'is_active',
+        'is_closed',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_closed' => 'boolean',
         ];
     }
 
@@ -71,7 +73,7 @@ class Folder extends Model
     }
 
     /** @param list<int>|null $departmentIds null = unrestricted (admin) */
-    public static function scopedTree(?array $departmentIds, bool $activeOnly = false, bool $withTransactionCount = false): Collection
+    public static function scopedTree(?array $departmentIds, bool $activeOnly = false, bool $withTransactionCount = false, bool $excludeClosed = false): Collection
     {
         $query = static::scopedQuery($departmentIds)->with('department');
 
@@ -88,7 +90,57 @@ class Folder extends Model
             ->orderBy('name')
             ->get();
 
+        if ($excludeClosed) {
+            $folders = static::withoutClosedFolders($folders);
+        }
+
         return static::buildTreeFromFlat($folders);
+    }
+
+    /**
+     * Closed folders are omitted. Their open descendants stay available under the nearest open ancestor.
+     *
+     * @param  \Illuminate\Support\Collection<int, self>  $folders
+     */
+    private static function withoutClosedFolders($folders)
+    {
+        $byId = $folders->keyBy(fn (self $folder) => (int) $folder->id);
+
+        $nearestOpenParentId = function (?int $parentId, array $seen = []) use (&$nearestOpenParentId, $byId): ?int {
+            if ($parentId === null || isset($seen[$parentId]) || ! $byId->has($parentId)) {
+                return null;
+            }
+
+            $seen[$parentId] = true;
+            $parent = $byId->get($parentId);
+
+            if (! $parent->is_closed) {
+                return (int) $parent->id;
+            }
+
+            return $nearestOpenParentId(
+                $parent->parent_id === null ? null : (int) $parent->parent_id,
+                $seen,
+            );
+        };
+
+        return $folders
+            ->reject(fn (self $folder) => (bool) $folder->is_closed)
+            ->map(function (self $folder) use ($nearestOpenParentId) {
+                $currentParentId = $folder->parent_id === null ? null : (int) $folder->parent_id;
+                $parentId = $nearestOpenParentId($currentParentId);
+
+                if ($parentId === $currentParentId) {
+                    return $folder;
+                }
+
+                $copy = clone $folder;
+                $copy->parent_id = $parentId;
+                $copy->syncOriginal();
+
+                return $copy;
+            })
+            ->values();
     }
 
     /** @param list<int>|null $departmentIds */

@@ -37,6 +37,8 @@ return [
         'cannot_assign_admin' => 'لا يمكنك تعيين دور مدير النظام.',
         'cannot_demote_self' => 'لا يمكنك تغيير دورك إلى دور أقل من مدير النظام.',
         'cannot_change_super_admin_role' => 'لا يمكن تغيير دور مدير النظام.',
+        'cannot_remove_own_user_edit' => 'لا يمكنك إيقاف صلاحية تعديل المستخدمين عن حسابك.',
+        'permission_invalid' => 'إحدى الصلاحيات المحددة غير معروفة.',
     ],
 
     'database_clean' => [
