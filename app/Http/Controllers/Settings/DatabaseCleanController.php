@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Services\DatabaseCleanBootstrap;
 use App\Services\DatabaseCleanService;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,7 +24,7 @@ class DatabaseCleanController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, DatabaseCleanService $cleaner): RedirectResponse
+    public function destroy(Request $request, DatabaseCleanService $cleaner, UserActivityLogger $logger): RedirectResponse
     {
         abort_unless($request->user()?->isAdmin(), 403, __('messages.admin_access_denied'));
 
@@ -37,7 +38,17 @@ class DatabaseCleanController extends Controller
             'password.current_password' => __('validation.database_clean.password_incorrect'),
         ]);
 
-        $cleaner->clean();
+        $result = $cleaner->clean();
+
+        if ($actor = $request->user()) {
+            $tables = collect($result['tables'])
+                ->map(fn (int $count, string $table) => $table.': '.$count)
+                ->implode('، ');
+
+            $logger->log($actor, 'database.cleaned', $actor, null, [
+                'tables' => mb_substr($tables, 0, 180),
+            ], $request);
+        }
 
         return redirect()
             ->route('settings.database-clean.index')

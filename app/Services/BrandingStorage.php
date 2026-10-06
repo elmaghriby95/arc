@@ -65,6 +65,42 @@ class BrandingStorage
         return self::resolveFile($stored) !== null;
     }
 
+    /**
+     * DomPDF-safe image source. Data URIs stay inside the PDF even when remote
+     * fetching is disabled, and they cover png, jpeg, gif, webp, and svg.
+     */
+    public static function pdfImageSrc(?string $stored): ?string
+    {
+        $path = self::resolveFile($stored);
+
+        if ($path === null) {
+            return null;
+        }
+
+        $binary = @file_get_contents($path);
+
+        if ($binary === false || $binary === '') {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mime = match ($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'bmp' => 'image/bmp',
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+            default => null,
+        };
+
+        if ($mime === null) {
+            return null;
+        }
+
+        return 'data:'.$mime.';base64,'.base64_encode($binary);
+    }
+
     public static function resolveFile(?string $stored): ?string
     {
         if (! filled($stored)) {

@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreRoleRequest;
 use App\Http\Requests\Settings\UpdateRoleRequest;
 use App\Models\Role;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -27,17 +29,21 @@ class RoleManagementController extends Controller
         ]);
     }
 
-    public function store(StoreRoleRequest $request): RedirectResponse
+    public function store(StoreRoleRequest $request, UserActivityLogger $logger): RedirectResponse
     {
         $slug = $this->generateUniqueSlug($request->string('name'));
 
-        Role::create([
+        $role = Role::create([
             'name' => $request->string('name'),
             'slug' => $slug,
             'description' => $request->string('description'),
             'permissions' => Role::normalizePermissions($request->input('permissions', [])),
             'is_system' => false,
         ]);
+
+        if ($actor = $request->user()) {
+            $logger->logRoleCreated($actor, $role, $request);
+        }
 
         return redirect()
             ->route('settings.roles.index')
@@ -54,11 +60,17 @@ class RoleManagementController extends Controller
         ]);
     }
 
-    public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
+    public function update(UpdateRoleRequest $request, Role $role, UserActivityLogger $logger): RedirectResponse
     {
         if ($role->isSuperAdmin()) {
             return back()->with('error', __('messages.role.cannot_update_super_admin'));
         }
+
+        $before = [
+            'name' => $role->name,
+            'description' => $role->description,
+            'permissions' => $role->permissions ?? [],
+        ];
 
         $role->update([
             'name' => $request->string('name'),
@@ -66,12 +78,16 @@ class RoleManagementController extends Controller
             'permissions' => Role::normalizePermissions($request->input('permissions', [])),
         ]);
 
+        if ($actor = $request->user()) {
+            $logger->logRoleUpdated($actor, $role->refresh(), $before, $request);
+        }
+
         return redirect()
             ->route('settings.roles.index')
             ->with('success', __('messages.role.updated'));
     }
 
-    public function destroy(Role $role): RedirectResponse
+    public function destroy(Request $request, Role $role, UserActivityLogger $logger): RedirectResponse
     {
         if ($role->isSuperAdmin()) {
             return back()->with('error', __('messages.role.cannot_delete_super_admin'));
@@ -83,6 +99,10 @@ class RoleManagementController extends Controller
 
         if ($role->users()->exists()) {
             return back()->with('error', __('messages.role.cannot_delete_in_use'));
+        }
+
+        if ($actor = $request->user()) {
+            $logger->logRoleDeleted($actor, $role, $request);
         }
 
         $role->delete();

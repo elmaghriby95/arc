@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\ReferenceNumberSetting;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class ReferenceNumberSettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'auto_assign_department' => ['nullable', 'boolean'],
@@ -35,6 +36,21 @@ class ReferenceNumberSettingsController extends Controller
         ]);
 
         $settings = ReferenceNumberSetting::instance();
+        $fields = [
+            'auto_assign_department',
+            'allow_previous_years',
+            'month_optional',
+            'original_document_number_optional',
+            'operational_number_enabled',
+            'prevent_duplicate_numbers',
+            'audit_number_changes',
+            'allow_free_format_reference',
+            'support_multilingual_characters',
+            'operational_number_separator',
+            'operational_number_format',
+            'operational_number_disclaimer',
+        ];
+        $before = $settings->only($fields);
 
         $settings->update([
             'auto_assign_department' => $request->boolean('auto_assign_department'),
@@ -50,6 +66,10 @@ class ReferenceNumberSettingsController extends Controller
             'operational_number_format' => $validated['operational_number_format'],
             'operational_number_disclaimer' => $validated['operational_number_disclaimer'] ?? null,
         ]);
+
+        if ($actor = $request->user()) {
+            $logger->logModelChange($actor, 'reference_number_settings.updated', $settings, $before, $settings->only($fields), $request);
+        }
 
         return redirect()
             ->route('settings.reference-numbers.index')

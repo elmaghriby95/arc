@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\DocumentAccessAudit;
 use App\Models\WatermarkSetting;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -29,7 +30,7 @@ class WatermarkSettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'is_enabled' => ['nullable', 'boolean'],
@@ -70,10 +71,39 @@ class WatermarkSettingsController extends Controller
             $validated[$field] = $request->boolean($field);
         }
 
-        WatermarkSetting::instance()->update($validated);
+        $settings = WatermarkSetting::instance();
+        $before = $settings->only($this->loggedFields());
+        $settings->update($validated);
+
+        if ($actor = $request->user()) {
+            $logger->logModelChange($actor, 'watermark_settings.updated', $settings, $before, $settings->only($this->loggedFields()), $request);
+        }
 
         return redirect()
             ->route('settings.watermark.index')
             ->with('success', __('messages.watermark.saved'));
+    }
+
+    /** @return list<string> */
+    private function loggedFields(): array
+    {
+        return [
+            'is_enabled',
+            'opacity',
+            'font_size',
+            'angle',
+            'show_center_text',
+            'show_footer',
+            'show_qr_code',
+            'show_user_name',
+            'show_user_id',
+            'show_department',
+            'show_datetime',
+            'show_action_type',
+            'show_transaction_id',
+            'apply_on_view',
+            'apply_on_download',
+            'apply_on_print',
+        ];
     }
 }

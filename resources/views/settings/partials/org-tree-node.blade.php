@@ -11,6 +11,11 @@
     ];
     $defaultChildLabel = $childDefaults[min($depth + 1, count($childDefaults) - 1)] ?? __('settings.org.unit');
     $hasChildren = $department->children->isNotEmpty();
+    $canDelete = ! $hasChildren
+        && (int) $department->folders_count === 0
+        && (int) $department->transactions_count === 0
+        && (int) $department->users_count === 0
+        && (int) $department->documents_count === 0;
 @endphp
 
 <li class="org-tree-node" data-org-node>
@@ -71,7 +76,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                         </svg>
                     </summary>
-                    <form method="POST" action="{{ route('settings.organization.update', $department) }}" class="org-inline-form org-edit-form">
+                    <form id="org-update-{{ $department->id }}" method="POST" action="{{ route('settings.organization.update', $department) }}" class="org-inline-form org-edit-form">
                         @csrf
                         @method('PUT')
                         <div class="form-group">
@@ -109,12 +114,24 @@
                         <div class="form-actions">
                             <x-primary-button>{{ __('common.save') }}</x-primary-button>
                             @permission('departments.delete')
-                                <button type="submit" formaction="{{ route('settings.organization.destroy', $department) }}" formmethod="POST" class="btn btn-danger" onclick="this.form.querySelector('[name=_method]').value='DELETE'; return confirm(@json(__('settings.org.confirm_delete')))">
-                                    {{ __('common.delete') }}
-                                </button>
+                                @if ($canDelete)
+                                    <button type="submit" class="btn btn-danger" form="org-delete-{{ $department->id }}" onclick="return confirm(@json(__('settings.org.confirm_delete')))">
+                                        {{ __('common.delete') }}
+                                    </button>
+                                @else
+                                    <p class="form-hint">{{ __('messages.organization.cannot_delete_in_use') }}</p>
+                                @endif
                             @endpermission
                         </div>
                     </form>
+                    @permission('departments.delete')
+                        @if ($canDelete)
+                            <form id="org-delete-{{ $department->id }}" method="POST" action="{{ route('settings.organization.destroy', $department) }}" hidden>
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        @endif
+                    @endpermission
                 </details>
             @endpermission
         </div>

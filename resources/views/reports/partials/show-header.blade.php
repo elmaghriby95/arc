@@ -1,4 +1,11 @@
-<div class="page-header">
+<div class="page-header reports-page-header">
+    @if ($systemSettings->hasLogo())
+        <img
+            src="{{ $systemSettings->logoUrl() }}"
+            alt="{{ $systemSettings->appName() }}"
+            class="reports-system-logo"
+        >
+    @endif
     <div>
         <nav class="reports-breadcrumb">
             <a href="{{ route('reports.index') }}">{{ __('reports.title') }}</a>

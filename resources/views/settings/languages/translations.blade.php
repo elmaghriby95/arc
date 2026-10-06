@@ -47,8 +47,22 @@
         </div>
         @endpermission
 
-        <form method="POST" action="{{ route('settings.languages.translations.update', $language) }}">
+        @php
+            $postedTranslations = is_array(old('translations')) ? old('translations') : [];
+            $postedJson = old('translations_json');
+
+            if (is_string($postedJson)) {
+                $decodedPosted = json_decode($postedJson, true);
+
+                if (is_array($decodedPosted)) {
+                    $postedTranslations = $decodedPosted;
+                }
+            }
+        @endphp
+
+        <form method="POST" action="{{ route('settings.languages.translations.update', $language) }}" id="translations-form">
             @csrf
+            <input type="hidden" name="translations_json" id="translations-json" value="">
             @forelse ($groupedKeys as $group => $keys)
                 <div class="card" style="margin-top:1.5rem;">
                     <div class="card-header">
@@ -59,7 +73,11 @@
                         <div class="translations-grid">
                             @foreach ($keys as $translationKey)
                                 @php
-                                    $currentValue = $translationKey->translations->first()?->value ?? '';
+                                    $postedKey = array_key_exists($translationKey->id, $postedTranslations)
+                                        || array_key_exists((string) $translationKey->id, $postedTranslations);
+                                    $currentValue = $postedKey
+                                        ? (string) ($postedTranslations[$translationKey->id] ?? $postedTranslations[(string) $translationKey->id])
+                                        : ($translationKey->translations->first()?->value ?? '');
                                 @endphp
                                 <div class="translation-row">
                                     <div class="translation-row-meta">
@@ -71,19 +89,21 @@
                                     <div class="translation-row-input">
                                         <input
                                             type="text"
-                                            name="translations[{{ $translationKey->id }}]"
-                                            value="{{ old('translations.'.$translationKey->id, $currentValue) }}"
-                                            class="form-input"
+                                            data-translation-id="{{ $translationKey->id }}"
+                                            value="{{ $currentValue }}"
+                                            class="form-control"
+                                            aria-label="{{ $translationKey->group }}.{{ $translationKey->key }}"
                                             @disabled(! auth()->user()->hasPermission('settings.languages.edit'))
                                         >
                                     </div>
                                     @permission('settings.languages.edit')
                                     <div class="translation-row-actions">
-                                        <form method="POST" action="{{ route('settings.languages.translations.keys.destroy', [$language, $translationKey]) }}" onsubmit="return confirm(@json(__('common.confirm_delete')))">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">{{ __('common.delete') }}</button>
-                                        </form>
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            form="delete-translation-{{ $translationKey->id }}"
+                                            onclick="return confirm(@json(__('common.confirm_delete')))"
+                                        >{{ __('common.delete') }}</button>
                                     </div>
                                     @endpermission
                                 </div>
@@ -105,5 +125,34 @@
                 @endpermission
             @endif
         </form>
+
+        @permission('settings.languages.edit')
+            @foreach ($groupedKeys as $keys)
+                @foreach ($keys as $translationKey)
+                    <form id="delete-translation-{{ $translationKey->id }}" method="POST" action="{{ route('settings.languages.translations.keys.destroy', [$language, $translationKey]) }}" hidden>
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                @endforeach
+            @endforeach
+        @endpermission
+
+        @permission('settings.languages.edit')
+            <script>
+                document.getElementById('translations-form')?.addEventListener('submit', function () {
+                    const payload = {};
+
+                    this.querySelectorAll('[data-translation-id]:not(:disabled)').forEach(function (input) {
+                        payload[input.getAttribute('data-translation-id')] = input.value;
+                    });
+
+                    const field = document.getElementById('translations-json');
+
+                    if (field) {
+                        field.value = JSON.stringify(payload);
+                    }
+                });
+            </script>
+        @endpermission
     </div>
 </x-app-layout>

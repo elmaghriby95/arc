@@ -106,6 +106,11 @@ class SystemSetting extends Model
         return BrandingStorage::url($this->logo_path, $this->updated_at?->timestamp);
     }
 
+    public function logoPdfSrc(): ?string
+    {
+        return BrandingStorage::pdfImageSrc($this->logo_path);
+    }
+
     public function hasFavicon(): bool
     {
         return BrandingStorage::exists($this->favicon_path);

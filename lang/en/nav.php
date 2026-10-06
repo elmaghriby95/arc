@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'tagline' => 'Document & Archive Management',
+    'dashboard' => 'Dashboard',
+    'documents' => 'Documents',
+    'transactions' => 'Archive Management',
+    'review_log' => 'Review log',
+    'lending_requests' => 'Lending requests',
+    'archive' => 'Archive',
+    'structure' => 'Structure',
+    'more' => 'More',
+    'reports' => 'Reports',
+    'departments' => 'Departments',
+    'settings' => 'Settings',
+    'notifications' => 'Notifications',
+    'unread_count' => ':count unread',
+    'no_new_notifications' => 'No new notifications',
+    'mark_all_read' => 'Mark all read',
+    'no_notifications' => 'No notifications',
+    'notifications_empty_hint' => 'Transaction and archive status updates will appear here.',
+    'last_notifications' => 'Last :count notifications',
+    'profile' => 'Profile',
+    'logout' => 'Log Out',
+    'menu' => 'Menu',
+    'language' => 'Language',
+];

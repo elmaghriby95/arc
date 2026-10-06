@@ -26,6 +26,26 @@ class Department extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Department $department): ?bool {
+            if (! $department->isDeletable()) {
+                return false;
+            }
+
+            return null;
+        });
+    }
+
+    public function isDeletable(): bool
+    {
+        return ! $this->children()->exists()
+            && ! $this->folders()->exists()
+            && ! $this->transactions()->exists()
+            && ! $this->users()->exists()
+            && ! $this->documents()->withTrashed()->exists();
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'parent_id');
@@ -56,23 +76,39 @@ class Department extends Model
         return $this->hasMany(Folder::class);
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public static function tree(): Collection
     {
         return static::query()
             ->with(['head', 'children' => fn ($query) => static::nestedChildrenQuery($query)])
-            ->withCount('users')
+            ->tap(fn ($query) => static::applyTreeCounts($query))
             ->whereNull('parent_id')
             ->orderBy('name')
             ->get();
     }
 
-    /** @param \Illuminate\Database\Eloquent\Relations\HasMany $query */
+    /** @param \Illuminate\Database\Eloquent\Relations\HasMany|\Illuminate\Database\Eloquent\Builder $query */
     private static function nestedChildrenQuery($query): void
     {
         $query
             ->with(['head', 'children' => fn ($childQuery) => static::nestedChildrenQuery($childQuery)])
-            ->withCount('users')
+            ->tap(fn ($childQuery) => static::applyTreeCounts($childQuery))
             ->orderBy('name');
+    }
+
+    /** @param \Illuminate\Database\Eloquent\Relations\HasMany|\Illuminate\Database\Eloquent\Builder $query */
+    private static function applyTreeCounts($query): void
+    {
+        $query->withCount([
+            'users',
+            'folders',
+            'transactions',
+            'documents' => fn ($documents) => $documents->withTrashed(),
+        ]);
     }
 
     public function breadcrumb(): string
