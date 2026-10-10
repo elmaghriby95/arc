@@ -3,9 +3,7 @@
 @endphp
 
 <x-app-layout>
-    @push('styles')
-        <x-inline-css file="lending-requests.css" />
-    @endpush
+    <x-inline-css file="lending-requests.css" />
 
     <x-slot name="header">
         <div class="page-header lending-page-header">

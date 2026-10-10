@@ -5,6 +5,7 @@ use App\Http\Controllers\PdfJsAssetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\FolderBrowseController;
 use App\Http\Controllers\LendingLogController;
 use App\Http\Controllers\LendingRequestController;
 use App\Http\Controllers\NotificationController;
@@ -116,6 +117,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('folders/{folder}', [FolderBrowseController::class, 'show'])->name('folders.browse');
     });
 
     Route::middleware('permission:transactions.review-log.view')->group(function () {

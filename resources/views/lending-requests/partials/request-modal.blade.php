@@ -11,7 +11,10 @@
             {{ __('lending_requests.request_button') }}
         </button>
 
-        <x-modal :name="$modalName">
+        <x-modal
+            :name="$modalName"
+            :show="(string) old('transaction_id') === (string) $transaction->id && $errors->any()"
+        >
             <div class="card" style="margin:0;">
                 <div class="card-header">
                     <h3 class="card-title">{{ __('lending_requests.request_modal_title') }}</h3>

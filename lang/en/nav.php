@@ -4,6 +4,7 @@ return [
     'tagline' => 'Institutional Records & Archive Platform',
     'dashboard' => 'Dashboard',
     'documents' => 'Documents',
+    'folders' => 'Folders',
     'transactions' => 'Archive Management',
     'review_log' => 'Review log',
     'lending_requests' => 'Lending requests',

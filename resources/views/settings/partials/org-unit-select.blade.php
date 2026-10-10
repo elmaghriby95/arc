@@ -176,7 +176,5 @@
 </div>
 
 @once
-    @push('scripts')
-        <script src="{{ asset('js/org-unit-picker.js') }}?v={{ filemtime(public_path('js/org-unit-picker.js')) }}"></script>
-    @endpush
+    <x-inline-js file="org-unit-picker.js" />
 @endonce

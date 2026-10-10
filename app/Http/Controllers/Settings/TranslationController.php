@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Language;
+use App\Models\SystemSetting;
 use App\Models\Translation;
 use App\Models\TranslationKey;
 use App\Services\TranslationCache;
@@ -49,6 +50,7 @@ class TranslationController extends Controller
             ['value' => $validated['value']],
         );
 
+        $this->syncLoginCopy($language, $translationKey, $validated['value']);
         TranslationCache::forgetLocale($language->code);
 
         if ($actor = $request->user()) {
@@ -98,6 +100,7 @@ class TranslationController extends Controller
                     ->where('translation_key_id', $translationKey->id)
                     ->where('language_id', $language->id)
                     ->delete();
+                $this->syncLoginCopy($language, $translationKey, null);
 
                 continue;
             }
@@ -106,6 +109,7 @@ class TranslationController extends Controller
                 ['translation_key_id' => $translationKey->id, 'language_id' => $language->id],
                 ['value' => $next],
             );
+            $this->syncLoginCopy($language, $translationKey, $next);
         }
 
         TranslationCache::forgetLocale($language->code);
@@ -131,7 +135,9 @@ class TranslationController extends Controller
      */
     private function submittedTranslations(Request $request): array
     {
-        if ($request->has('translations_json')) {
+        $translations = [];
+
+        if ($request->filled('translations_json')) {
             $validated = $request->validate([
                 'translations_json' => ['required', 'string', 'max:5000000'],
             ]);
@@ -144,8 +150,6 @@ class TranslationController extends Controller
                 ]);
             }
 
-            $translations = [];
-
             foreach ($decoded as $keyId => $value) {
                 if (is_array($value) || is_object($value) || ! preg_match('/^\d+$/', (string) $keyId)) {
                     continue;
@@ -153,14 +157,41 @@ class TranslationController extends Controller
 
                 $translations[(int) $keyId] = $value === null ? null : (string) $value;
             }
-
-            return $translations;
         }
 
-        return $request->validate([
-            'translations' => ['required', 'array'],
-            'translations.*' => ['nullable', 'string'],
-        ])['translations'];
+        $named = $request->input('translations');
+
+        if (is_array($named)) {
+            $named = $request->validate([
+                'translations' => ['array'],
+                'translations.*' => ['nullable', 'string'],
+            ])['translations'];
+
+            foreach ($named as $keyId => $value) {
+                if (! preg_match('/^\d+$/', (string) $keyId)) {
+                    continue;
+                }
+
+                $translations[(int) $keyId] = $value === null ? null : (string) $value;
+            }
+        }
+
+        if ($translations === []) {
+            $request->validate([
+                'translations' => ['required', 'array'],
+            ]);
+        }
+
+        return $translations;
+    }
+
+    private function syncLoginCopy(Language $language, TranslationKey $translationKey, ?string $value): void
+    {
+        if ($translationKey->group !== 'auth') {
+            return;
+        }
+
+        SystemSetting::syncLoginTextFromTranslation($language->code, $translationKey->key, $value);
     }
 
     public function destroyKey(Request $request, Language $language, TranslationKey $translationKey, UserActivityLogger $logger): RedirectResponse
@@ -169,6 +200,10 @@ class TranslationController extends Controller
             $logger->log($actor, 'translation.deleted', $translationKey, [
                 'name' => $language->name.' · '.$translationKey->fullKey(),
             ], null, $request);
+        }
+
+        if ($translationKey->group === 'auth') {
+            SystemSetting::forgetLoginText($translationKey->key);
         }
 
         $translationKey->delete();

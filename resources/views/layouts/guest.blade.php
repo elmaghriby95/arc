@@ -13,7 +13,7 @@
     @unless ($systemSettings->hasFavicon())
         <link rel="icon" type="image/svg+xml" href="{{ asset('branding/arkeon-mark.svg') }}">
     @endunless
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <x-inline-css file="app.css" />
 </head>
 <body>
     <div class="guest-layout">
@@ -33,6 +33,5 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
 </body>
 </html>

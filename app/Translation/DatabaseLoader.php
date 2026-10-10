@@ -22,14 +22,15 @@ class DatabaseLoader extends FileLoader
             return $lines;
         }
 
-        $cacheKey = TranslationCache::key($locale, $group);
+        $revision = TranslationCache::revision($locale);
+        $cacheKey = TranslationCache::key($locale, $group, $revision);
 
         if (Cache::has($cacheKey)) {
             $dbLines = Cache::get($cacheKey, []);
         } else {
             $dbLines = $this->loadFromDatabase($locale, $group);
 
-            if ($dbLines !== []) {
+            if ($dbLines !== [] && TranslationCache::revision($locale) === $revision) {
                 Cache::put($cacheKey, $dbLines, now()->addDay());
             }
         }

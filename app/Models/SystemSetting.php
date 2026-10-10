@@ -91,6 +91,66 @@ class SystemSetting extends Model
         self::$resolved = null;
     }
 
+    public static function syncLoginTextFromTranslation(string $locale, string $key, ?string $value): void
+    {
+        if (! array_key_exists($key, self::LOGIN_TEXT_KEYS) || ! Schema::hasTable('system_settings')) {
+            return;
+        }
+
+        $settings = static::query()->first();
+
+        if (! $settings) {
+            return;
+        }
+
+        $texts = is_array($settings->login_texts) ? $settings->login_texts : [];
+        $localeTexts = is_array($texts[$locale] ?? null) ? $texts[$locale] : [];
+
+        if ($value === null || $value === '') {
+            unset($localeTexts[$key]);
+        } else {
+            $localeTexts[$key] = $value;
+        }
+
+        $texts[$locale] = $localeTexts;
+        $settings->login_texts = $texts;
+        $settings->save();
+        self::clearCache();
+    }
+
+    public static function forgetLoginText(string $key): void
+    {
+        if (! array_key_exists($key, self::LOGIN_TEXT_KEYS) || ! Schema::hasTable('system_settings')) {
+            return;
+        }
+
+        $settings = static::query()->first();
+
+        if (! $settings || ! is_array($settings->login_texts)) {
+            return;
+        }
+
+        $texts = $settings->login_texts;
+        $changed = false;
+
+        foreach ($texts as $locale => $fields) {
+            if (! is_array($fields) || ! array_key_exists($key, $fields)) {
+                continue;
+            }
+
+            unset($texts[$locale][$key]);
+            $changed = true;
+        }
+
+        if (! $changed) {
+            return;
+        }
+
+        $settings->login_texts = $texts;
+        $settings->save();
+        self::clearCache();
+    }
+
     public function appName(): string
     {
         return filled($this->app_name) ? $this->app_name : (string) config('app.name', 'Laravel');

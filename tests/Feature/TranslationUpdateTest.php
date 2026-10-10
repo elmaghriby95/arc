@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Language;
 use App\Models\Role;
+use App\Models\SystemSetting;
 use App\Models\Translation;
 use App\Models\TranslationKey;
 use App\Models\User;
@@ -21,6 +22,8 @@ class TranslationUpdateTest extends TestCase
         $approve = $this->sentence($language, 'workflow', 'action.approve', 'اعتماد');
         $submit = $this->sentence($language, 'workflow', 'label.submit_to', 'إرسال إلى :status');
 
+        app()->setLocale('ar');
+        $this->assertSame('اعتماد', __('workflow.action.approve'));
         app('translation.loader')->load('ar', 'workflow');
 
         $this->actingAs($admin)
@@ -47,6 +50,49 @@ class TranslationUpdateTest extends TestCase
 
         $this->assertSame('موافقة نهائية', $lines['action']['approve'] ?? null);
         $this->assertSame('تحويل إلى :status', $lines['label']['submit_to'] ?? null);
+        app()->setLocale('ar');
+        $this->assertSame('موافقة نهائية', __('workflow.action.approve'));
+        $this->assertSame('تحويل إلى :status', __('workflow.label.submit_to'));
+    }
+
+    public function test_saved_login_words_replace_the_text_shown_by_the_system(): void
+    {
+        [$language, $admin] = $this->editor();
+
+        SystemSetting::query()->create([
+            'login_texts' => [
+                'ar' => [
+                    'login' => 'تسجيل الدخول',
+                ],
+            ],
+        ]);
+
+        $login = $this->sentence($language, 'auth', 'login', 'تسجيل الدخول');
+
+        app()->setLocale('ar');
+        $this->assertSame('تسجيل الدخول', __('auth.login'));
+        $this->assertSame('تسجيل الدخول', SystemSetting::instance()->loginText('login', 'ar'));
+
+        $this->actingAs($admin)
+            ->post(route('settings.languages.translations.update', $language), [
+                'translations_json' => json_encode([
+                    $login->id => 'دخول المنظومة',
+                ], JSON_UNESCAPED_UNICODE),
+            ])
+            ->assertRedirect(route('settings.languages.translations', $language));
+
+        SystemSetting::clearCache();
+        app()->setLocale('ar');
+
+        $this->assertSame('دخول المنظومة', __('auth.login'));
+        $this->assertSame('دخول المنظومة', SystemSetting::instance()->loginText('login', 'ar'));
+
+        auth()->logout();
+
+        $this->withSession(['locale' => 'ar'])
+            ->get('/login')
+            ->assertOk()
+            ->assertSee('دخول المنظومة', false);
     }
 
     public function test_translation_page_does_not_nest_delete_forms_inside_the_save_form(): void

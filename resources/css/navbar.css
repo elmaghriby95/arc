@@ -295,6 +295,14 @@
     display: inline;
 }
 
+.navbar-link-icon svg,
+.app-sidebar .navbar-link-icon svg,
+.navbar-nav-subitem-icon svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    display: block;
+}
+
 .app-sidebar .navbar-link-icon {
     width: 1.2rem;
     height: 1.2rem;
@@ -359,6 +367,21 @@
 .app-sidebar .navbar-nav-subitem.is-active {
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
+}
+
+.app-sidebar .sidebar-folder-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.app-sidebar .sidebar-section-label {
+    margin: 0.55rem 0 0.15rem;
+    padding: 0 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .app-main {

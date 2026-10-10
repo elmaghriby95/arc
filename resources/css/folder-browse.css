@@ -1,0 +1,80 @@
+.folder-browse-crumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #5d7690;
+}
+
+.folder-browse-crumb a {
+    color: #007CC3;
+    text-decoration: none;
+}
+
+.folder-browse-crumb a:hover {
+    text-decoration: underline;
+}
+
+.folder-browse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+}
+
+.folder-browse-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid #d5e6f2;
+    border-radius: 0.9rem;
+    background: #fff;
+    color: #0c2748;
+    text-decoration: none;
+}
+
+.folder-browse-card:hover {
+    border-color: #007CC3;
+    background: #f4f9fd;
+    color: #0c2748;
+    text-decoration: none;
+}
+
+.folder-browse-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    flex-shrink: 0;
+    border-radius: 0.7rem;
+    background: rgba(0, 124, 195, 0.1);
+    color: #007CC3;
+}
+
+.folder-browse-card-icon svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.folder-browse-card-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.folder-browse-card-name {
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.folder-browse-card-meta {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5d7690;
+}

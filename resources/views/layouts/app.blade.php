@@ -21,7 +21,7 @@
     @unless ($systemSettings->hasFavicon())
         <link rel="icon" type="image/svg+xml" href="{{ asset('branding/arkeon-mark.svg') }}">
     @endunless
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
+    <x-inline-css file="app.css" />
     <x-inline-css file="navbar.css" />
     <x-inline-css file="notifications.css" />
     @stack('styles')
@@ -70,7 +70,7 @@
         @endif
     @endauth
 
-    <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
+    <x-inline-js file="modals.js" />
     @stack('scripts')
 </body>
 </html>

@@ -139,19 +139,34 @@
 
         @permission('settings.languages.edit')
             <script>
-                document.getElementById('translations-form')?.addEventListener('submit', function () {
-                    const payload = {};
-
-                    this.querySelectorAll('[data-translation-id]:not(:disabled)').forEach(function (input) {
-                        payload[input.getAttribute('data-translation-id')] = input.value;
-                    });
-
+                (function () {
+                    const form = document.getElementById('translations-form');
                     const field = document.getElementById('translations-json');
 
-                    if (field) {
-                        field.value = JSON.stringify(payload);
+                    if (!form || !field) {
+                        return;
                     }
-                });
+
+                    const sync = function () {
+                        const payload = {};
+
+                        form.querySelectorAll('[data-translation-id]:not(:disabled)').forEach(function (input) {
+                            const id = input.getAttribute('data-translation-id');
+                            payload[id] = input.value;
+
+                            if (input.value !== input.defaultValue) {
+                                input.name = 'translations[' + id + ']';
+                            } else {
+                                input.removeAttribute('name');
+                            }
+                        });
+
+                        field.value = JSON.stringify(payload);
+                    };
+
+                    form.addEventListener('input', sync);
+                    form.addEventListener('submit', sync);
+                })();
             </script>
         @endpermission
     </div>
