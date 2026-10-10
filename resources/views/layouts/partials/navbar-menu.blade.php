@@ -17,23 +17,14 @@
     <span class="navbar-link-text">{{ __('nav.dashboard') }}</span>
 </a>
 
-@if (($sidebarRootFolders ?? collect())->isNotEmpty())
-    <div class="sidebar-folder-section" data-sidebar-folders>
-        <p class="sidebar-section-label">{{ __('nav.folders') }}</p>
-        @foreach ($sidebarRootFolders as $rootFolder)
-            <a
-                href="{{ route('folders.browse', $rootFolder) }}"
-                class="navbar-link {{ (int) ($sidebarActiveRootFolderId ?? 0) === (int) $rootFolder->id ? 'is-active' : '' }}"
-                title="{{ $rootFolder->name }}"
-            >
-                <span class="navbar-link-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
-                </span>
-                <span class="navbar-link-text">{{ $rootFolder->name }}</span>
-            </a>
-        @endforeach
-    </div>
-@endif
+@permission('transactions.view')
+    <a href="{{ route('folders.index') }}" class="navbar-link {{ request()->routeIs('folders.index', 'folders.browse') ? 'is-active' : '' }}">
+        <span class="navbar-link-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+        </span>
+        <span class="navbar-link-text">{{ __('nav.folders') }}</span>
+    </a>
+@endpermission
 
 @if ($hasArchiveMenu)
     <details class="navbar-nav-details">

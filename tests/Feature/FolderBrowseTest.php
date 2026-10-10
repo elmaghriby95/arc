@@ -25,23 +25,39 @@ class FolderBrowseTest extends TestCase
         URL::forceRootUrl('http://localhost');
     }
 
-    public function test_sidebar_lists_root_folders_instead_of_documents(): void
+    public function test_sidebar_has_a_folder_list_option_instead_of_documents_or_folder_names(): void
     {
         $department = $this->department('ARC');
         $user = $this->userIn($department, ['transactions.view', 'transactions.create', 'profile.view']);
         $root = $this->folder($department, 'عقود');
-        $child = $this->folder($department, 'عقود 2026', $root);
+        $this->folder($department, 'عقود 2026', $root);
 
         $response = $this->actingAs($user)->get(route('profile.edit'));
 
         $response->assertOk();
         $nav = $this->sidebarNav($response->getContent());
 
-        $this->assertStringContainsString(route('folders.browse', $root), $nav);
-        $this->assertStringContainsString('عقود', $nav);
-        $this->assertStringNotContainsString('عقود 2026', $nav);
+        $this->assertStringContainsString(route('folders.index'), $nav);
+        $this->assertStringContainsString(__('nav.folders'), $nav);
+        $this->assertStringNotContainsString('عقود', $nav);
         $this->assertStringNotContainsString(route('documents.index'), $nav);
         $this->assertStringNotContainsString(__('nav.documents'), $nav);
+    }
+
+    public function test_folder_list_shows_root_folders_only(): void
+    {
+        $department = $this->department('LIST');
+        $user = $this->userIn($department, ['transactions.view', 'transactions.create']);
+        $root = $this->folder($department, 'العقود');
+        $child = $this->folder($department, 'عقود فرعية', $root);
+
+        $this->actingAs($user)
+            ->get(route('folders.index'))
+            ->assertOk()
+            ->assertSee(__('nav.folders'), false)
+            ->assertSee(route('folders.browse', $root), false)
+            ->assertSee('العقود', false)
+            ->assertDontSee($child->name, false);
     }
 
     public function test_opening_a_folder_shows_inner_folders_and_only_its_transactions(): void
@@ -93,6 +109,7 @@ class FolderBrowseTest extends TestCase
         $nav = $this->sidebarNav($response->getContent());
 
         $this->assertStringNotContainsString($folder->name, $nav);
+        $this->assertStringNotContainsString(route('folders.index'), $nav);
         $this->assertStringNotContainsString(route('documents.index'), $nav);
     }
 

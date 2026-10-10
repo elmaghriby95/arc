@@ -11,6 +11,21 @@ use Illuminate\View\View;
 
 class FolderBrowseController extends Controller
 {
+    public function index(Request $request, TransactionScopeService $scope): View
+    {
+        $user = $request->user();
+        $folders = $this->visibleFolders($user, $scope);
+        $accessibleIds = $folders->pluck('id')->flip();
+
+        $roots = $folders
+            ->filter(fn (Folder $folder) => $folder->parent_id === null || ! isset($accessibleIds[$folder->parent_id]))
+            ->values();
+
+        return view('folders.index', [
+            'folders' => $roots,
+        ]);
+    }
+
     public function show(Request $request, Folder $folder, TransactionScopeService $scope): View
     {
         $user = $request->user();
@@ -19,15 +34,9 @@ class FolderBrowseController extends Controller
             abort(403);
         }
 
-        $children = Folder::scopedQuery($user->folderOrgScopeDepartmentIds())
+        $children = $this->visibleFolders($user, $scope)
             ->where('parent_id', $folder->id)
-            ->where('is_active', true)
-            ->withCount(['transactions as visible_transactions_count' => function ($query) use ($scope, $user) {
-                $scope->applyScopeToQuery($query, $user);
-            }])
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+            ->values();
 
         $transactions = Transaction::query();
         $scope->applyScopeToQuery($transactions, $user);
@@ -66,5 +75,17 @@ class FolderBrowseController extends Controller
         }
 
         return $chain;
+    }
+
+    private function visibleFolders(User $user, TransactionScopeService $scope)
+    {
+        return Folder::scopedQuery($user->folderOrgScopeDepartmentIds())
+            ->where('is_active', true)
+            ->withCount(['transactions as visible_transactions_count' => function ($query) use ($scope, $user) {
+                $scope->applyScopeToQuery($query, $user);
+            }])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
     }
 }

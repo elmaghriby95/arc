@@ -117,6 +117,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:transactions.view')->group(function () {
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('folders', [FolderBrowseController::class, 'index'])->name('folders.index');
         Route::get('folders/{folder}', [FolderBrowseController::class, 'show'])->name('folders.browse');
     });
 

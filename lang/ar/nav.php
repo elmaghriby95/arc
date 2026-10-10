@@ -4,7 +4,7 @@ return [
     'tagline' => 'منصة السجلات والأرشفة المؤسسية',
     'dashboard' => 'لوحة التحكم',
     'documents' => 'الوثائق',
-    'folders' => 'المجلدات',
+    'folders' => 'قائمة المجلدات',
     'archive' => 'الأرشفة',
     'transactions' => 'المعاملات',
     'review_log' => 'سجل المراجعة',

@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\Folder;
 use App\Models\LendingRequestHistory;
 use App\Models\TransactionStatusHistory;
-use App\Models\User;
 use App\Observers\LendingRequestHistoryObserver;
 use App\Observers\TransactionStatusHistoryObserver;
 use App\Services\TransactionStatusNotificationService;
@@ -35,26 +33,6 @@ class AppServiceProvider extends ServiceProvider
                 ->orderByDesc('is_default')
                 ->orderBy('name')
                 ->get());
-        });
-
-        View::composer('layouts.partials.navbar-menu', function ($view) {
-            $user = auth()->user();
-            $roots = collect();
-            $activeRootId = null;
-
-            if ($user && $user->hasPermission('transactions.view') && Schema::hasTable('folders')) {
-                $roots = Folder::scopedTree($user->folderOrgScopeDepartmentIds(), activeOnly: true);
-                $routeFolder = request()->route('folder');
-
-                if ($routeFolder instanceof Folder && request()->routeIs('folders.browse')) {
-                    $activeRootId = $this->sidebarRootFolderId($routeFolder, $user);
-                }
-            }
-
-            $view->with([
-                'sidebarRootFolders' => $roots,
-                'sidebarActiveRootFolderId' => $activeRootId,
-            ]);
         });
 
         View::composer('layouts.partials.navbar', function ($view) {
@@ -109,25 +87,6 @@ class AppServiceProvider extends ServiceProvider
 
             return false;
         });
-    }
-
-    private function sidebarRootFolderId(Folder $folder, User $user): int
-    {
-        $current = $folder;
-        $guard = 0;
-
-        while ($current->parent_id && $guard < 30) {
-            $parent = Folder::query()->find($current->parent_id);
-
-            if (! $parent || ! $parent->is_active || ! $user->canAccessFolder($parent)) {
-                break;
-            }
-
-            $current = $parent;
-            $guard++;
-        }
-
-        return (int) $current->id;
     }
 
     private function syncSessionLifetimeFromSettings(): void
