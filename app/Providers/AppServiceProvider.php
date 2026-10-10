@@ -6,6 +6,7 @@ use App\Models\LendingRequestHistory;
 use App\Models\TransactionStatusHistory;
 use App\Observers\LendingRequestHistoryObserver;
 use App\Observers\TransactionStatusHistoryObserver;
+use App\Services\TransactionStatusNotificationService;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -41,9 +42,19 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            $notificationService = app(TransactionStatusNotificationService::class);
+            $visibleNotifications = $notificationService->filterVisible(
+                $user,
+                $user->notifications()->latest()->limit(80)->get(),
+            );
+            $visibleUnread = $notificationService->filterVisible(
+                $user,
+                $user->unreadNotifications()->latest()->limit(80)->get(),
+            );
+
             $view->with([
-                'navbarNotifications' => $user->notifications()->limit(15)->get(),
-                'navbarUnreadCount' => $user->unreadNotifications()->count(),
+                'navbarNotifications' => $visibleNotifications->take(15),
+                'navbarUnreadCount' => $visibleUnread->count(),
             ]);
         });
 

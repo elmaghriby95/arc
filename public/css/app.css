@@ -4188,6 +4188,7 @@ textarea.form-control:focus {
 
 .txn-attachments-list {
     max-height: calc(100vh - 22rem);
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 0 1rem 1rem;
     display: flex;
@@ -4197,9 +4198,10 @@ textarea.form-control:focus {
 
 .txn-attachment-card {
     display: grid;
-    grid-template-columns: 72px 1fr;
+    grid-template-columns: 72px minmax(0, 1fr);
     gap: 0.75rem;
     padding: 0.75rem;
+    min-width: 0;
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     background: #fafafa;
@@ -4251,13 +4253,21 @@ textarea.form-control:focus {
 .txn-file-icon--image { color: #9333ea; }
 .txn-file-icon--file { color: #64748b; }
 
+.txn-attachment-body {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .txn-attachment-name {
     margin: 0 0 0.25rem;
     font-size: 0.88rem;
     font-weight: 700;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.45;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: start;
 }
 
 .txn-attachment-meta {
@@ -5070,8 +5080,11 @@ input.form-control--compact {
 .txn-attachment-ref {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.35rem;
     margin: 0.2rem 0 0.35rem;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .txn-attachment-ref code {
@@ -5079,6 +5092,9 @@ input.form-control--compact {
     padding: 0.1rem 0.35rem;
     background: #f1f5f9;
     border-radius: 0.35rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-all;
 }
 
 .txn-attachment-ref-tag {

@@ -48,7 +48,6 @@
         <div class="card org-tree-card-wrapper">
             <div class="card-header">
                 <h3 class="card-title">{{ __('settings.org.tree_title') }}</h3>
-                <button type="button" class="btn btn-secondary" data-org-expand-all>{{ __('common.expand_all') }}</button>
             </div>
             <div class="card-body">
                 @if ($departments->isEmpty())
