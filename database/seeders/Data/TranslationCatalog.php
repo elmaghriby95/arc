@@ -193,6 +193,8 @@ class TranslationCatalog
             ['group' => 'common', 'key' => 'or', 'values' => ['ar' => 'أو', 'en' => 'or', 'fr' => 'ou']],
             ['group' => 'common', 'key' => 'optional_dash', 'values' => ['ar' => '— اختياري —', 'en' => '— Optional —', 'fr' => '— Optionnel —']],
             ['group' => 'common', 'key' => 'choose_org_unit', 'values' => ['ar' => '— اختر الوحدة التنظيمية —', 'en' => '— Choose organizational unit —', 'fr' => '— Choisir une unité —']],
+            ['group' => 'common', 'key' => 'org_unit_search', 'values' => ['ar' => 'ابحث عن الوحدة التنظيمية...', 'en' => 'Search organizational units...', 'fr' => 'Rechercher une unité...']],
+            ['group' => 'common', 'key' => 'org_unit_no_results', 'values' => ['ar' => 'لا توجد وحدات مطابقة', 'en' => 'No matching units', 'fr' => 'Aucune unité correspondante']],
             ['group' => 'common', 'key' => 'choose_folder', 'values' => ['ar' => '— اختر مجلد —', 'en' => '— Choose folder —', 'fr' => '— Choisir un dossier —']],
             ['group' => 'common', 'key' => 'search_placeholder', 'values' => ['ar' => 'بحث...', 'en' => 'Search...', 'fr' => 'Rechercher...']],
             ['group' => 'common', 'key' => 'reset', 'values' => ['ar' => 'إعادة تعيين', 'en' => 'Reset', 'fr' => 'Réinitialiser']],

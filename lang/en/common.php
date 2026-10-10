@@ -48,6 +48,8 @@ return [
     'or' => 'or',
     'optional_dash' => '— Optional —',
     'choose_org_unit' => '— Choose organizational unit —',
+    'org_unit_search' => 'Search organizational units...',
+    'org_unit_no_results' => 'No matching units',
     'choose_folder' => '— Choose folder —',
     'search_placeholder' => 'Search...',
     'reset' => 'Reset',
