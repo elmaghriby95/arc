@@ -18,9 +18,11 @@ class LendingScopeService
     /** @param Builder<LendingRequest> $query */
     public function applyScopeToQuery(Builder $query, User $user): void
     {
-        // Employee/requester without queue permissions only sees their own requests.
+        // Employee/requester without queue permissions only sees their own requests,
+        // and only the ones that still belong to their current organizational unit.
         if (! $this->isLendingQueueActor($user)) {
             $query->where('requested_by', $user->id);
+            $this->constrainOwnRequestsToCurrentUnit($query, $user);
 
             return;
         }
@@ -45,7 +47,10 @@ class LendingScopeService
         $departmentIds = $user->orgScopeDepartmentIds();
 
         $query->where(function (Builder $outer) use ($user, $departmentIds) {
-            $outer->where('requested_by', $user->id);
+            $outer->where(function (Builder $own) use ($user) {
+                $own->where('requested_by', $user->id);
+                $this->constrainOwnRequestsToCurrentUnit($own, $user);
+            });
 
             // null = unrestricted; empty = no assigned unit — still show queue rather than wipe it.
             if ($departmentIds === null || $departmentIds === []) {
@@ -59,9 +64,55 @@ class LendingScopeService
         });
     }
 
+    /**
+     * A request stays with the unit it was filed under. After a transfer,
+     * the requester no longer sees it inside the new unit.
+     *
+     * @param  Builder<LendingRequest>  $query
+     */
+    private function constrainOwnRequestsToCurrentUnit(Builder $query, User $user): void
+    {
+        $departmentIds = $user->orgScopeDepartmentIds();
+
+        if ($departmentIds === null || $departmentIds === []) {
+            return;
+        }
+
+        $ids = array_map(intval(...), $departmentIds);
+
+        $query->where(function (Builder $owned) use ($ids) {
+            $owned->whereIn('department_id', $ids)
+                ->orWhere(function (Builder $legacy) use ($ids) {
+                    $legacy->whereNull('department_id')
+                        ->whereHas(
+                            'transaction',
+                            fn (Builder $transactionQuery) => $transactionQuery->whereIn('department_id', $ids),
+                        );
+                });
+        });
+    }
+
+    private function ownRequestStaysInCurrentUnit(User $user, LendingRequest $request): bool
+    {
+        $departmentIds = $user->orgScopeDepartmentIds();
+
+        if ($departmentIds === null || $departmentIds === []) {
+            return true;
+        }
+
+        $request->loadMissing('transaction');
+        $ownerId = $request->department_id ?: $request->transaction?->department_id;
+
+        if ($ownerId === null) {
+            return false;
+        }
+
+        return in_array((int) $ownerId, array_map(intval(...), $departmentIds), true);
+    }
+
     public function canViewRequest(User $user, LendingRequest $request): bool
     {
-        if ((int) $request->requested_by === (int) $user->id) {
+        if ((int) $request->requested_by === (int) $user->id && $this->ownRequestStaysInCurrentUnit($user, $request)) {
             return true;
         }
 

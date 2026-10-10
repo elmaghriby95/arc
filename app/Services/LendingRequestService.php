@@ -41,6 +41,7 @@ class LendingRequestService
             $request = LendingRequest::create([
                 'transaction_id' => $lockedTransaction->id,
                 'requested_by' => $user->id,
+                'department_id' => $user->department_id ?? $lockedTransaction->department_id,
                 'status' => LendingRequestStatus::PendingReview,
                 'purpose' => $purpose,
                 'due_date' => $dueDate,

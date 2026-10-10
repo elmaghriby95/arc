@@ -61,6 +61,7 @@ class TransactionStatusChanged extends Notification
             'reference_number' => $this->transaction->reference_number,
             'from_status' => $fromName,
             'to_status' => $toName,
+            'to_status_id' => $this->toStatus->id,
             'to_status_color' => $this->toStatus->color,
             'action' => $this->action?->value,
             'changed_by' => $this->changedBy->name,

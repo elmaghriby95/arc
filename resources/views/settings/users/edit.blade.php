@@ -17,6 +17,7 @@
         <div class="profile-hero">
             <div class="profile-hero-bg"></div>
             <div class="profile-hero-content">
+                <x-user-avatar :user="$user" size="hero" />
                 <div class="profile-hero-info">
                     <div class="profile-hero-name-row">
                         <h2 class="profile-hero-name">{{ $user->name }}</h2>
@@ -124,6 +125,11 @@
                             </div>
                         </dl>
                     </div>
+                </div>
+
+                <div class="form-actions profile-form-actions profile-form-actions--top">
+                    <x-primary-button form="user-update-form">{{ __('settings.users.save_changes') }}</x-primary-button>
+                    <a href="{{ route('settings.users.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
                 </div>
 
                 <form id="user-update-form" method="POST" action="{{ route('settings.users.update', $user) }}">

@@ -166,14 +166,19 @@ class TransactionStatusNotificationService
             ->get()
             ->keyBy('id');
 
-        $statusesByName = TransactionStatus::query()->get()->keyBy('name');
+        $statuses = TransactionStatus::query()->get();
+        $statusesById = $statuses->keyBy('id');
+        $statusesByName = $statuses->keyBy(
+            fn (TransactionStatus $status) => $this->normalizeStatusName($status->name),
+        );
 
         return $notifications
-            ->filter(function (DatabaseNotification $notification) use ($user, $transactions, $statusesByName) {
+            ->filter(function (DatabaseNotification $notification) use ($user, $transactions, $statusesById, $statusesByName) {
                 return $this->notificationIsVisible(
                     $user,
                     $notification->data,
                     $transactions,
+                    $statusesById,
                     $statusesByName,
                 );
             })
@@ -183,20 +188,32 @@ class TransactionStatusNotificationService
     /**
      * @param  array<string, mixed>  $data
      * @param  Collection<int|string, Transaction>  $transactions
+     * @param  Collection<int|string, TransactionStatus>  $statusesById
      * @param  Collection<string, TransactionStatus>  $statusesByName
      */
     private function notificationIsVisible(
         User $user,
         array $data,
         Collection $transactions,
+        Collection $statusesById,
         Collection $statusesByName,
     ): bool {
-        if (($data['type'] ?? null) !== 'transaction_status_changed') {
+        if (($data['type'] ?? null) === 'lending_request_status_changed') {
             return true;
         }
 
-        $status = $statusesByName->get($data['to_status'] ?? '');
-        $transaction = $transactions->get($data['transaction_id'] ?? 0);
+        $isTransactionNotification = ($data['type'] ?? null) === 'transaction_status_changed'
+            || (($data['type'] ?? null) === null && isset($data['transaction_id'], $data['to_status']));
+
+        if (! $isTransactionNotification) {
+            return true;
+        }
+
+        $status = $this->resolveNotifiedStatus($data, $statusesById, $statusesByName);
+        $transactionId = $data['transaction_id'] ?? null;
+        $transaction = $transactionId === null
+            ? null
+            : ($transactions->get($transactionId) ?? $transactions->get((int) $transactionId));
 
         if (! $status || ! $transaction) {
             return false;
@@ -215,6 +232,40 @@ class TransactionStatusNotificationService
         }
 
         return ! $this->handlesWorkflowStage($user) && $this->isCreatorRecipient($user, $transaction);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  Collection<int|string, TransactionStatus>  $statusesById
+     * @param  Collection<string, TransactionStatus>  $statusesByName
+     */
+    private function resolveNotifiedStatus(array $data, Collection $statusesById, Collection $statusesByName): ?TransactionStatus
+    {
+        $statusId = $data['to_status_id'] ?? null;
+
+        if ($statusId) {
+            $status = $statusesById->get($statusId) ?? $statusesById->get((int) $statusId);
+
+            if ($status) {
+                return $status;
+            }
+        }
+
+        $name = $this->normalizeStatusName((string) ($data['to_status'] ?? ''));
+
+        if ($name === '') {
+            return null;
+        }
+
+        return $statusesByName->get($name);
+    }
+
+    private function normalizeStatusName(string $name): string
+    {
+        $name = trim($name);
+        $name = str_replace(['أ', 'إ', 'آ', 'ى', 'ة'], ['ا', 'ا', 'ا', 'ي', 'ه'], $name);
+
+        return preg_replace('/\s+/u', ' ', $name) ?? $name;
     }
 
     /** @var array<int, bool> */
@@ -266,14 +317,16 @@ class TransactionStatusNotificationService
 
     private function userCanActOnStatus(User $user, Transaction $transaction, TransactionStatus $status): bool
     {
-        if (! $user->hasPermission('transactions.view')
-            || ! $status->required_permission
-            || ! $user->hasPermission($status->required_permission)) {
+        if (! $status->required_permission || ! $user->hasPermission($status->required_permission)) {
             return false;
         }
 
-        if ($status->isGlobalScope()) {
+        if ($user->hasPermission('transactions.view-all') || $status->isGlobalScope()) {
             return true;
+        }
+
+        if ($user->orgScopeDepartmentIds() === []) {
+            return ! $user->hasPermission('transactions.create');
         }
 
         return $user->canAccessDepartment($transaction->department_id);

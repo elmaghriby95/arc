@@ -17,6 +17,7 @@
         <div class="profile-hero">
             <div class="profile-hero-bg"></div>
             <div class="profile-hero-content">
+                <x-user-avatar :user="$user" size="hero" />
                 <div class="profile-hero-info">
                     <div class="profile-hero-name-row">
                         <h2 class="profile-hero-name">{{ $user->name }}</h2>

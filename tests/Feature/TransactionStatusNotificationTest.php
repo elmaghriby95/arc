@@ -111,6 +111,41 @@ class TransactionStatusNotificationTest extends TestCase
             ->assertDontSee('SHOULD-NOT-SEE-OTHER-STAGE', false);
     }
 
+    public function test_reviewer_without_transaction_view_still_sees_only_the_review_stage(): void
+    {
+        $department = $this->department('REV-ONLY');
+        $review = TransactionStatus::where('code', 'REVIEW')->firstOrFail();
+        $approved = TransactionStatus::where('code', 'APPROVED')->firstOrFail();
+        $clerk = $this->userIn($department, ['transactions.view', 'transactions.create'], 'Stage clerk');
+        $reviewer = $this->userIn($department, [$review->required_permission], 'Stage reviewer');
+        $reviewer->update(['department_id' => null]);
+        $transaction = $this->transaction($department, $clerk, TransactionStatus::where('is_initial', true)->firstOrFail());
+
+        $this->move($transaction, $clerk, $review, WorkflowAction::Submit);
+
+        $reviewer->refresh();
+        $this->assertCount(1, $reviewer->notifications);
+        $message = $reviewer->notifications()->first()->data['message'];
+
+        $reviewer->notifications()->create([
+            'id' => (string) Str::uuid(),
+            'type' => TransactionStatusChanged::class,
+            'data' => [
+                'type' => 'transaction_status_changed',
+                'message' => 'SHOULD-NOT-SEE-APPROVAL',
+                'transaction_id' => $transaction->id,
+                'to_status' => $approved->name,
+                'to_status_id' => $approved->id,
+            ],
+        ]);
+
+        $this->actingAs($reviewer)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertSee($message, false)
+            ->assertDontSee('SHOULD-NOT-SEE-APPROVAL', false);
+    }
+
     public function test_unit_scoped_stage_does_not_notify_another_department(): void
     {
         $department = $this->department('UNIT-A');

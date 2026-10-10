@@ -21,21 +21,44 @@
     position: relative;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: var(--surface);
-    box-shadow: var(--shadow);
+    color: #fff;
+    background:
+        radial-gradient(ellipse 72% 140% at 0% 0%, rgba(255, 255, 255, 0.18), transparent 52%),
+        radial-gradient(ellipse 55% 100% at 100% 120%, rgba(0, 18, 36, 0.38), transparent 58%),
+        linear-gradient(115deg, #007CC3 0%, #005A94 38%, #003A70 100%);
+    box-shadow: 0 16px 36px rgba(0, 58, 112, 0.22);
 }
 
 .profile-hero-bg {
-    height: 7rem;
-    background: linear-gradient(135deg, #003A70 0%, #1A8AD4 40%, #06b6d4 100%);
+    position: absolute;
+    inset: 0;
+    height: auto;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 78%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 78%);
+    opacity: 0.55;
 }
 
 .profile-hero-content {
+    position: relative;
+    z-index: 1;
     display: flex;
-    align-items: flex-end;
-    gap: 1.5rem;
-    padding: 0 2rem 1.75rem;
-    margin-top: -3.25rem;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.6rem 1.85rem;
+    margin-top: 0;
+}
+
+.profile-hero .user-avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: 1.45rem;
+    border: 3px solid rgba(255, 255, 255, 0.92);
+    box-shadow: 0 8px 22px rgba(0, 24, 48, 0.28);
 }
 
 .profile-hero-avatar-wrap {
@@ -74,6 +97,7 @@
 .profile-hero-info {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
     padding-bottom: 0.25rem;
 }
 
@@ -87,45 +111,78 @@
 
 .profile-hero-name {
     margin: 0;
-    font-size: 1.65rem;
+    font-size: 1.55rem;
     font-weight: 800;
-    color: var(--text);
+    color: #fff;
+    line-height: 1.3;
+}
+
+.profile-hero .user-tag {
+    margin: 0;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .profile-hero-email {
     margin: 0 0 0.85rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.84);
     font-size: 0.95rem;
 }
 
 .profile-hero-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem 1.5rem;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
 }
 
 .profile-meta-item {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.28rem 0.7rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    white-space: normal;
 }
 
 .profile-meta-item svg {
     width: 1rem;
     height: 1rem;
     flex-shrink: 0;
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.88);
 }
 
 .profile-meta-item--muted {
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-hero .org-path {
+    display: inline;
+    min-width: 0;
+    max-width: 100%;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .profile-meta-ip {
     font-size: 0.78rem;
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.72);
     font-family: ui-monospace, monospace;
 }
 
@@ -296,6 +353,10 @@
     gap: 0.75rem;
 }
 
+.profile-form-actions--top {
+    margin-bottom: 0.25rem;
+}
+
 .card-danger {
     border-color: #fecaca;
 }
@@ -432,9 +493,17 @@
 @media (max-width: 640px) {
     .profile-hero-content {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         text-align: center;
-        padding: 0 1.25rem 1.5rem;
+        padding: 1.35rem 1.15rem 1.45rem;
+    }
+
+    .profile-hero .user-avatar {
+        align-self: center;
+    }
+
+    .profile-hero-info {
+        width: 100%;
     }
 
     .profile-hero-meta {

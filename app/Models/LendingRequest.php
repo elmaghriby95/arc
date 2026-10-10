@@ -12,6 +12,7 @@ class LendingRequest extends Model
     protected $fillable = [
         'transaction_id',
         'requested_by',
+        'department_id',
         'status',
         'purpose',
         'due_date',
@@ -31,6 +32,7 @@ class LendingRequest extends Model
         return [
             'transaction_id' => 'integer',
             'requested_by' => 'integer',
+            'department_id' => 'integer',
             'reviewed_by' => 'integer',
             'handed_over_by' => 'integer',
             'returned_by' => 'integer',
@@ -50,6 +52,11 @@ class LendingRequest extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     public function reviewer(): BelongsTo
