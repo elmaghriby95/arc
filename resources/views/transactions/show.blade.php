@@ -6,7 +6,11 @@
     <x-slot name="header">
         <div class="page-header txn-page-header">
             <div class="txn-page-header-main">
-                <a href="{{ route('transactions.index') }}" class="settings-back-link">{{ __('common.back_to_transactions') }}</a>
+                @if (request('from') === 'folder' && request()->filled('folder'))
+                    <a href="{{ route('folders.browse', request('folder')) }}" class="settings-back-link">{{ __('folders.back_to_folder') }}</a>
+                @else
+                    <a href="{{ route('transactions.index') }}" class="settings-back-link">{{ __('common.back_to_transactions') }}</a>
+                @endif
                 <div class="txn-page-header-row">
                     <div>
                         <h2 class="page-title">{{ $transaction->title }}</h2>

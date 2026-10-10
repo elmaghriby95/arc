@@ -1,6 +1,20 @@
 <?php
 
 return [
+    'back_to_list' => 'Back to folder list',
+    'back_to_parent' => 'Back to :name',
+    'back_to_folder' => 'Back to folder',
+    'info_title' => 'Folder information',
+    'org_unit' => 'Organizational unit',
+    'parent' => 'Parent folder',
+    'root' => 'Root folder',
+    'cabinet' => 'Cabinet number',
+    'row' => 'Row number',
+    'box' => 'Box number',
+    'description' => 'Description',
+    'status' => 'Status',
+    'status_open' => 'Open',
+    'status_closed' => 'Closed',
     'empty' => 'There are no folders.',
     'subfolders' => 'Folders inside',
     'transactions_title' => 'Transactions in this folder',

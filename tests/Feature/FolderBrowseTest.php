@@ -65,6 +65,12 @@ class FolderBrowseTest extends TestCase
         $department = $this->department('ARC2');
         $user = $this->userIn($department, ['transactions.view', 'transactions.create']);
         $root = $this->folder($department, 'المالية');
+        $root->update([
+            'cabinet_number' => '4',
+            'row_number' => '2',
+            'box_number' => '9',
+            'description' => 'ملفات السنة الحالية',
+        ]);
         $child = $this->folder($department, 'الفواتير', $root);
         $own = $this->transaction($department, $user, $root, 'معاملة المجلد الخارجي');
         $inner = $this->transaction($department, $user, $child, 'معاملة المجلد الداخلي');
@@ -72,14 +78,23 @@ class FolderBrowseTest extends TestCase
         $this->actingAs($user)
             ->get(route('folders.browse', $root))
             ->assertOk()
+            ->assertSee(route('folders.index'), false)
+            ->assertSee(__('folders.back_to_list'), false)
+            ->assertSee(__('folders.info_title'), false)
+            ->assertSee($department->name, false)
+            ->assertSee('ملفات السنة الحالية', false)
+            ->assertSee('4', false)
             ->assertSee(route('folders.browse', $child), false)
             ->assertSee('الفواتير', false)
             ->assertSee($own->title, false)
+            ->assertSee('from=folder', false)
             ->assertDontSee($inner->title, false);
 
         $this->actingAs($user)
             ->get(route('folders.browse', $child))
             ->assertOk()
+            ->assertSee(route('folders.browse', $root), false)
+            ->assertSee(__('folders.back_to_parent', ['name' => $root->name]), false)
             ->assertSee($inner->title, false)
             ->assertDontSee($own->title, false)
             ->assertSee(__('folders.transactions_title'), false);

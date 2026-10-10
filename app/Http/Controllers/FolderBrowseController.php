@@ -34,6 +34,8 @@ class FolderBrowseController extends Controller
             abort(403);
         }
 
+        $folder->load('department');
+
         $children = $this->visibleFolders($user, $scope)
             ->where('parent_id', $folder->id)
             ->values();
@@ -47,9 +49,13 @@ class FolderBrowseController extends Controller
             ->latest()
             ->paginate(15);
 
+        $ancestors = $this->ancestors($folder, $user);
+        $parentFolder = $ancestors === [] ? null : $ancestors[array_key_last($ancestors)];
+
         return view('folders.browse', [
             'folder' => $folder,
-            'ancestors' => $this->ancestors($folder, $user),
+            'ancestors' => $ancestors,
+            'parentFolder' => $parentFolder,
             'children' => $children,
             'transactions' => $transactions,
         ]);

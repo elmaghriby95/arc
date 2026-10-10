@@ -16,15 +16,60 @@
                     <span>{{ $folder->name }}</span>
                 </nav>
                 <h1 class="page-title">{{ $folder->name }}</h1>
-                @if ($folder->locationLabel() !== '')
-                    <p class="page-subtitle">{{ $folder->locationLabel() }}</p>
-                @endif
-                @if ($folder->is_closed)
-                    <p class="page-subtitle">{{ __('settings.folders.closed_badge') }}</p>
-                @endif
             </div>
+            @if ($parentFolder)
+                <a href="{{ route('folders.browse', $parentFolder) }}" class="btn btn-secondary">{{ __('folders.back_to_parent', ['name' => $parentFolder->name]) }}</a>
+            @else
+                <a href="{{ route('folders.index') }}" class="btn btn-secondary">{{ __('folders.back_to_list') }}</a>
+            @endif
         </div>
     </x-slot>
+
+    <div class="card card-elevated">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title">{{ __('folders.info_title') }}</h3>
+            </div>
+        </div>
+        <div class="card-body">
+            <dl class="dl-grid">
+                <div>
+                    <dt>{{ __('folders.org_unit') }}</dt>
+                    <dd>{{ $folder->department?->name ?? '—' }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('folders.parent') }}</dt>
+                    <dd>
+                        @if ($parentFolder)
+                            <a href="{{ route('folders.browse', $parentFolder) }}">{{ $parentFolder->name }}</a>
+                        @else
+                            {{ __('folders.root') }}
+                        @endif
+                    </dd>
+                </div>
+                <div>
+                    <dt>{{ __('folders.cabinet') }}</dt>
+                    <dd>{{ $folder->cabinet_number ?: '—' }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('folders.row') }}</dt>
+                    <dd>{{ $folder->row_number ?: '—' }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('folders.box') }}</dt>
+                    <dd>{{ $folder->box_number ?: '—' }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('folders.status') }}</dt>
+                    <dd>{{ $folder->is_closed ? __('folders.status_closed') : __('folders.status_open') }}</dd>
+                </div>
+                <div>
+                    <dt>{{ __('folders.description') }}</dt>
+                    <dd>{{ $folder->description ?: '—' }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
 
     @if ($children->isNotEmpty())
         <div class="card card-elevated">
@@ -80,7 +125,7 @@
                                 </td>
                                 <td class="table-col-date">{{ $transaction->transaction_date?->format('Y-m-d') ?? $transaction->created_at->format('Y-m-d') }}</td>
                                 <td class="table-col-actions">
-                                    <a href="{{ route('transactions.show', $transaction) }}" class="btn btn-secondary btn-sm">{{ __('common.view') }}</a>
+                                    <a href="{{ route('transactions.show', ['transaction' => $transaction, 'from' => 'folder', 'folder' => $folder->id]) }}" class="btn btn-secondary btn-sm">{{ __('common.view') }}</a>
                                 </td>
                             </tr>
                         @empty
