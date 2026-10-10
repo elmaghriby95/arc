@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --primary: #4f46e5;
     --primary-dark: #4338ca;
     --primary-light: #eef2ff;
@@ -3631,6 +3631,111 @@ textarea.form-control:focus {
     line-height: 1.5;
 }
 
+.hanel-test-result {
+    margin: 0 0 1rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.hanel-test-result--pending {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+.hanel-test-result--ok {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.hanel-test-result--warn {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+
+.hanel-test-result--error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.hanel-command-details {
+    margin: 0 0 1rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    max-height: 320px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.hanel-shelf-move-card {
+    border: 2px solid #bfdbfe;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+}
+
+.hanel-shelf-move-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.hanel-shelf-move-field {
+    flex: 1 1 12rem;
+    margin: 0;
+}
+
+.hanel-shelf-move-input {
+    font-size: 1.35rem;
+    font-weight: 600;
+    text-align: center;
+    max-width: 10rem;
+}
+
+.hanel-shelf-move-btn {
+    flex: 0 0 auto;
+    min-width: 12rem;
+    padding: 0.85rem 1.5rem;
+    font-size: 1rem;
+}
+
+.hanel-shelf-move-advanced {
+    margin-top: 0.5rem;
+    color: #64748b;
+    font-size: 0.88rem;
+}
+
+.hanel-shelf-move-advanced summary {
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+}
+
+.hanel-settings-readonly {
+    display: grid;
+    grid-template-columns: minmax(8rem, 12rem) 1fr;
+    gap: 0.75rem 1rem;
+    margin: 0;
+}
+
+.hanel-settings-readonly dt {
+    font-weight: 600;
+    color: #475569;
+}
+
+.hanel-settings-readonly dd {
+    margin: 0;
+}
+
 .general-brand-preview {
     display: inline-flex;
     align-items: center;
@@ -4959,4 +5064,135 @@ input.form-control--compact {
 .txn-attachment-icon-wrap--link:hover {
     background: #f1f5f9;
     transform: scale(1.03);
+}
+
+.hanel-occupancy-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.hanel-occupancy-stat {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.hanel-occupancy-stat-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.hanel-occupancy-stat-label {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--text-muted, #6b7280);
+    font-size: 0.875rem;
+}
+
+.hanel-occupancy-stat--occupied .hanel-occupancy-stat-value { color: #dc2626; }
+.hanel-occupancy-stat--free .hanel-occupancy-stat-value { color: #16a34a; }
+
+.hanel-occupancy-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.hanel-occupancy-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    border: 1px solid transparent;
+}
+
+.hanel-occupancy-chip--free { background: #ecfdf5; color: #166534; border-color: #bbf7d0; }
+.hanel-occupancy-chip--occupied { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.hanel-occupancy-chip--arc { background: #eef2ff; color: #3730a3; border-color: #c7d2fe; }
+.hanel-occupancy-chip--unit { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
+.hanel-occupancy-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.hanel-occupancy-shelf {
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 0.85rem;
+}
+
+.hanel-occupancy-shelf-title {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.hanel-occupancy-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 0.5rem;
+}
+
+.hanel-occupancy-slot {
+    border-radius: 10px;
+    padding: 0.55rem 0.6rem;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border: 1px solid transparent;
+}
+
+.hanel-occupancy-slot--free {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.hanel-occupancy-slot--occupied {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.hanel-occupancy-slot--arc {
+    box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.35);
+}
+
+.hanel-occupancy-slot--unit {
+    box-shadow: inset 0 0 0 2px rgba(234, 88, 12, 0.25);
+}
+
+.hanel-occupancy-slot-label {
+    font-size: 0.75rem;
+    color: var(--text-muted, #6b7280);
+}
+
+.hanel-occupancy-slot small {
+    font-size: 0.75rem;
+    color: var(--text-muted, #6b7280);
+    line-height: 1.3;
+}
+
+.hanel-items-search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+}
+
+.hanel-items-search-field {
+    flex: 1 1 260px;
+}
+
+.hanel-items-search-actions {
+    display: flex;
+    gap: 0.5rem;
 }

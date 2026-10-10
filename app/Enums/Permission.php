@@ -109,6 +109,10 @@ enum Permission: string
     case SettingsGeneralView = 'settings.general.view';
     case SettingsGeneralEdit = 'settings.general.edit';
 
+    // إعدادات الربط مع خزنة Hänel
+    case SettingsHanelStorageView = 'settings.hanel-storage.view';
+    case SettingsHanelStorageEdit = 'settings.hanel-storage.edit';
+
     // تنظيف قاعدة البيانات (سوبر أدمن فقط)
     case SettingsDatabaseClean = 'settings.database-clean';
 
@@ -219,6 +223,9 @@ enum Permission: string
 
             self::SettingsGeneralView,
             self::SettingsGeneralEdit => 'general_settings',
+
+            self::SettingsHanelStorageView,
+            self::SettingsHanelStorageEdit => 'hanel_storage',
 
             self::SettingsDatabaseClean => 'database_clean',
 

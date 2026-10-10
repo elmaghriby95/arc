@@ -20,6 +20,9 @@ use App\Http\Controllers\Settings\FolderTreeController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\GeneralSettingsController;
+use App\Http\Controllers\Settings\HanelStorageItemController;
+use App\Http\Controllers\Settings\HanelStorageOccupancyController;
+use App\Http\Controllers\Settings\HanelStorageSettingsController;
 use App\Http\Controllers\Settings\ReferenceNumberSettingsController;
 use App\Http\Controllers\Settings\TransactionQrSettingsController;
 use App\Http\Controllers\Settings\WatermarkSettingsController;
@@ -381,6 +384,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:settings.general.edit')->group(function () {
             Route::put('/general', [GeneralSettingsController::class, 'update'])->name('general.update');
             Route::patch('/general', [GeneralSettingsController::class, 'update']);
+        });
+
+        Route::middleware('permission:settings.hanel-storage.view')->group(function () {
+            Route::get('/hanel-storage', [HanelStorageSettingsController::class, 'index'])->name('hanel-storage.index');
+            Route::get('/hanel-storage/items', [HanelStorageItemController::class, 'index'])->name('hanel-storage.items.index');
+            Route::get('/hanel-storage/occupancy', [HanelStorageOccupancyController::class, 'index'])->name('hanel-storage.occupancy.index');
+            Route::get('/hanel-storage/items/{item}/download', [HanelStorageItemController::class, 'download'])->name('hanel-storage.items.download');
+        });
+
+        Route::middleware('permission:settings.hanel-storage.edit')->group(function () {
+            Route::put('/hanel-storage', [HanelStorageSettingsController::class, 'update'])->name('hanel-storage.update');
+            Route::patch('/hanel-storage', [HanelStorageSettingsController::class, 'update']);
+            Route::post('/hanel-storage/test', [HanelStorageSettingsController::class, 'test'])->name('hanel-storage.test');
+            Route::post('/hanel-storage/sync-layout', [HanelStorageSettingsController::class, 'syncLayout'])->name('hanel-storage.sync-layout');
+            Route::post('/hanel-storage/command', [HanelStorageSettingsController::class, 'command'])->name('hanel-storage.command');
+            Route::post('/hanel-storage/move-shelf', [HanelStorageSettingsController::class, 'moveShelf'])->name('hanel-storage.move-shelf');
+            Route::post('/hanel-storage/items', [HanelStorageItemController::class, 'store'])->name('hanel-storage.items.store');
+            Route::post('/hanel-storage/items/{item}/retrieve', [HanelStorageItemController::class, 'retrieve'])->name('hanel-storage.items.retrieve');
+            Route::post('/hanel-storage/items/{item}/sync', [HanelStorageItemController::class, 'sync'])->name('hanel-storage.items.sync');
+            Route::delete('/hanel-storage/items/{item}', [HanelStorageItemController::class, 'destroy'])->name('hanel-storage.items.destroy');
         });
 
         Route::middleware(['admin', 'permission:settings.database-clean'])->group(function () {
