@@ -9,14 +9,25 @@
         <link rel="icon" href="{{ $systemSettings->faviconUrl() }}">
     @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700|outfit:700,800&display=swap" rel="stylesheet">
+    @unless ($systemSettings->hasFavicon())
+        <link rel="icon" type="image/svg+xml" href="{{ asset('branding/arkeon-mark.svg') }}">
+    @endunless
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
     <div class="guest-layout">
         <div class="guest-card">
             <div class="guest-logo">
-                <a href="/">{{ $systemSettings->appName() }}</a>
+                <a href="{{ route('login') }}" class="arkeon-lockup">
+                    <span class="arkeon-lockup-mark">
+                        @include('layouts.partials.arkeon-mark')
+                    </span>
+                    <span class="arkeon-lockup-copy">
+                        <span class="arkeon-lockup-en">ARKÉON</span>
+                        <span class="arkeon-lockup-ar">أركيون</span>
+                    </span>
+                </a>
             </div>
             {{ $slot }}
         </div>

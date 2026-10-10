@@ -13,7 +13,7 @@
     color: #0f172a;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    background: #eef2ff;
+    background: #003A70;
 }
 
 .login-page {
@@ -30,21 +30,17 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-        radial-gradient(circle at 12% 18%, rgba(99, 102, 241, 0.14), transparent 32%),
-        radial-gradient(circle at 88% 82%, rgba(14, 165, 233, 0.12), transparent 34%),
-        linear-gradient(180deg, #eef2ff 0%, #f8fafc 55%, #f1f5f9 100%);
+    background-color: #1E6CA8;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .login-page-backdrop::after {
     content: "";
     position: absolute;
     inset: 0;
-    background-image:
-        linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    mask-image: radial-gradient(circle at center, #000 25%, transparent 78%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 30, 60, 0.28));
 }
 
 .login-center {
@@ -61,12 +57,9 @@
     width: 100%;
     background: #fff;
     border: 1px solid rgba(226, 232, 240, 0.95);
-    border-radius: 1.35rem;
-    padding: 2rem 1.85rem 1.85rem;
-    box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.7) inset,
-        0 18px 45px -18px rgba(15, 23, 42, 0.22),
-        0 8px 16px -8px rgba(79, 70, 229, 0.12);
+    border-radius: 1.5rem;
+    padding: 1.75rem 1.7rem 1.45rem;
+    box-shadow: 0 24px 60px rgba(0, 30, 60, 0.28);
 }
 
 .login-language-switcher {
@@ -96,15 +89,15 @@
 }
 
 .login-language-btn:hover {
-    border-color: #c7d2fe;
-    color: #4338ca;
+    border-color: #8EC4E8;
+    color: #003A70;
 }
 
 .login-language-btn.is-active {
-    border-color: #818cf8;
-    background: rgba(99, 102, 241, 0.08);
-    color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #007CC3;
+    background: #E6F2FB;
+    color: #003A70;
+    box-shadow: 0 0 0 3px rgba(0, 124, 195, 0.12);
 }
 
 .login-card-brand {
@@ -211,6 +204,17 @@
     color: #334155;
 }
 
+.login-label--sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
 .login-input-wrap {
     position: relative;
     display: flex;
@@ -219,9 +223,9 @@
 
 .login-input-icon {
     position: absolute;
-    inset-inline-end: 0.9rem;
+    inset-inline-start: 0.95rem;
     display: flex;
-    color: #94a3b8;
+    color: #7A93A8;
     pointer-events: none;
 }
 
@@ -232,10 +236,11 @@
 
 .login-input {
     width: 100%;
-    padding-block: 0.82rem;
-    padding-inline: 2.65rem;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 0.8rem;
+    padding-block: 0.86rem;
+    padding-inline-start: 2.7rem;
+    padding-inline-end: 2.7rem;
+    border: 1.5px solid #d7e4ef;
+    border-radius: 0.85rem;
     font-family: inherit;
     font-size: 0.94rem;
     color: #0f172a;
@@ -249,14 +254,14 @@
 
 .login-input:focus {
     outline: none;
-    border-color: #818cf8;
+    border-color: #007CC3;
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 4px rgba(0, 124, 195, 0.14);
 }
 
 .login-password-toggle {
     position: absolute;
-    inset-inline-start: 0.65rem;
+    inset-inline-end: 0.55rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -271,8 +276,8 @@
 }
 
 .login-password-toggle:hover {
-    color: #0ea5e9;
-    background: rgba(14, 165, 233, 0.08);
+    color: #007CC3;
+    background: rgba(0, 124, 195, 0.08);
 }
 
 .login-password-toggle svg {
@@ -300,18 +305,21 @@
 .login-remember input {
     width: 1rem;
     height: 1rem;
-    accent-color: #6366f1;
+    accent-color: #007CC3;
 }
 
 .login-forgot {
+    display: block;
+    margin-top: 0.95rem;
+    text-align: center;
     font-size: 0.86rem;
-    font-weight: 600;
-    color: #0ea5e9;
+    font-weight: 700;
+    color: #007CC3;
     text-decoration: none;
 }
 
 .login-forgot:hover {
-    color: #0284c7;
+    color: #003A70;
     text-decoration: underline;
 }
 
@@ -329,14 +337,15 @@
     font-weight: 700;
     color: #fff;
     cursor: pointer;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 52%, #4338ca 100%);
-    box-shadow: 0 10px 24px rgba(79, 70, 229, 0.32);
+    background: #007CC3;
+    box-shadow: 0 10px 22px rgba(0, 124, 195, 0.32);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .login-submit:hover {
+    background: #006aab;
     transform: translateY(-1px);
-    box-shadow: 0 14px 30px rgba(79, 70, 229, 0.38);
+    box-shadow: 0 14px 28px rgba(0, 58, 112, 0.28);
 }
 
 .login-submit:active {
@@ -391,7 +400,7 @@
 .login-page-footer {
     margin-top: 1rem;
     font-size: 0.82rem;
-    color: #64748b;
+    color: rgba(255, 255, 255, 0.88);
     text-align: center;
 }
 
@@ -441,4 +450,71 @@
     .login-form-title {
         font-size: 1.3rem;
     }
+}
+
+.login-card-brand {
+    margin-bottom: 1.35rem;
+}
+
+.arkeon-lockup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+}
+
+.arkeon-lockup-mark,
+.arkeon-lockup-logo {
+    width: 4.4rem;
+    height: 4.15rem;
+    flex-shrink: 0;
+}
+
+.arkeon-lockup-mark .arkeon-mark,
+.arkeon-mark {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.arkeon-lockup-logo {
+    width: auto;
+    height: 3.4rem;
+    object-fit: contain;
+}
+
+.arkeon-lockup-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.arkeon-lockup-en {
+    font-family: 'Outfit', 'Cairo', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: #003A70;
+}
+
+.arkeon-lockup-ar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #003A70;
+    line-height: 1;
+}
+
+.arkeon-lockup-ar::before,
+.arkeon-lockup-ar::after {
+    content: "";
+    width: 1.15rem;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
 }

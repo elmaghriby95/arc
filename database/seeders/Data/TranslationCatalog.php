@@ -69,7 +69,7 @@ class TranslationCatalog
     private static function nav(): array
     {
         return [
-            ['group' => 'nav', 'key' => 'tagline', 'values' => ['ar' => 'إدارة الوثائق والأرشفة', 'en' => 'Document & Archive Management', 'fr' => 'Gestion des documents et archives']],
+            ['group' => 'nav', 'key' => 'tagline', 'values' => ['ar' => 'منصة السجلات والأرشفة المؤسسية', 'en' => 'Institutional Records & Archive Platform', 'fr' => 'Plateforme des dossiers et archives institutionnels']],
             ['group' => 'nav', 'key' => 'dashboard', 'values' => ['ar' => 'لوحة التحكم', 'en' => 'Dashboard', 'fr' => 'Tableau de bord']],
             ['group' => 'nav', 'key' => 'documents', 'values' => ['ar' => 'الوثائق', 'en' => 'Documents', 'fr' => 'Documents']],
             ['group' => 'nav', 'key' => 'transactions', 'values' => ['ar' => 'إدارة الأرشفة', 'en' => 'Archive Management', 'fr' => 'Gestion des archives']],
@@ -92,6 +92,7 @@ class TranslationCatalog
             ['group' => 'nav', 'key' => 'logout', 'values' => ['ar' => 'تسجيل الخروج', 'en' => 'Log Out', 'fr' => 'Déconnexion']],
             ['group' => 'nav', 'key' => 'menu', 'values' => ['ar' => 'القائمة', 'en' => 'Menu', 'fr' => 'Menu']],
             ['group' => 'nav', 'key' => 'language', 'values' => ['ar' => 'اللغة', 'en' => 'Language', 'fr' => 'Langue']],
+            ['group' => 'nav', 'key' => 'search_documents', 'values' => ['ar' => 'البحث في الوثائق...', 'en' => 'Search documents...', 'fr' => 'Rechercher dans les documents...']],
         ];
     }
 
@@ -102,6 +103,7 @@ class TranslationCatalog
             ['group' => 'auth', 'key' => 'login', 'values' => ['ar' => 'تسجيل الدخول', 'en' => 'Log in', 'fr' => 'Connexion']],
             ['group' => 'auth', 'key' => 'register', 'values' => ['ar' => 'إنشاء حساب', 'en' => 'Register', 'fr' => 'Inscription']],
             ['group' => 'auth', 'key' => 'email', 'values' => ['ar' => 'البريد الإلكتروني', 'en' => 'Email', 'fr' => 'E-mail']],
+            ['group' => 'auth', 'key' => 'username', 'values' => ['ar' => 'اسم المستخدم', 'en' => 'Username', 'fr' => 'Nom d\'utilisateur']],
             ['group' => 'auth', 'key' => 'password', 'values' => ['ar' => 'كلمة المرور', 'en' => 'Password', 'fr' => 'Mot de passe']],
             ['group' => 'auth', 'key' => 'remember_me', 'values' => ['ar' => 'تذكرني', 'en' => 'Remember me', 'fr' => 'Se souvenir de moi']],
             ['group' => 'auth', 'key' => 'forgot_password', 'values' => ['ar' => 'نسيت كلمة المرور؟', 'en' => 'Forgot your password?', 'fr' => 'Mot de passe oublié ?']],
@@ -114,7 +116,7 @@ class TranslationCatalog
             ['group' => 'auth', 'key' => 'no_account', 'values' => ['ar' => 'ليس لديك حساب؟', 'en' => 'Don\'t have an account?', 'fr' => 'Pas de compte ?']],
             ['group' => 'auth', 'key' => 'show_password', 'values' => ['ar' => 'إظهار كلمة المرور', 'en' => 'Show password', 'fr' => 'Afficher le mot de passe']],
             ['group' => 'auth', 'key' => 'login_page_title', 'values' => ['ar' => 'تسجيل الدخول', 'en' => 'Log in', 'fr' => 'Connexion']],
-            ['group' => 'auth', 'key' => 'brand_subtitle', 'values' => ['ar' => 'منصة متكاملة لإدارة وأرشفة الوثائق الإلكترونية بأمان وكفاءة', 'en' => 'Integrated platform for secure document archiving', 'fr' => 'Plateforme intégrée pour l\'archivage sécurisé']],
+            ['group' => 'auth', 'key' => 'brand_subtitle', 'values' => ['ar' => 'منصة السجلات والأرشفة المؤسسية', 'en' => 'Institutional Records & Archive Platform', 'fr' => 'Plateforme des dossiers et archives institutionnels']],
             ['group' => 'auth', 'key' => 'feature_1', 'values' => ['ar' => 'أرشفة مركزية للوثائق والمراسلات', 'en' => 'Central archiving for documents and correspondence', 'fr' => 'Archivage central des documents']],
             ['group' => 'auth', 'key' => 'feature_2', 'values' => ['ar' => 'بحث سريع وتصنيف ذكي', 'en' => 'Fast search and smart classification', 'fr' => 'Recherche rapide et classification']],
             ['group' => 'auth', 'key' => 'feature_3', 'values' => ['ar' => 'تتبع الإصدارات وسجل العمليات', 'en' => 'Version tracking and audit log', 'fr' => 'Suivi des versions et journal d\'audit']],

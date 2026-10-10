@@ -29,12 +29,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const closeMobileMenu = () => {
+        document.querySelector('.app-sidebar')?.classList.remove('is-open');
         navbarMenu?.classList.remove('is-open');
         navbarToggle?.classList.remove('is-active');
         navbarToggle?.setAttribute('aria-expanded', 'false');
         navbarBackdrop?.classList.remove('is-visible');
         document.body.style.overflow = '';
     };
+
+    navbarToggle?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const sidebar = document.querySelector('.app-sidebar');
+        const willOpen = !sidebar?.classList.contains('is-open');
+        sidebar?.classList.toggle('is-open', willOpen);
+        navbarMenu?.classList.toggle('is-open', willOpen);
+        navbarToggle.classList.toggle('is-active', willOpen);
+        navbarToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        navbarBackdrop?.classList.toggle('is-visible', willOpen);
+        document.body.style.overflow = willOpen ? 'hidden' : '';
+    });
+
+    navbarBackdrop?.addEventListener('click', closeMobileMenu);
 
     document.querySelectorAll('.navbar-notifications[data-dropdown]').forEach((dropdown) => {
         const menu = dropdown.querySelector('.dropdown-menu');

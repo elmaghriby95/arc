@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'tagline' => 'Document & Archive Management',
+    'tagline' => 'Institutional Records & Archive Platform',
     'dashboard' => 'Dashboard',
     'documents' => 'Documents',
     'transactions' => 'Archive Management',
@@ -24,4 +24,5 @@ return [
     'logout' => 'Log Out',
     'menu' => 'Menu',
     'language' => 'Language',
+    'search_documents' => 'Search documents...',
 ];

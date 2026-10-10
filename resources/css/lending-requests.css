@@ -118,10 +118,10 @@
 }
 
 .lending-workflow-step--current .lending-workflow-step-num {
-    background: #eef2ff;
-    border-color: #818cf8;
-    color: #4338ca;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    background: #E6F2FB;
+    border-color: #4AA3DC;
+    color: #003A70;
+    box-shadow: 0 0 0 4px rgba(0, 124, 195, 0.12);
 }
 
 .lending-workflow-step--rejected .lending-workflow-step-num {
@@ -177,7 +177,7 @@
 
 .lending-hero {
     background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
-    border-color: #e0e7ff;
+    border-color: #D6ECF8;
     margin-bottom: 1.5rem;
 }
 
@@ -286,8 +286,8 @@
     height: 0.85rem;
     border-radius: 50%;
     margin-top: 0.35rem;
-    background: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    background: #1A8AD4;
+    box-shadow: 0 0 0 4px rgba(0, 124, 195, 0.15);
     position: relative;
     z-index: 1;
 }

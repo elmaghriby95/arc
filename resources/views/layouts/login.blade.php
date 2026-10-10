@@ -9,12 +9,15 @@
         <link rel="icon" href="{{ $systemSettings->faviconUrl() }}">
     @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700,800|outfit:600,700,800&display=swap" rel="stylesheet">
+    @unless ($systemSettings->hasFavicon())
+        <link rel="icon" type="image/svg+xml" href="{{ asset('branding/arkeon-mark.svg') }}">
+    @endunless
     <x-inline-css file="login.css" />
 </head>
 <body class="login-body">
     <div class="login-page">
-        <div class="login-page-backdrop" aria-hidden="true"></div>
+        <div class="login-page-backdrop" style="background-image: linear-gradient(180deg, rgba(0, 58, 112, 0.18), rgba(0, 40, 72, 0.45)), url('{{ asset('branding/login-campus.svg') }}')" aria-hidden="true"></div>
 
         <div class="login-center">
             <div class="login-form-wrapper">
@@ -32,39 +35,10 @@
                 @endif
 
                 <div class="login-card-brand">
-                    @if ($systemSettings->hasLogo())
-                        <img
-                            src="{{ $systemSettings->logoUrl() }}"
-                            alt=""
-                            class="login-brand-logo-img"
-                            style="{{ $systemSettings->loginLogoStyle() }}"
-                            decoding="async"
-                        >
-                    @else
-                        <div class="login-brand-logo">
-                            @include('layouts.partials.system-brand-icon', ['variant' => 'login'])
-                        </div>
-                    @endif
-
-                    @if (filled($systemSettings->loginText('brand_subtitle')))
-                        <p class="login-card-subtitle">{{ $systemSettings->loginText('brand_subtitle') }}</p>
-                    @endif
+                    <x-arkeon-lockup tone="dark" />
                 </div>
 
                 {{ $slot }}
-
-                @if (filled($systemSettings->loginText('feature_1')) || filled($systemSettings->loginText('feature_2')) || filled($systemSettings->loginText('feature_3')))
-                <ul class="login-features login-features--card">
-                    @foreach (['feature_1', 'feature_2', 'feature_3'] as $featureKey)
-                        @if (filled($systemSettings->loginText($featureKey)))
-                        <li>
-                            <span class="login-feature-icon" aria-hidden="true">✓</span>
-                            <span>{{ $systemSettings->loginText($featureKey) }}</span>
-                        </li>
-                        @endif
-                    @endforeach
-                </ul>
-                @endif
             </div>
 
             <footer class="login-page-footer">

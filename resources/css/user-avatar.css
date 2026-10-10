@@ -24,7 +24,7 @@
 
 .navbar-user-avatar.user-avatar,
 .navbar-dropdown-avatar.user-avatar {
-    background: linear-gradient(145deg, #818cf8, #4f46e5);
+    background: linear-gradient(145deg, #4AA3DC, #007CC3);
     color: #fff;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0, 124, 195, 0.25);
 }

@@ -1,9 +1,4 @@
 <x-login-layout>
-    <div class="login-form-header">
-        <h2 class="login-form-title">{{ $systemSettings->loginText('welcome_back') }}</h2>
-        <p class="login-form-desc">{{ $systemSettings->loginText('login_desc') }}</p>
-    </div>
-
     <x-auth-session-status :status="session('status')" />
 
     @if ($errors->any())
@@ -18,11 +13,11 @@
         @csrf
 
         <div class="login-field">
-            <label for="email" class="login-label">{{ $systemSettings->loginText('email') }}</label>
+            <label for="email" class="login-label login-label--sr">{{ $systemSettings->loginText('email') }}</label>
             <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z"/>
                     </svg>
                 </span>
                 <input
@@ -31,7 +26,7 @@
                     name="email"
                     class="login-input"
                     value="{{ old('email') }}"
-                    placeholder="{{ $systemSettings->loginText('email_placeholder') }}"
+                    placeholder="{{ __('auth.username') }}"
                     required
                     autofocus
                     autocomplete="username"
@@ -41,7 +36,7 @@
         </div>
 
         <div class="login-field">
-            <label for="password" class="login-label">{{ $systemSettings->loginText('password') }}</label>
+            <label for="password" class="login-label login-label--sr">{{ $systemSettings->loginText('password') }}</label>
             <div class="login-input-wrap">
                 <span class="login-input-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -53,7 +48,7 @@
                     type="password"
                     name="password"
                     class="login-input"
-                    placeholder="{{ $systemSettings->loginText('password_placeholder') }}"
+                    placeholder="{{ $systemSettings->loginText('password') }}"
                     required
                     autocomplete="current-password"
                     data-password-input
@@ -71,22 +66,17 @@
             <x-input-error :messages="$errors->get('password')" />
         </div>
 
-        <div class="login-options">
-            <label class="login-remember">
-                <input id="remember_me" type="checkbox" name="remember">
-                <span>{{ $systemSettings->loginText('remember_me') }}</span>
-            </label>
-
-            @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="login-forgot">{{ $systemSettings->loginText('forgot_password') }}</a>
-            @endif
-        </div>
+        <label class="login-remember">
+            <input id="remember_me" type="checkbox" name="remember">
+            <span>{{ $systemSettings->loginText('remember_me') }}</span>
+        </label>
 
         <button type="submit" class="login-submit">
             <span>{{ $systemSettings->loginText('login') }}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
-            </svg>
         </button>
     </form>
+
+    @if (Route::has('password.request'))
+        <a href="{{ route('password.request') }}" class="login-forgot">{{ $systemSettings->loginText('forgot_password') }}</a>
+    @endif
 </x-login-layout>
