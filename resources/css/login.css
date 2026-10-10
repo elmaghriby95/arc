@@ -395,6 +395,27 @@
     text-align: center;
 }
 
+.login-logout {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.85rem;
+}
+
+.login-logout button {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-logout button:hover {
+    color: #0f172a;
+    text-decoration: underline;
+}
+
 .login-field .text-danger {
     margin: 0;
     padding: 0;

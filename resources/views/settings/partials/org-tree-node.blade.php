@@ -19,13 +19,16 @@
 @endphp
 
 <li class="org-tree-node" data-org-node>
+    @if ($hasChildren)
+        <input type="checkbox" class="org-branch-check" id="org-branch-{{ $department->id }}" checked>
+    @endif
     <div class="org-tree-item" style="--depth: {{ $depth }}">
         @if ($hasChildren)
-            <button type="button" class="org-tree-toggle" data-org-toggle aria-expanded="true">
+            <label class="org-tree-toggle" for="org-branch-{{ $department->id }}">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
-            </button>
+            </label>
         @else
             <span class="org-tree-spacer"></span>
         @endif
@@ -138,15 +141,6 @@
     </div>
 
     <ul class="org-tree-children{{ $hasChildren ? '' : ' org-tree-children--empty' }}" data-org-children>
-        @foreach ($department->children as $child)
-            @include('settings.partials.org-tree-node', [
-                'department' => $child,
-                'depth' => $depth + 1,
-                'users' => $users,
-                'unitLabelSuggestions' => $unitLabelSuggestions,
-            ])
-        @endforeach
-
         @permission('departments.create')
             <li class="org-tree-add-node">
                 <details class="org-tree-add">
@@ -165,5 +159,14 @@
                 </details>
             </li>
         @endpermission
+
+        @foreach ($department->children as $child)
+            @include('settings.partials.org-tree-node', [
+                'department' => $child,
+                'depth' => $depth + 1,
+                'users' => $users,
+                'unitLabelSuggestions' => $unitLabelSuggestions,
+            ])
+        @endforeach
     </ul>
 </li>

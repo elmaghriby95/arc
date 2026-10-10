@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\NotCurrentPassword;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
@@ -16,15 +16,15 @@ class PasswordController extends Controller
      */
     public function update(Request $request, UserActivityLogger $logger): RedirectResponse
     {
+        $user = $request->user();
+
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
+            'password' => ['required', Password::defaults(), 'confirmed', new NotCurrentPassword($user)],
         ]);
 
-        $user = $request->user();
-        $user->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+        $user->replacePassword($validated['password']);
+        $user->save();
 
         $logger->logPasswordChange($user, $request);
 

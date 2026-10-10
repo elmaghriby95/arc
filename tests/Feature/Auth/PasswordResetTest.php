@@ -5,12 +5,22 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('app.url', 'http://localhost');
+        URL::forceRootUrl('http://localhost');
+    }
 
     public function test_reset_password_link_screen_can_be_rendered(): void
     {
@@ -59,13 +69,17 @@ class PasswordResetTest extends TestCase
             $response = $this->post('/reset-password', [
                 'token' => $notification->token,
                 'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
+                'password' => 'new-password',
+                'password_confirmation' => 'new-password',
             ]);
 
             $response
                 ->assertSessionHasNoErrors()
                 ->assertRedirect(route('login'));
+
+            $user->refresh();
+            $this->assertTrue(Hash::check('new-password', $user->password));
+            $this->assertFalse($user->needsPasswordChange());
 
             return true;
         });

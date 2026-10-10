@@ -41,6 +41,10 @@ class AuthenticatedSessionController extends Controller
 
         $logger->logLogin($user, $request);
 
+        if ($user->needsPasswordChange()) {
+            return redirect()->route('password.change');
+        }
+
         return redirect()->intended($user->homeUrl());
     }
 

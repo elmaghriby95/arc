@@ -261,6 +261,7 @@
                                     </div>
 
                                     <p class="form-hint">{{ __('settings.users.password_optional_hint') }}</p>
+                                    <p class="form-hint">{{ __('settings.users.password_force_change_hint') }}</p>
                                 </div>
                             </div>
                         </div>

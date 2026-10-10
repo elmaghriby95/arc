@@ -104,6 +104,8 @@ class UserManagementController extends Controller
         $user = User::create([
             ...$request->validated(),
             'email_verified_at' => now(),
+            'must_change_password' => true,
+            'password_changed_at' => null,
         ]);
 
         $logger->logUserCreated($request->user(), $user, $request);
@@ -170,7 +172,11 @@ class UserManagementController extends Controller
         $user->fill($validated);
 
         if ($passwordChanged) {
-            $user->password = $request->input('password');
+            if ($request->user()?->is($user)) {
+                $user->replacePassword($request->string('password')->value());
+            } else {
+                $user->assignTemporaryPassword($request->string('password')->value());
+            }
         }
 
         $role = Role::query()->findOrFail($user->role_id);

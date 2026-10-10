@@ -2,6 +2,7 @@
     <header class="profile-form-header">
         <h2 class="card-title">{{ __('profile.password_title') }}</h2>
         <p class="text-muted">{{ __('profile.password_desc') }}</p>
+        <p class="text-muted">{{ __('profile.password_policy') }}</p>
     </header>
 
     <form method="post" action="{{ route('password.update') }}">

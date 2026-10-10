@@ -41,6 +41,8 @@ class UserRoleAssignmentPermissionTest extends TestCase
         $created = User::where('email', 'created.employee@example.com')->firstOrFail();
 
         $this->assertSame($managerRole->id, $created->role_id);
+        $this->assertTrue($created->must_change_password);
+        $this->assertNull($created->password_changed_at);
     }
 
     public function test_user_editing_updates_selected_role(): void

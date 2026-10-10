@@ -97,6 +97,7 @@
                         </div>
                     </div>
 
+                    <p class="form-hint">{{ __('settings.users.temporary_password_hint') }}</p>
                     <p class="form-hint">{{ __('settings.users.auto_activate_hint') }}</p>
                 </div>
             </div>

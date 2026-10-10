@@ -16,10 +16,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'employee_number', 'password', 'role_id', 'department_id', 'view_descendant_units', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
+#[Fillable(['name', 'email', 'employee_number', 'password', 'must_change_password', 'password_changed_at', 'role_id', 'department_id', 'view_descendant_units', 'language_id', 'avatar_path', 'last_login_at', 'last_login_ip'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    /** Days before a self-chosen password must be replaced. */
+    public const PASSWORD_MAX_AGE_DAYS = 30;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -31,6 +34,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'password_changed_at' => 'datetime',
             'view_descendant_units' => 'boolean',
             'granted_permissions' => 'array',
             'revoked_permissions' => 'array',
@@ -42,6 +47,55 @@ class User extends Authenticatable
         static::deleting(function (): bool {
             return false;
         });
+    }
+
+    public function needsPasswordChange(): bool
+    {
+        if (! array_key_exists('must_change_password', $this->attributes)) {
+            return false;
+        }
+
+        return $this->must_change_password
+            || $this->password_changed_at === null
+            || $this->passwordHasExpired();
+    }
+
+    public function passwordHasExpired(): bool
+    {
+        if ($this->password_changed_at === null) {
+            return false;
+        }
+
+        return $this->password_changed_at->copy()
+            ->addDays(self::PASSWORD_MAX_AGE_DAYS)
+            ->lte(now());
+    }
+
+    public function passwordChangeReason(): ?string
+    {
+        if (! $this->needsPasswordChange()) {
+            return null;
+        }
+
+        if ($this->must_change_password || $this->password_changed_at === null) {
+            return 'initial';
+        }
+
+        return 'expired';
+    }
+
+    public function replacePassword(string $password): void
+    {
+        $this->password = $password;
+        $this->must_change_password = false;
+        $this->password_changed_at = now();
+    }
+
+    public function assignTemporaryPassword(string $password): void
+    {
+        $this->password = $password;
+        $this->must_change_password = true;
+        $this->password_changed_at = null;
     }
 
     public function auditLogs(): HasMany

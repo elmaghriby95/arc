@@ -44,6 +44,7 @@ return [
     'new_password' => 'New password',
     'confirm_password' => 'Confirm password',
     'password_saved' => 'Password updated',
+    'password_policy' => 'The new password must be different from the current one, and it must be changed every 30 days.',
     'stats' => [
         'transactions' => 'Transactions created',
         'documents' => 'Documents uploaded',

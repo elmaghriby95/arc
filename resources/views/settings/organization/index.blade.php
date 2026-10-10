@@ -1,4 +1,27 @@
 <x-app-layout>
+    @push('styles')
+        <style>
+            .org-branch-check {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                margin: -1px;
+                padding: 0;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                border: 0;
+            }
+
+            .org-tree-node > .org-branch-check:not(:checked) ~ .org-tree-children > .org-tree-node {
+                display: none;
+            }
+
+            .org-tree-node > .org-branch-check:not(:checked) ~ .org-tree-item .org-tree-toggle svg {
+                transform: rotate(90deg);
+            }
+        </style>
+    @endpush
+
     <x-slot name="header">
         <div class="page-header">
             <div>
