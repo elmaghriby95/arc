@@ -15,11 +15,15 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->extend('files', function () {
+            return new \App\Filesystem\Filesystem;
+        });
     }
 
     public function boot(): void
     {
+        $this->ensureRuntimePathsAreWritable();
+
         Schema::defaultStringLength(191);
 
         \Illuminate\Pagination\Paginator::useBootstrapFive();
@@ -87,6 +91,41 @@ class AppServiceProvider extends ServiceProvider
 
             return false;
         });
+    }
+
+    private function ensureRuntimePathsAreWritable(): void
+    {
+        $compiled = config('view.compiled');
+        $candidates = [
+            is_string($compiled) && $compiled !== '' ? $compiled : null,
+            storage_path('framework/views'),
+            sys_get_temp_dir().DIRECTORY_SEPARATOR.'arc-views',
+        ];
+
+        foreach ($candidates as $path) {
+            if (! is_string($path) || $path === '') {
+                continue;
+            }
+
+            if (! is_dir($path)) {
+                @mkdir($path, 0775, true);
+            }
+
+            if (is_dir($path) && is_writable($path)) {
+                config(['view.compiled' => $path]);
+                break;
+            }
+        }
+
+        $logDirectory = storage_path('logs');
+
+        if (! is_dir($logDirectory)) {
+            @mkdir($logDirectory, 0775, true);
+        }
+
+        if (! is_dir($logDirectory) || ! is_writable($logDirectory)) {
+            config(['logging.default' => 'errorlog']);
+        }
     }
 
     private function syncSessionLifetimeFromSettings(): void
