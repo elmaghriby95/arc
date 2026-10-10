@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
         TransactionStatusHistory::observe(TransactionStatusHistoryObserver::class);
         LendingRequestHistory::observe(LendingRequestHistoryObserver::class);
 
-        View::composer(['layouts.partials.navbar', 'layouts.login', 'layouts.guest', 'auth.login'], function ($view) {
+        View::composer(['layouts.partials.topbar', 'layouts.partials.navbar', 'layouts.login', 'layouts.guest', 'auth.login'], function ($view) {
             $view->with('navbarLanguages', \App\Models\Language::query()
                 ->where('is_active', true)
                 ->orderByDesc('is_default')
@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
                 ->get());
         });
 
-        View::composer('layouts.partials.navbar', function ($view) {
+        View::composer(['layouts.partials.topbar', 'layouts.partials.navbar'], function ($view) {
             $user = auth()->user();
 
             if (! $user) {

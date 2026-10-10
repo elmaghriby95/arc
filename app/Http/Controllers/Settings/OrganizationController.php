@@ -89,6 +89,12 @@ class OrganizationController extends Controller
 
     public function destroy(Request $request, Department $department, UserActivityLogger $logger): RedirectResponse
     {
+        if ($message = $department->deletionBlockedMessage()) {
+            return redirect()
+                ->route('settings.organization.index')
+                ->with('error', $message);
+        }
+
         if (! $this->deleteIfEmpty($department)) {
             return redirect()
                 ->route('settings.organization.index')

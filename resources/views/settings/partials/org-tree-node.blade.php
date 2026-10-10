@@ -11,11 +11,8 @@
     ];
     $defaultChildLabel = $childDefaults[min($depth + 1, count($childDefaults) - 1)] ?? __('settings.org.unit');
     $hasChildren = $department->children->isNotEmpty();
-    $canDelete = ! $hasChildren
-        && (int) $department->folders_count === 0
-        && (int) $department->transactions_count === 0
-        && (int) $department->users_count === 0
-        && (int) $department->documents_count === 0;
+    $deleteBlockedMessage = $department->deletionBlockedMessage();
+    $canDelete = $deleteBlockedMessage === null;
 @endphp
 
 <li class="org-tree-node" data-org-node>
@@ -122,7 +119,7 @@
                                         {{ __('common.delete') }}
                                     </button>
                                 @else
-                                    <p class="form-hint">{{ __('messages.organization.cannot_delete_in_use') }}</p>
+                                    <p class="form-hint">{{ $deleteBlockedMessage }}</p>
                                 @endif
                             @endpermission
                         </div>

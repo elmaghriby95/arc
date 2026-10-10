@@ -45,6 +45,15 @@ return [
         'updated' => 'تم تحديث الوحدة التنظيمية بنجاح.',
         'deleted' => 'تم حذف الوحدة التنظيمية بنجاح.',
         'cannot_delete_in_use' => 'لا يمكن حذف هذه الوحدة لأن تحتها وحدات أخرى، أو عليها مجلد أو معاملة أو موظف أو وثيقة. الحذف متاح فقط للوحدة الفارغة حتى لا يتأثر أي شيء آخر.',
+        'cannot_delete_because' => 'لا يمكن حذف هذه الوحدة لأن :reasons.',
+        'cannot_delete_reason' => [
+            'children' => 'تحتها :count وحدة تنظيمية',
+            'folders' => 'عليها :count مجلد',
+            'transactions' => 'عليها :count معاملة',
+            'employees' => 'عليها :count موظف',
+            'documents' => 'عليها :count وثيقة',
+            'separator' => '، و',
+        ],
     ],
 
     'reference_number' => [

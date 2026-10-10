@@ -39,6 +39,15 @@ return [
         'updated' => 'Organizational unit updated successfully.',
         'deleted' => 'Organizational unit deleted successfully.',
         'cannot_delete_in_use' => 'This unit cannot be deleted while it has sub-units, a folder, a transaction, an employee, or a document. Only an empty unit can be deleted, so nothing else is changed.',
+        'cannot_delete_because' => 'This unit cannot be deleted because :reasons.',
+        'cannot_delete_reason' => [
+            'children' => 'it has :count sub-units',
+            'folders' => 'it has :count folders',
+            'transactions' => 'it has :count transactions',
+            'employees' => 'it has :count employees',
+            'documents' => 'it has :count documents',
+            'separator' => ' and ',
+        ],
     ],
     'reference_number' => [
         'saved' => 'Reference number settings saved successfully.',

@@ -39,11 +39,68 @@ class Department extends Model
 
     public function isDeletable(): bool
     {
-        return ! $this->children()->exists()
-            && ! $this->folders()->exists()
-            && ! $this->transactions()->exists()
-            && ! $this->users()->exists()
-            && ! $this->documents()->withTrashed()->exists();
+        return $this->deletionBlockers() === [];
+    }
+
+    /**
+     * Reasons this unit cannot be deleted, with the matching record counts.
+     *
+     * @return list<array{key: string, count: int}>
+     */
+    public function deletionBlockers(): array
+    {
+        $checks = [
+            'children' => $this->relatedCount('children', fn () => $this->children()->count()),
+            'folders' => $this->relatedCount('folders', fn () => $this->folders()->count()),
+            'transactions' => $this->relatedCount('transactions', fn () => $this->transactions()->count()),
+            'employees' => $this->relatedCount('users', fn () => $this->users()->count()),
+            'documents' => $this->relatedCount('documents', fn () => $this->documents()->withTrashed()->count(), false),
+        ];
+
+        $blockers = [];
+
+        foreach ($checks as $key => $count) {
+            if ($count > 0) {
+                $blockers[] = ['key' => $key, 'count' => $count];
+            }
+        }
+
+        return $blockers;
+    }
+
+    public function deletionBlockedMessage(): ?string
+    {
+        $blockers = $this->deletionBlockers();
+
+        if ($blockers === []) {
+            return null;
+        }
+
+        $reasons = array_map(
+            fn (array $blocker) => __('messages.organization.cannot_delete_reason.'.$blocker['key'], [
+                'count' => $blocker['count'],
+            ]),
+            $blockers,
+        );
+
+        return __('messages.organization.cannot_delete_because', [
+            'reasons' => implode(__('messages.organization.cannot_delete_reason.separator'), $reasons),
+        ]);
+    }
+
+    private function relatedCount(string $relation, callable $query, bool $countLoadedRelation = true): int
+    {
+        $attribute = $relation.'_count';
+
+        if (array_key_exists($attribute, $this->getAttributes())) {
+            return (int) $this->getAttribute($attribute);
+        }
+
+        if ($countLoadedRelation && $this->relationLoaded($relation)) {
+            return $this->getRelation($relation)->count();
+        }
+
+        return (int) $query();
     }
 
     public function parent(): BelongsTo

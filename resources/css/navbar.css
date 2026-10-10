@@ -400,45 +400,6 @@
     z-index: 30;
 }
 
-.topbar-search {
-    position: relative;
-    flex: 1;
-    max-width: 28rem;
-}
-
-.topbar-search-icon {
-    position: absolute;
-    inset-inline-start: 0.85rem;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    color: #7A93A8;
-    pointer-events: none;
-}
-
-.topbar-search-icon svg {
-    width: 1.05rem;
-    height: 1.05rem;
-}
-
-.topbar-search input {
-    width: 100%;
-    border: 1px solid #d5e6f2;
-    background: #fff;
-    border-radius: 999px;
-    padding: 0.62rem 1rem;
-    padding-inline-start: 2.45rem;
-    font-family: inherit;
-    font-size: 0.88rem;
-    color: #0c2748;
-}
-
-.topbar-search input:focus {
-    outline: none;
-    border-color: #007CC3;
-    box-shadow: 0 0 0 3px rgba(0, 124, 195, 0.15);
-}
-
 .app-topbar-end {
     margin-inline-start: auto;
     display: flex;

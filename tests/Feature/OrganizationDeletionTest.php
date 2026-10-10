@@ -52,7 +52,7 @@ class OrganizationDeletionTest extends TestCase
         $this->actingAs($admin)
             ->delete(route('settings.organization.destroy', $parent))
             ->assertRedirect(route('settings.organization.index'))
-            ->assertSessionHas('error', __('messages.organization.cannot_delete_in_use'));
+            ->assertSessionHas('error', $this->blockedMessage('children', 1));
 
         $this->assertNotNull($parent->fresh());
         $this->assertSame($parent->id, $child->fresh()->parent_id);
@@ -71,7 +71,7 @@ class OrganizationDeletionTest extends TestCase
         $this->actingAs($admin)
             ->delete(route('settings.organization.destroy', $department))
             ->assertRedirect(route('settings.organization.index'))
-            ->assertSessionHas('error', __('messages.organization.cannot_delete_in_use'));
+            ->assertSessionHas('error', $this->blockedMessage('folders', 1));
 
         $this->assertNotNull($department->fresh());
         $this->assertSame($department->id, $folder->fresh()->department_id);
@@ -86,7 +86,7 @@ class OrganizationDeletionTest extends TestCase
         $this->actingAs($admin)
             ->delete(route('settings.organization.destroy', $department))
             ->assertRedirect(route('settings.organization.index'))
-            ->assertSessionHas('error', __('messages.organization.cannot_delete_in_use'));
+            ->assertSessionHas('error', $this->blockedMessage('transactions', 1));
 
         $this->assertNotNull($department->fresh());
         $this->assertSame($department->id, $transaction->fresh()->department_id);
@@ -100,7 +100,7 @@ class OrganizationDeletionTest extends TestCase
 
         $this->actingAs($admin)
             ->delete(route('settings.organization.destroy', $withEmployee))
-            ->assertSessionHas('error', __('messages.organization.cannot_delete_in_use'));
+            ->assertSessionHas('error', $this->blockedMessage('employees', 1));
 
         $this->assertSame($withEmployee->id, $employee->fresh()->department_id);
 
@@ -116,9 +116,34 @@ class OrganizationDeletionTest extends TestCase
 
         $this->actingAs($admin)
             ->delete(route('settings.organization.destroy', $withDocument))
-            ->assertSessionHas('error', __('messages.organization.cannot_delete_in_use'));
+            ->assertSessionHas('error', $this->blockedMessage('documents', 1));
 
         $this->assertSame($withDocument->id, $document->fresh()->department_id);
+    }
+
+    public function test_blocked_delete_names_every_reason(): void
+    {
+        $admin = $this->adminUser();
+        $department = $this->department('إدارة مرتبطة');
+        $this->department('قسم تابع', $department);
+        Folder::create([
+            'name' => 'مجلد',
+            'department_id' => $department->id,
+            'is_active' => true,
+        ]);
+
+        $reasons = implode(__('messages.organization.cannot_delete_reason.separator'), [
+            __('messages.organization.cannot_delete_reason.children', ['count' => 1]),
+            __('messages.organization.cannot_delete_reason.folders', ['count' => 1]),
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('settings.organization.destroy', $department))
+            ->assertSessionHas('error', __('messages.organization.cannot_delete_because', [
+                'reasons' => $reasons,
+            ]));
+
+        $this->assertNotNull($department->fresh());
     }
 
     public function test_tree_shows_delete_only_for_an_empty_unit_and_keeps_the_form_outside_the_edit_form(): void
@@ -130,7 +155,7 @@ class OrganizationDeletionTest extends TestCase
         $html = $this->actingAs($admin)
             ->get(route('settings.organization.index'))
             ->assertOk()
-            ->assertSee(__('messages.organization.cannot_delete_in_use'), false)
+            ->assertSee($this->blockedMessage('children', 1), false)
             ->assertSee('id="org-delete-'.$empty->id.'"', false)
             ->getContent();
 
@@ -138,6 +163,13 @@ class OrganizationDeletionTest extends TestCase
         $this->assertStringNotContainsString('<form', $matches[1]);
         $this->assertStringContainsString('form="org-delete-'.$empty->id.'"', $matches[1]);
         $this->assertDoesNotMatchRegularExpression('/id="org-delete-'.$parent->id.'"/', $html);
+    }
+
+    private function blockedMessage(string $reason, int $count): string
+    {
+        return __('messages.organization.cannot_delete_because', [
+            'reasons' => __('messages.organization.cannot_delete_reason.'.$reason, ['count' => $count]),
+        ]);
     }
 
     private function adminUser(): User

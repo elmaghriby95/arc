@@ -5,24 +5,6 @@
         <span class="navbar-toggle-bar"></span>
     </button>
 
-    @permission('documents.view')
-        <form class="topbar-search" method="GET" action="{{ route('documents.index') }}" role="search">
-            <span class="topbar-search-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <circle cx="11" cy="11" r="7"/>
-                    <path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
-                </svg>
-            </span>
-            <input
-                type="search"
-                name="search"
-                value="{{ request()->routeIs('documents.index') ? request('search') : '' }}"
-                placeholder="{{ __('nav.search_documents') }}"
-                aria-label="{{ __('nav.search_documents') }}"
-            >
-        </form>
-    @endpermission
-
     <div class="app-topbar-end">
         @if (($navbarLanguages ?? collect())->isNotEmpty())
         <div class="dropdown navbar-language" data-dropdown>
