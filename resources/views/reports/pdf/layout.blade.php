@@ -21,6 +21,27 @@
             margin-bottom: 18px;
             text-align: right;
         }
+        .pdf-brand {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+        }
+        .pdf-header .pdf-brand td {
+            border: none;
+            background: transparent;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .pdf-header .pdf-brand td.pdf-brand-logo {
+            width: 88px;
+            text-align: center;
+            padding-left: 14px;
+        }
+        .pdf-brand-logo img {
+            height: 58px;
+            width: auto;
+            max-width: 120px;
+        }
         .pdf-header h1 {
             margin: 0 0 4px;
             font-size: 20px;
@@ -105,8 +126,19 @@
 </head>
 <body dir="rtl">
     <div class="pdf-header">
-        <h1>{{ $reportType->label() }}</h1>
-        <p>{{ $systemSettings->appName() }} — {{ __('reports.pdf_subtitle') }}</p>
+        <table class="pdf-brand">
+            <tr>
+                @if ($systemSettings->logoPdfSrc())
+                    <td class="pdf-brand-logo">
+                        <img src="{{ $systemSettings->logoPdfSrc() }}" alt="">
+                    </td>
+                @endif
+                <td>
+                    <h1>{{ $reportType->label() }}</h1>
+                    <p>{{ $systemSettings->appName() }} — {{ __('reports.pdf_subtitle') }}</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="pdf-meta">

@@ -11,6 +11,13 @@
     </x-slot>
 
     <div class="reports-hero">
+        @if ($systemSettings->hasLogo())
+            <img
+                src="{{ $systemSettings->logoUrl() }}"
+                alt="{{ $systemSettings->appName() }}"
+                class="reports-hero-logo"
+            >
+        @endif
         <div class="reports-hero-content">
             <h2>{{ __('reports.hero_title') }}</h2>
             <p>{{ __('reports.hero_desc') }}</p>

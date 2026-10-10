@@ -75,8 +75,8 @@ class TransactionController extends Controller
 
         return view('transactions.create', [
             'orgUnits' => $this->scopedOrgUnitOptions($user, forMutation: true),
-            'folders' => $this->scopedFolders($user),
-            'folderTree' => Folder::scopedTree($departmentIds, activeOnly: true),
+            'folders' => $this->scopedFolders($user, excludeClosed: true),
+            'folderTree' => Folder::scopedTree($departmentIds, activeOnly: true, excludeClosed: true),
             'departmentBreadcrumbs' => Department::breadcrumbMap(),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
             'initialStatus' => $initialStatus,
@@ -291,7 +291,7 @@ class TransactionController extends Controller
         return view('transactions.edit', [
             'transaction' => $transaction,
             'orgUnits' => $this->scopedOrgUnitOptions($user, forMutation: true),
-            'folders' => $this->scopedFolders($user),
+            'folders' => $this->foldersForTransactionEdit($user, $transaction),
             'transactionTypes' => TransactionType::where('is_active', true)->orderBy('sort_order')->get(),
         ]);
     }
@@ -321,7 +321,7 @@ class TransactionController extends Controller
                 ->withErrors(['department_id' => __('messages.transaction.department_move_denied')]);
         }
 
-        if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user())) {
+        if ($folderError = $this->validateTransactionFolder($validated['folder_id'], $validated['department_id'], $request->user(), (int) $transaction->folder_id)) {
             return back()
                 ->withInput()
                 ->withErrors(['folder_id' => $folderError]);
@@ -441,21 +441,42 @@ class TransactionController extends Controller
     }
 
     /** @return \Illuminate\Database\Eloquent\Collection<int, Folder> */
-    private function scopedFolders(User $user)
+    private function scopedFolders(User $user, bool $excludeClosed = false)
     {
         return Folder::scopedQuery($user->folderOrgScopeDepartmentIds())
             ->where('is_active', true)
+            ->when($excludeClosed, fn ($query) => $query->where('is_closed', false))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
     }
 
-    private function validateTransactionFolder(int $folderId, int $departmentId, User $user): ?string
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Folder> */
+    private function foldersForTransactionEdit(User $user, Transaction $transaction)
+    {
+        $folders = $this->scopedFolders($user, excludeClosed: true);
+
+        if ($transaction->folder_id && ! $folders->contains('id', $transaction->folder_id)) {
+            $current = Folder::query()->find($transaction->folder_id);
+
+            if ($current) {
+                $folders->prepend($current);
+            }
+        }
+
+        return $folders;
+    }
+
+    private function validateTransactionFolder(int $folderId, int $departmentId, User $user, ?int $allowClosedFolderId = null): ?string
     {
         $folder = Folder::find($folderId);
 
         if (! $folder || ! $folder->is_active) {
             return __('messages.folder.unavailable');
+        }
+
+        if ($folder->is_closed && $folderId !== $allowClosedFolderId) {
+            return __('messages.folder.closed_unavailable');
         }
 
         if (! $user->canAccessFolder($folder)) {

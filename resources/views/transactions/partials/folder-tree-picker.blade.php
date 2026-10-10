@@ -5,7 +5,10 @@
     'departmentBreadcrumbs' => [],
 ])
 
-<div class="txnw-folder-picker" data-folder-picker>
+<div class="txnw-folder-picker"
+     data-folder-picker
+     data-label-show="{{ __('transactions.show_subfolders') }}"
+     data-label-hide="{{ __('transactions.hide_subfolders') }}">
     <input type="hidden" name="folder_id" id="folder_id" value="{{ old('folder_id', $selected) }}" data-folder-input required>
 
     @if ($folders->isEmpty())

@@ -26,6 +26,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role_id' => ['required', Rule::exists('roles', 'id')],
             'department_id' => ['nullable', Rule::exists('departments', 'id')],
+            'view_descendant_units' => ['boolean'],
         ];
     }
 
@@ -57,4 +58,10 @@ class StoreUserRequest extends FormRequest
         });
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'view_descendant_units' => $this->boolean('view_descendant_units'),
+        ]);
+    }
 }

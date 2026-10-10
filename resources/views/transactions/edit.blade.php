@@ -39,6 +39,8 @@
                             @include('settings.partials.org-unit-select', [
                                 'orgUnits' => $orgUnits,
                                 'selected' => old('department_id', $transaction->department_id),
+                                'lockWhenSingle' => true,
+                                'required' => true,
                             ])
                         </div>
                         @include('transactions.partials.folder-select', [

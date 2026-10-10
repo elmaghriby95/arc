@@ -126,11 +126,6 @@
                     <div class="profile-tabs-nav">
                         <button type="button" class="profile-tab-btn is-active" data-tab="info">{{ __('profile.tab.info') }}</button>
                         <button type="button" class="profile-tab-btn" data-tab="password">{{ __('profile.tab.password') }}</button>
-                        @if (! $user->isAdmin())
-                            @permission('profile.delete')
-                                <button type="button" class="profile-tab-btn profile-tab-btn--danger" data-tab="danger">{{ __('profile.tab.danger') }}</button>
-                            @endpermission
-                        @endif
                     </div>
 
                     <div class="profile-tab-panel is-active" data-panel="info">
@@ -149,17 +144,6 @@
                         </div>
                     </div>
 
-                    @if (! $user->isAdmin())
-                        @permission('profile.delete')
-                            <div class="profile-tab-panel" data-panel="danger">
-                                <div class="card card-danger">
-                                    <div class="card-body">
-                                        @include('profile.partials.delete-user-form')
-                                    </div>
-                                </div>
-                            </div>
-                        @endpermission
-                    @endif
                 </div>
             </div>
 

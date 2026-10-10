@@ -8,20 +8,21 @@
     <link href="https://fonts.bunny.net/css?family=cairo:400,600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body {
+        html, body {
+            height: 100%;
             margin: 0;
-            padding: 2rem;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-family: Cairo, sans-serif;
             text-align: center;
             color: #0f172a;
         }
-        h1 {
-            margin: 0 0 1.25rem;
-            font-size: 1.2rem;
-            font-weight: 800;
-        }
         .txn-qr-print-wrap {
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0.85rem;
@@ -40,32 +41,27 @@
             width: 100%;
             height: 100%;
         }
-        p {
+        .txn-qr-print-payload {
             margin: 0;
-            color: #64748b;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #0f172a;
         }
-        code {
-            display: block;
-            font-size: 0.85rem;
-            word-break: break-all;
-            color: #334155;
-            background: #f1f5f9;
-            padding: 0.35rem 0.55rem;
-            border-radius: 0.4rem;
+        @page {
+            margin: 0;
         }
         @media print {
-            body { padding: 0; }
+            body {
+                min-height: 100vh;
+            }
         }
     </style>
 </head>
 <body>
     <div class="txn-qr-print-wrap">
-        <h1>{{ __('transactions.qr_code_title') }}</h1>
         <div class="txn-qr-print-svg">{!! $qrSvg !!}</div>
-        <p>{{ __('transactions.qr_code_hint') }}</p>
-        <code>{{ $qrPayload }}</code>
+        <p class="txn-qr-print-payload">{{ $qrPayload }}</p>
     </div>
     <script>
         window.addEventListener('load', () => {

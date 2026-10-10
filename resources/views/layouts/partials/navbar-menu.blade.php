@@ -8,9 +8,6 @@
         || auth()->user()?->hasPermission('lending-requests.request')
         || auth()->user()?->hasPermission('lending-requests.review')
         || auth()->user()?->hasPermission('lending-requests.handover');
-
-    $structureActive = request()->routeIs('departments.*');
-    $hasStructureMenu = auth()->user()?->hasPermission('departments.view');
 @endphp
 
 <a href="{{ route('dashboard') }}" class="navbar-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
@@ -80,30 +77,6 @@
         </span>
         <span class="navbar-link-text">{{ __('nav.reports') }}</span>
     </a>
-@endif
-
-@if ($hasStructureMenu)
-    <details class="navbar-nav-details">
-        <summary class="navbar-link navbar-link--summary {{ $structureActive ? 'is-active' : '' }}">
-            <span class="navbar-link-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-            </span>
-            <span class="navbar-link-text">{{ __('nav.structure') }}</span>
-            <span class="navbar-link-chevron" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-            </span>
-        </summary>
-        <div class="navbar-nav-panel" data-group-label="{{ __('nav.structure') }}">
-            @permission('departments.view')
-                <a href="{{ route('departments.index') }}" class="navbar-nav-subitem {{ request()->routeIs('departments.*') ? 'is-active' : '' }}">
-                    <span class="navbar-nav-subitem-icon" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-                    </span>
-                    <span>{{ __('nav.departments') }}</span>
-                </a>
-            @endpermission
-        </div>
-    </details>
 @endif
 
 @permission('settings.view')

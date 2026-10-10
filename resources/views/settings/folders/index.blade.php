@@ -1,4 +1,8 @@
 <x-app-layout>
+    @push('styles')
+        <x-inline-css file="folder-tree.css" />
+    @endpush
+
     <x-slot name="header">
         <div class="page-header">
             <div>
@@ -24,19 +28,23 @@
                 <h3 class="card-title">{{ __('settings.folders.add_title') }}</h3>
             </div>
             <div class="card-body">
+                @php
+                    $restoreRoot = old('add_context') === null || old('add_context') === 'root';
+                @endphp
                 <form method="POST" action="{{ route('settings.folders.store') }}">
                     @csrf
+                    <input type="hidden" name="add_context" value="root">
                     <div class="form-grid">
                         <div class="form-group">
                             <x-input-label for="name" :value="__('settings.folders.name')" />
-                            <x-text-input id="name" name="name" type="text" :value="old('name')" required />
+                            <x-text-input id="name" name="name" type="text" :value="$restoreRoot ? old('name') : ''" required />
                         </div>
                         <div class="form-group">
                             <x-input-label for="parent_id" :value="__('settings.folders.parent')" />
                             <select id="parent_id" name="parent_id" class="form-select">
                                 <option value="">{{ __('settings.folders.root_folder') }}</option>
                                 @foreach ($parents as $parent)
-                                    <option value="{{ $parent->id }}" @selected(old('parent_id') == $parent->id)>{{ $parent->name }}</option>
+                                    <option value="{{ $parent->id }}" @selected($restoreRoot && old('parent_id') == $parent->id)>{{ $parent->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -44,32 +52,35 @@
                             <x-input-label for="department_id" :value="__('common.org_unit')" />
                             @include('settings.partials.org-unit-select', [
                                 'orgUnits' => $orgUnits,
-                                'selected' => old('department_id'),
+                                'selected' => $restoreRoot ? old('department_id') : null,
+                                'ignoreOld' => ! $restoreRoot,
                                 'placeholder' => __('common.choose_org_unit'),
                                 'showHint' => false,
                                 'required' => true,
                             ])
                             <p class="form-hint">{{ __('settings.folders.org_unit_hint') }}</p>
-                            @error('department_id')<p class="form-error">{{ $message }}</p>@enderror
+                            @if ($restoreRoot)
+                                @error('department_id')<p class="form-error">{{ $message }}</p>@enderror
+                            @endif
                         </div>
                         @permission('settings.folders.location.edit')
-                            @include('settings.partials.folder-location-fields', ['idPrefix' => ''])
+                            @include('settings.partials.folder-location-fields', ['idPrefix' => '', 'useOld' => $restoreRoot])
                         @endpermission
                         <div class="form-group">
                             <x-input-label for="color" :value="__('settings.folders.color')" />
-                            <x-text-input id="color" name="color" type="text" :value="old('color')" placeholder="#4338ca" />
+                            <x-text-input id="color" name="color" type="text" :value="$restoreRoot ? old('color') : ''" placeholder="#4338ca" />
                         </div>
                         <div class="form-group">
                             <x-input-label for="sort_order" :value="__('settings.folders.sort_order')" />
-                            <x-text-input id="sort_order" name="sort_order" type="number" :value="old('sort_order', 0)" min="0" />
+                            <x-text-input id="sort_order" name="sort_order" type="number" :value="$restoreRoot ? old('sort_order', 0) : 0" min="0" />
                         </div>
                     </div>
                     <div class="form-group">
                         <x-input-label for="description" :value="__('common.description')" />
-                        <textarea id="description" name="description" rows="2" class="form-control">{{ old('description') }}</textarea>
+                        <textarea id="description" name="description" rows="2" class="form-control">{{ $restoreRoot ? old('description') : '' }}</textarea>
                     </div>
                     <div class="form-check form-group">
-                        <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', true))>
+                        <input id="is_active" name="is_active" type="checkbox" value="1" @checked(! $restoreRoot || old('is_active', true))>
                         <x-input-label for="is_active" :value="__('common.active')" />
                     </div>
                     <x-primary-button>{{ __('settings.folders.add_button') }}</x-primary-button>
@@ -80,9 +91,33 @@
         <div class="card org-tree-card-wrapper">
             <div class="card-header">
                 <h3 class="card-title">{{ __('settings.folders.tree_title') }}</h3>
-                <button type="button" class="btn btn-secondary" data-org-expand-all>{{ __('common.expand_all') }}</button>
+                <button type="button" class="btn btn-secondary" data-org-expand-all onclick="document.querySelectorAll('.folder-branch-check').forEach(function(box){ box.checked = true; });">{{ __('common.expand_all') }}</button>
             </div>
             <div class="card-body">
+                @unless ($folders->isEmpty())
+                    <div class="folder-tree-filters">
+                        <div class="form-group">
+                            <x-input-label for="folder-filter-name" :value="__('settings.folders.filter_name')" />
+                            <x-text-input
+                                id="folder-filter-name"
+                                type="search"
+                                data-folder-filter-name
+                                :placeholder="__('settings.folders.filter_name_placeholder')"
+                                autocomplete="off"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <x-input-label for="folder-filter-unit" :value="__('settings.folders.filter_unit')" />
+                            <select id="folder-filter-unit" class="form-select" data-folder-filter-unit>
+                                <option value="">{{ __('settings.folders.filter_unit_all') }}</option>
+                                @foreach ($orgUnits as $unit)
+                                    <option value="{{ $unit['id'] }}">{{ str_repeat(' ', $unit['depth']) }}{{ $unit['depth'] > 0 ? '↳ ' : '' }}{{ $unit['label'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <p class="folder-tree-filter-empty" data-folder-filter-empty hidden>{{ __('settings.folders.filter_empty') }}</p>
+                @endunless
                 @if ($folders->isEmpty())
                     <div class="settings-empty">
                         <div class="settings-empty-icon">
@@ -93,7 +128,7 @@
                         <p>{{ __('settings.folders.empty') }}</p>
                     </div>
                 @else
-                    <ul class="org-tree" data-org-tree>
+                    <ul class="org-tree org-tree--folders" data-org-tree data-folder-tree>
                         @foreach ($folders as $folder)
                             @include('settings.partials.folder-tree-node', ['folder' => $folder, 'depth' => 0, 'breadcrumbs' => $breadcrumbs, 'orgUnits' => $orgUnits])
                         @endforeach
@@ -102,4 +137,79 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const tree = document.querySelector('[data-folder-tree]');
+                const nameInput = document.querySelector('[data-folder-filter-name]');
+                const unitSelect = document.querySelector('[data-folder-filter-unit]');
+                const empty = document.querySelector('[data-folder-filter-empty]');
+
+                if (! tree || ! nameInput || ! unitSelect) {
+                    return;
+                }
+
+                const nodes = () => [...tree.querySelectorAll('[data-folder-node]')];
+                const openedByFilter = new Set();
+
+                const apply = () => {
+                    const query = nameInput.value.trim().toLowerCase();
+                    const unit = unitSelect.value;
+                    const filtering = query !== '' || unit !== '';
+                    const list = nodes();
+                    const selfMatch = new Map();
+
+                    list.forEach((node) => {
+                        const haystack = `${node.dataset.folderName || ''} ${node.dataset.folderLocation || ''}`.toLowerCase();
+                        const nameMatch = query === '' || haystack.includes(query);
+                        const unitMatch = unit === '' || (node.dataset.department || '') === unit;
+                        selfMatch.set(node, nameMatch && unitMatch);
+                    });
+
+                    const visible = new Map();
+
+                    [...list].reverse().forEach((node) => {
+                        const children = [...node.querySelectorAll(':scope > .org-tree-children > [data-folder-node]')];
+                        const childVisible = children.some((child) => visible.get(child));
+                        visible.set(node, selfMatch.get(node) || childVisible);
+                    });
+
+                    let anyMatch = false;
+
+                    list.forEach((node) => {
+                        const show = Boolean(visible.get(node));
+                        node.classList.toggle('is-filter-hidden', filtering && ! show);
+                        anyMatch = anyMatch || Boolean(selfMatch.get(node));
+
+                        const box = node.querySelector(':scope > .folder-branch-check');
+
+                        if (! box) {
+                            return;
+                        }
+
+                        const children = [...node.querySelectorAll(':scope > .org-tree-children > [data-folder-node]')];
+                        const shouldOpen = filtering && show && children.some((child) => visible.get(child));
+
+                        if (shouldOpen) {
+                            if (! box.checked) {
+                                box.checked = true;
+                                openedByFilter.add(box);
+                            }
+                        } else if (openedByFilter.has(box)) {
+                            box.checked = false;
+                            openedByFilter.delete(box);
+                        }
+                    });
+
+                    if (empty) {
+                        empty.hidden = ! filtering || anyMatch;
+                    }
+                };
+
+                nameInput.addEventListener('input', apply);
+                unitSelect.addEventListener('change', apply);
+            });
+        </script>
+    @endpush
 </x-app-layout>

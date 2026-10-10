@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -61,39 +63,47 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    public function test_user_cannot_permanently_delete_their_account(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->delete('/profile', [
-                'password' => 'password',
-            ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
-    }
-
-    public function test_correct_password_must_be_provided_to_delete_account(): void
-    {
-        $user = User::factory()->create();
+        $user = $this->userWhoCanDeleteProfile();
 
         $response = $this
             ->actingAs($user)
             ->from('/profile')
             ->delete('/profile', [
-                'password' => 'wrong-password',
+                'password' => 'password',
             ]);
 
         $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
+            ->assertRedirect('/profile')
+            ->assertSessionHasErrorsIn('userDeletion', 'password');
 
+        $this->assertAuthenticatedAs($user);
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_profile_page_does_not_offer_account_deletion(): void
+    {
+        $user = $this->userWhoCanDeleteProfile();
+
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertDontSee('value="DELETE"', false);
+    }
+
+    private function userWhoCanDeleteProfile(): User
+    {
+        $role = Role::where('slug', 'user')->firstOrFail();
+        $role->update([
+            'permissions' => array_values(array_unique([
+                ...($role->permissions ?? []),
+                Permission::ProfileDelete->value,
+            ])),
+        ]);
+
+        return User::factory()->create([
+            'role_id' => $role->id,
+        ]);
     }
 }

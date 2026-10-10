@@ -313,6 +313,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:settings.folders.edit')->group(function () {
             Route::put('/folders/{folder}', [FolderTreeController::class, 'update'])->name('folders.update');
             Route::patch('/folders/{folder}', [FolderTreeController::class, 'update']);
+            Route::patch('/folders/{folder}/closure', [FolderTreeController::class, 'toggleClosure'])->name('folders.closure');
         });
 
         Route::delete('/folders/{folder}', [FolderTreeController::class, 'destroy'])

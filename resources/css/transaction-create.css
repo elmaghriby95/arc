@@ -348,6 +348,21 @@ select.txnw-input {
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
 }
 
+select.txnw-select:disabled {
+    background: #f1f5f9;
+    color: #334155;
+    cursor: not-allowed;
+    opacity: 1;
+    -webkit-text-fill-color: #334155;
+}
+
+.org-unit-locked-hint {
+    margin: 0.35rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: #64748b;
+}
+
 .txnw-textarea {
     resize: vertical;
     min-height: 4.5rem;
@@ -419,11 +434,82 @@ select.txnw-input {
 
 .txnw-folder-node.is-hidden { display: none; }
 
+.txnw-folder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.txnw-folder-toggle,
+.txnw-folder-toggle-spacer {
+    width: 1.85rem;
+    height: 1.85rem;
+    flex: 0 0 1.85rem;
+}
+
+.txnw-folder-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1.5px solid #a5b4fc;
+    border-radius: 0.45rem;
+    background: #eef2ff;
+    color: #4338ca;
+    cursor: pointer;
+}
+
+.txnw-folder-toggle:hover {
+    background: #e0e7ff;
+    border-color: #6366f1;
+    color: #312e81;
+}
+
+.txnw-folder-toggle:focus-visible {
+    outline: 2px solid #4f46e5;
+    outline-offset: 1px;
+}
+
+.txnw-folder-toggle[aria-expanded="true"] {
+    background: #4f46e5;
+    border-color: #4338ca;
+    color: #fff;
+}
+
+.txnw-folder-chevron {
+    display: block;
+    transition: transform 0.15s ease;
+}
+
+[dir="rtl"] .txnw-folder-toggle[aria-expanded="false"] .txnw-folder-chevron {
+    transform: rotate(90deg);
+}
+
+[dir="ltr"] .txnw-folder-toggle[aria-expanded="false"] .txnw-folder-chevron {
+    transform: rotate(-90deg);
+}
+
+.txnw-folder-toggle[aria-expanded="true"] .txnw-folder-chevron {
+    transform: rotate(0deg);
+}
+
+.txnw-folder-children {
+    margin-inline-start: 0.9rem;
+    border-inline-start: 2px solid #e0e7ff;
+    padding-inline-start: 0.15rem;
+}
+
+.txnw-folder-children.is-collapsed {
+    display: none;
+}
+
 .txnw-folder-item {
     display: flex;
     align-items: center;
     gap: 0.55rem;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
+    width: auto;
     padding: 0.5rem 0.65rem;
     border: 1.5px solid transparent;
     border-radius: 0.5rem;

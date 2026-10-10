@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\DocumentAccessAudit;
 use App\Models\Folder;
 use App\Models\LendingRequestHistory;
+use App\Models\Role;
 use App\Models\Transaction;
 use App\Models\TransactionAttachment;
 use App\Models\TransactionStatusHistory;
@@ -20,6 +21,9 @@ use Illuminate\Support\Facades\Schema;
 
 class SystemOperationsReportService
 {
+    /** @var array<int, string> */
+    private array $roleNames = [];
+
     public const PAGE_SIZE = 100;
 
     public const COLLECT_CAP = 5000;
@@ -152,11 +156,12 @@ class SystemOperationsReportService
             $events = $events->merge($this->lendingEvents($filter, $transactionIds, $perSource));
         }
 
-        if ($wants('audit') && Schema::hasTable('audit_logs')
-            && ! $filter->transactionSearch
-            && ! $filter->transactionTypeId
-            && ! $filter->transactionStatusId) {
-            $events = $events->merge($this->auditEvents($filter, $scope, $perSource));
+        if ($wants('audit') && Schema::hasTable('audit_logs')) {
+            $settingsOnly = $filter->transactionSearch
+                || $filter->transactionTypeId
+                || $filter->transactionStatusId;
+
+            $events = $events->merge($this->auditEvents($filter, $scope, $perSource, $settingsOnly));
         }
 
         return $events;
@@ -400,7 +405,7 @@ class SystemOperationsReportService
         });
     }
 
-    private function auditEvents(ReportFilter $filter, ReportScopeService $scope, int $limit): Collection
+    private function auditEvents(ReportFilter $filter, ReportScopeService $scope, int $limit, bool $settingsOnly = false): Collection
     {
         $folderClass = (new Folder)->getMorphClass();
         $departmentClass = (new Department)->getMorphClass();
@@ -410,6 +415,14 @@ class SystemOperationsReportService
             ->with(['user:id,name,department_id', 'user.department:id,name'])
             ->orderByDesc('created_at')
             ->limit($limit);
+
+        if ($settingsOnly) {
+            $query->where(function ($q) {
+                foreach ($this->settingsAuditPrefixes() as $prefix) {
+                    $q->orWhere('action', 'like', $prefix.'%');
+                }
+            });
+        }
 
         if ($filter->userId) {
             $query->where(function ($q) use ($filter, $userClass) {
@@ -434,7 +447,12 @@ class SystemOperationsReportService
                             ->where('auditable_id', $filter->departmentId);
                     })
                     ->orWhere('new_values->department_id', $filter->departmentId)
-                    ->orWhere('old_values->department_id', $filter->departmentId);
+                    ->orWhere('old_values->department_id', $filter->departmentId)
+                    ->orWhere(function ($settings) {
+                        foreach ($this->settingsAuditPrefixes() as $prefix) {
+                            $settings->orWhere('action', 'like', $prefix.'%');
+                        }
+                    });
             });
         } elseif ($ids = $scope->scopedDepartmentIds()) {
             $query->where(function ($q) use ($ids, $departmentClass) {
@@ -442,6 +460,11 @@ class SystemOperationsReportService
                     ->orWhere(function ($inner) use ($ids, $departmentClass) {
                         $inner->where('auditable_type', $departmentClass)
                             ->whereIn('auditable_id', $ids);
+                    })
+                    ->orWhere(function ($settings) {
+                        foreach ($this->settingsAuditPrefixes() as $prefix) {
+                            $settings->orWhere('action', 'like', $prefix.'%');
+                        }
                     });
             });
         }
@@ -573,6 +596,24 @@ class SystemOperationsReportService
             ->values();
     }
 
+    /** @return list<string> */
+    private function settingsAuditPrefixes(): array
+    {
+        return [
+            'role.',
+            'transaction_type.',
+            'document_type.',
+            'transaction_status.',
+            'language.',
+            'translation.',
+            'general_settings.',
+            'watermark_settings.',
+            'reference_number_settings.',
+            'qr_settings.',
+            'database.',
+        ];
+    }
+
     private function auditLabel(string $action): string
     {
         $key = 'reports.ops.audit.'.$action;
@@ -588,11 +629,7 @@ class SystemOperationsReportService
         $name = $new['name'] ?? $old['name'] ?? null;
         $email = $new['email'] ?? $old['email'] ?? null;
 
-        if (in_array($log->action, [
-            'folder.created', 'folder.deleted',
-            'department.created', 'department.deleted',
-            'admin.user.created', 'admin.user.deleted',
-        ], true)) {
+        if (str_ends_with($log->action, '.created') || str_ends_with($log->action, '.deleted')) {
             $parts = array_filter([
                 $name,
                 $email,
@@ -610,24 +647,115 @@ class SystemOperationsReportService
 
         $keys = collect(array_unique(array_merge(array_keys($old), array_keys($new))))
             ->reject(fn ($key) => in_array($key, ['password', 'remember_token', 'updated_at'], true))
-            ->take(6);
+            ->filter(function ($key) use ($old, $new) {
+                if (in_array($key, ['permissions_added', 'permissions_removed'], true)) {
+                    return filled($new[$key] ?? $old[$key] ?? null);
+                }
+
+                return $this->comparableValue($old[$key] ?? null) !== $this->comparableValue($new[$key] ?? null);
+            })
+            ->take(20);
 
         if ($keys->isEmpty()) {
             return $name ?? $log->action;
         }
 
         return $keys->map(function ($key) use ($old, $new) {
-            $from = $old[$key] ?? '—';
-            $to = $new[$key] ?? '—';
-            if (is_array($from)) {
-                $from = json_encode($from, JSON_UNESCAPED_UNICODE);
-            }
-            if (is_array($to)) {
-                $to = json_encode($to, JSON_UNESCAPED_UNICODE);
+            $label = $this->auditFieldLabel((string) $key);
+
+            if (in_array($key, ['permissions_added', 'permissions_removed'], true)) {
+                return $label.': '.($new[$key] ?? $old[$key] ?? '—');
             }
 
-            return $key.': '.$from.' → '.$to;
+            $from = $this->auditDisplayValue((string) $key, $old[$key] ?? null);
+            $to = $this->auditDisplayValue((string) $key, $new[$key] ?? null);
+
+            if ($from === $to) {
+                return $label.': '.__('reports.ops.value_changed');
+            }
+
+            if (($old[$key] ?? null) === null || $from === '—') {
+                return $label.': '.$to;
+            }
+
+            return $label.': '.$from.' → '.$to;
         })->implode(' · ');
+    }
+
+    private function auditFieldLabel(string $field): string
+    {
+        foreach ([
+            'reports.ops.field.'.$field,
+            'settings.general.'.$field,
+            'settings.watermark.'.$field,
+            'settings.ref_numbers.'.$field,
+            'settings.qr_code.'.$field,
+        ] as $key) {
+            $translated = __($key);
+
+            if ($translated !== $key) {
+                return $translated;
+            }
+        }
+
+        return $field;
+    }
+
+    private function auditDisplayValue(string $field, mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '—';
+        }
+
+        if ($field === 'role_id') {
+            return $this->roleName($value);
+        }
+
+        if (is_bool($value) || in_array($field, ['is_active', 'is_closed', 'is_initial', 'is_final', 'is_default', 'view_descendant_units', 'has_logo', 'has_favicon'], true)) {
+            $enabled = is_bool($value) ? $value : filter_var($value, FILTER_VALIDATE_BOOLEAN);
+
+            return $enabled ? __('common.yes') : __('common.no');
+        }
+
+        if (is_array($value)) {
+            return __('reports.ops.value_changed');
+        }
+
+        $text = (string) $value;
+
+        if (mb_strlen($text) > 180) {
+            return mb_substr($text, 0, 180).'…';
+        }
+
+        return $text;
+    }
+
+    private function comparableValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_array($value)) {
+            return json_encode($value, JSON_UNESCAPED_UNICODE) ?: '';
+        }
+
+        return trim((string) ($value ?? ''));
+    }
+
+    private function roleName(mixed $id): string
+    {
+        $id = (int) $id;
+
+        if ($id <= 0) {
+            return '—';
+        }
+
+        if (! array_key_exists($id, $this->roleNames)) {
+            $this->roleNames[$id] = Role::query()->whereKey($id)->value('name') ?? (string) $id;
+        }
+
+        return $this->roleNames[$id];
     }
 
     /** @param array<string, mixed> $values */

@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\Permission;
 use App\Models\AuditLog;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -97,6 +99,7 @@ class UserActivityLogger
             'email' => $created->email,
             'role_id' => $created->role_id,
             'department_id' => $created->department_id,
+            'view_descendant_units' => $created->view_descendant_units,
         ], $request);
     }
 
@@ -140,6 +143,64 @@ class UserActivityLogger
         return $this->log($actor, 'department.deleted', $department, $this->departmentSnapshot($department), null, $request);
     }
 
+    public function logRoleCreated(User $actor, Role $role, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'role.created', $role, null, $this->roleIdentity($role), $request);
+    }
+
+    /** @param  array{name?: string|null, description?: string|null, permissions?: list<string>}  $before */
+    public function logRoleUpdated(User $actor, Role $role, array $before, ?Request $request = null): ?AuditLog
+    {
+        $old = [
+            'name' => $before['name'] ?? null,
+            'description' => $before['description'] ?? null,
+        ];
+        $new = $this->roleIdentity($role);
+
+        $oldPermissions = Role::normalizePermissions($before['permissions'] ?? []);
+        $newPermissions = Role::normalizePermissions($role->permissions ?? []);
+        $added = array_values(array_diff($newPermissions, $oldPermissions));
+        $removed = array_values(array_diff($oldPermissions, $newPermissions));
+
+        if ($added !== []) {
+            $old['permissions_added'] = null;
+            $new['permissions_added'] = $this->permissionLabels($added);
+        }
+
+        if ($removed !== []) {
+            $old['permissions_removed'] = null;
+            $new['permissions_removed'] = $this->permissionLabels($removed);
+        }
+
+        return $this->logModelChange($actor, 'role.updated', $role, $old, $new, $request);
+    }
+
+    public function logRoleDeleted(User $actor, Role $role, ?Request $request = null): AuditLog
+    {
+        return $this->log($actor, 'role.deleted', $role, $this->roleIdentity($role), null, $request);
+    }
+
+    /**
+     * @param  array<string, mixed>  $oldValues
+     * @param  array<string, mixed>  $newValues
+     */
+    public function logModelChange(
+        User $actor,
+        string $action,
+        Model $model,
+        array $oldValues,
+        array $newValues,
+        ?Request $request = null,
+    ): ?AuditLog {
+        [$old, $new] = $this->onlyChanged($oldValues, $newValues);
+
+        if ($old === [] && $new === []) {
+            return null;
+        }
+
+        return $this->log($actor, $action, $model, $old, $new, $request);
+    }
+
     /** @return array<string, mixed> */
     private function folderSnapshot(Model $folder): array
     {
@@ -151,6 +212,70 @@ class UserActivityLogger
             'row_number' => $folder->getAttribute('row_number'),
             'box_number' => $folder->getAttribute('box_number'),
         ];
+    }
+
+    /** @return array{name: mixed, description: mixed} */
+    private function roleIdentity(Role $role): array
+    {
+        return [
+            'name' => $role->name,
+            'description' => $role->description,
+        ];
+    }
+
+    /** @param  list<string>  $permissions */
+    private function permissionLabels(array $permissions): string
+    {
+        $labels = collect($permissions)
+            ->map(fn (string $permission) => Permission::tryFrom($permission)?->label() ?? $permission)
+            ->values();
+
+        $shown = $labels->take(8)->implode('، ');
+        $extra = $labels->count() - 8;
+
+        if ($extra > 0) {
+            $shown .= ' +'.$extra;
+        }
+
+        return $shown;
+    }
+
+    /**
+     * @param  array<string, mixed>  $oldValues
+     * @param  array<string, mixed>  $newValues
+     * @return array{0: array<string, mixed>, 1: array<string, mixed>}
+     */
+    private function onlyChanged(array $oldValues, array $newValues): array
+    {
+        $old = [];
+        $new = [];
+
+        foreach (array_unique(array_merge(array_keys($oldValues), array_keys($newValues))) as $key) {
+            $from = $oldValues[$key] ?? null;
+            $to = $newValues[$key] ?? null;
+
+            if ($this->sameValue((string) $key, $from, $to)) {
+                continue;
+            }
+
+            $old[$key] = $from;
+            $new[$key] = $to;
+        }
+
+        return [$old, $new];
+    }
+
+    private function sameValue(string $key, mixed $from, mixed $to): bool
+    {
+        if (is_bool($from) || is_bool($to) || str_starts_with($key, 'is_')) {
+            return (bool) $from === (bool) $to;
+        }
+
+        if (is_array($from) || is_array($to)) {
+            return json_encode($from) === json_encode($to);
+        }
+
+        return trim((string) ($from ?? '')) === trim((string) ($to ?? ''));
     }
 
     /** @return array<string, mixed> */

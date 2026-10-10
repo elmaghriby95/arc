@@ -29,7 +29,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('transaction_type_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('folder_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('folder_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('transaction_status_id')->constrained()->restrictOnDelete();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
             $table->date('transaction_date')->nullable();

@@ -106,6 +106,11 @@ class SystemSetting extends Model
         return BrandingStorage::url($this->logo_path, $this->updated_at?->timestamp);
     }
 
+    public function logoPdfSrc(): ?string
+    {
+        return BrandingStorage::pdfImageSrc($this->logo_path);
+    }
+
     public function hasFavicon(): bool
     {
         return BrandingStorage::exists($this->favicon_path);
@@ -165,35 +170,16 @@ class SystemSetting extends Model
             return (string) $texts[$locale][$key];
         }
 
+        $translated = $this->translatedLoginText($key, $locale);
+
+        if ($translated !== null) {
+            return $translated;
+        }
+
         $defaultLocale = Language::query()->where('is_default', true)->value('code');
 
         if ($defaultLocale && $defaultLocale !== $locale && is_array($texts) && filled($texts[$defaultLocale][$key] ?? null)) {
             return (string) $texts[$defaultLocale][$key];
-        }
-
-        $authKey = match ($key) {
-            'copyright' => null,
-            'email_placeholder' => 'email_placeholder',
-            'password_placeholder' => 'password_placeholder',
-            default => $key,
-        };
-
-        if ($authKey !== null) {
-            $currentLocale = app()->getLocale();
-
-            if ($locale !== $currentLocale) {
-                app()->setLocale($locale);
-            }
-
-            $translated = __("auth.{$authKey}");
-
-            if ($locale !== $currentLocale) {
-                app()->setLocale($currentLocale);
-            }
-
-            if ($translated !== "auth.{$authKey}") {
-                return $translated;
-            }
         }
 
         return match ($key) {
@@ -202,6 +188,40 @@ class SystemSetting extends Model
             'password_placeholder' => '••••••••',
             default => '',
         };
+    }
+
+    private function translatedLoginText(string $key, string $locale): ?string
+    {
+        $authKey = match ($key) {
+            'copyright' => null,
+            'email_placeholder' => 'email_placeholder',
+            'password_placeholder' => 'password_placeholder',
+            default => $key,
+        };
+
+        if ($authKey === null) {
+            return null;
+        }
+
+        $currentLocale = app()->getLocale();
+
+        if ($locale !== $currentLocale) {
+            app()->setLocale($locale);
+        }
+
+        try {
+            $translated = __("auth.{$authKey}");
+        } finally {
+            if ($locale !== $currentLocale) {
+                app()->setLocale($currentLocale);
+            }
+        }
+
+        if (! is_string($translated) || $translated === '' || $translated === "auth.{$authKey}") {
+            return null;
+        }
+
+        return $translated;
     }
 
     public function loginTextValue(string $locale, string $key): string

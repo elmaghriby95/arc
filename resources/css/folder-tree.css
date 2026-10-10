@@ -1,0 +1,227 @@
+.folder-tree-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.folder-tree-filters .form-group {
+    margin: 0;
+}
+
+.folder-tree-filter-empty {
+    margin: 0 0 0.85rem;
+    color: #64748b;
+}
+
+.folder-tree-node.is-filter-hidden {
+    display: none;
+}
+
+@media (max-width: 720px) {
+    .folder-tree-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+.folder-tree-edit .folder-edit-panel {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 30;
+    width: min(28rem, calc(100vw - 2rem));
+    max-height: 70vh;
+    overflow: auto;
+    padding: 1rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.folder-tree-edit .folder-edit-form {
+    position: static;
+    min-width: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.org-tree--folders .org-tree-node {
+    margin-bottom: 0.4rem;
+}
+
+.org-tree--folders .org-tree-children {
+    margin-top: 0.35rem;
+    margin-right: 0.85rem;
+    padding-right: 0.75rem;
+}
+
+.folder-branch-check {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.org-tree--folders .folder-branch-check:not(:checked) ~ .org-tree-children {
+    display: none;
+}
+
+.org-tree--folders .folder-branch-check:not(:checked) ~ .org-tree-item .org-tree-toggle svg {
+    transform: rotate(90deg);
+}
+
+.org-tree--folders .org-tree-toggle {
+    position: relative;
+    z-index: 3;
+    margin-top: 0.35rem;
+    pointer-events: auto;
+}
+
+.org-tree--folders .folder-tree-card {
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem 0.7rem;
+    box-shadow: none;
+}
+
+.org-tree--folders .folder-tree-icon {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.45rem;
+}
+
+.org-tree--folders .folder-tree-icon svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.folder-tree-headline {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.folder-tree-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.92rem;
+}
+
+.folder-tree-count {
+    flex-shrink: 0;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.folder-tree-unit {
+    margin: 0.1rem 0 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.folder-tree-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+    margin-inline-start: auto;
+    flex-shrink: 0;
+}
+
+.folder-tree-card--closed {
+    background: #f8fafc;
+}
+
+.folder-tree-close {
+    display: inline-flex;
+}
+
+.folder-tree-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: #b91c1c;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.folder-tree-close-btn:hover {
+    background: #fef2f2;
+}
+
+.folder-tree-close-btn.is-reopen {
+    color: #047857;
+}
+
+.folder-tree-close-btn.is-reopen:hover {
+    background: #ecfdf5;
+}
+
+.folder-tree-add {
+    position: relative;
+}
+
+.folder-tree-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.4rem;
+    color: #4f46e5;
+    list-style: none;
+    cursor: pointer;
+}
+
+.folder-tree-add-btn::-webkit-details-marker {
+    display: none;
+}
+
+.folder-tree-add-btn:hover {
+    background: #eef2ff;
+}
+
+.folder-tree-add-btn svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.folder-tree-add .folder-subfolder-form {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 30;
+    width: min(28rem, calc(100vw - 2rem));
+    max-height: 70vh;
+    margin: 0;
+    overflow: auto;
+    padding: 1rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}

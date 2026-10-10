@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\User;
 use App\Services\DepartmentCodeService;
 use App\Services\UserActivityLogger;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -88,11 +89,25 @@ class OrganizationController extends Controller
 
     public function destroy(Request $request, Department $department, UserActivityLogger $logger): RedirectResponse
     {
+        if (! $this->deleteIfEmpty($department)) {
+            return redirect()
+                ->route('settings.organization.index')
+                ->with('error', __('messages.organization.cannot_delete_in_use'));
+        }
+
         $logger->logDepartmentDeleted($request->user(), $department, $request);
-        $department->delete();
 
         return redirect()
             ->route('settings.organization.index')
             ->with('success', __('messages.organization.deleted'));
+    }
+
+    private function deleteIfEmpty(Department $department): bool
+    {
+        try {
+            return (bool) $department->delete();
+        } catch (QueryException) {
+            return false;
+        }
     }
 }

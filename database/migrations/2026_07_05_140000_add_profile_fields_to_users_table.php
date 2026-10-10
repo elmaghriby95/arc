@@ -31,9 +31,7 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('audit_logs')) {
-            $indexes = collect(DB::select('SHOW INDEX FROM audit_logs'))
-                ->pluck('Key_name')
-                ->unique();
+            $indexes = collect(Schema::getIndexes('audit_logs'))->pluck('name');
 
             if (! $indexes->contains('audit_logs_user_id_index')) {
                 Schema::table('audit_logs', function (Blueprint $table) {

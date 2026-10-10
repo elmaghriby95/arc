@@ -54,13 +54,7 @@ class DashboardController extends Controller
             return;
         }
 
-        if (! $user->department_id) {
-            $query->whereRaw('0 = 1');
-
-            return;
-        }
-
-        $query->where('department_id', $user->department_id);
+        $this->limitToAssignedUnits($query, $user);
     }
 
     private function hasGlobalDashboardScope(User $user): bool
@@ -163,8 +157,8 @@ class DashboardController extends Controller
         return Transaction::query()
             ->whereHas('status', fn (Builder $query) => $query->where('is_final', true))
             ->where(function (Builder $query) use ($user, $permittedStatuses) {
-                if ($user->hasPermission('transactions.view') && $user->department_id) {
-                    $query->orWhere('department_id', $user->department_id);
+                if ($user->hasPermission('transactions.view')) {
+                    $this->limitToAssignedUnits($query, $user, 'or');
                 }
 
                 $this->applyWorkflowStatusRules($query, $user, $permittedStatuses);
@@ -195,11 +189,23 @@ class DashboardController extends Controller
                     return;
                 }
 
-                $user->department_id
-                    ? $statusQuery->where('department_id', $user->department_id)
-                    : $statusQuery->whereRaw('0 = 1');
+                $this->limitToAssignedUnits($statusQuery, $user);
             });
         }
+    }
+
+    /** @param Builder<Transaction> $query */
+    private function limitToAssignedUnits(Builder $query, User $user, string $boolean = 'and'): void
+    {
+        $departmentIds = $user->assignedOrgUnitIds();
+
+        if ($departmentIds === []) {
+            $query->whereRaw('0 = 1', [], $boolean);
+
+            return;
+        }
+
+        $query->whereIn('department_id', $departmentIds, $boolean);
     }
 
     private function workflowStatusesForUser(User $user, bool $isFinal)

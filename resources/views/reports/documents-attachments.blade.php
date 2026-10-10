@@ -2,17 +2,7 @@
     @include('reports.partials.styles')
 
     <x-slot name="header">
-        <div class="page-header">
-            <div>
-                <nav class="reports-breadcrumb">
-                    <a href="{{ route('reports.index') }}">{{ __('reports.title') }}</a>
-                    <span>/</span>
-                    <span>{{ $reportType->label() }}</span>
-                </nav>
-                <h1 class="page-title">{{ $reportType->label() }}</h1>
-                <p class="page-subtitle">{{ $reportType->description() }}</p>
-            </div>
-        </div>
+        @include('reports.partials.show-header')
     </x-slot>
 
     <div class="card card-elevated">

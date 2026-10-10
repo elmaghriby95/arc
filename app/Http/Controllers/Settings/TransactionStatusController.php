@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\TransactionStatus;
+use App\Services\UserActivityLogger;
 use App\Services\WorkflowPermissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class TransactionStatusController extends Controller
         ]);
     }
 
-    public function store(Request $request, WorkflowPermissionService $workflowPermissions): RedirectResponse
+    public function store(Request $request, WorkflowPermissionService $workflowPermissions, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $this->validateStatus($request);
 
@@ -47,17 +48,22 @@ class TransactionStatusController extends Controller
 
         $workflowPermissions->sync($status);
 
+        if ($actor = $request->user()) {
+            $logger->log($actor, 'transaction_status.created', $status, null, $this->snapshot($status), $request);
+        }
+
         return redirect()
             ->route('settings.transaction-statuses.index')
             ->with('success', __('messages.transaction_status.created'));
     }
 
-    public function update(Request $request, TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions): RedirectResponse
+    public function update(Request $request, TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $this->validateStatus($request, $transactionStatus);
 
         $isInitial = $request->boolean('is_initial');
         $previousPermissionKey = $transactionStatus->required_permission;
+        $before = $this->snapshot($transactionStatus);
 
         if ($isInitial && ! $transactionStatus->is_initial) {
             TransactionStatus::where('is_initial', true)->update(['is_initial' => false]);
@@ -76,12 +82,23 @@ class TransactionStatusController extends Controller
 
         $workflowPermissions->sync($transactionStatus->fresh(), $previousPermissionKey);
 
+        if ($actor = $request->user()) {
+            $logger->logModelChange(
+                $actor,
+                'transaction_status.updated',
+                $transactionStatus,
+                $before,
+                $this->snapshot($transactionStatus->fresh()),
+                $request,
+            );
+        }
+
         return redirect()
             ->route('settings.transaction-statuses.index')
             ->with('success', __('messages.transaction_status.updated'));
     }
 
-    public function destroy(TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions): RedirectResponse
+    public function destroy(Request $request, TransactionStatus $transactionStatus, WorkflowPermissionService $workflowPermissions, UserActivityLogger $logger): RedirectResponse
     {
         if ($transactionStatus->transactions()->exists()) {
             return redirect()
@@ -96,6 +113,11 @@ class TransactionStatusController extends Controller
         }
 
         $permissionKey = $transactionStatus->required_permission;
+
+        if ($actor = $request->user()) {
+            $logger->log($actor, 'transaction_status.deleted', $transactionStatus, $this->snapshot($transactionStatus), null, $request);
+        }
+
         $transactionStatus->delete();
 
         if ($permissionKey) {
@@ -140,5 +162,11 @@ class TransactionStatusController extends Controller
     private function nextSortOrder(): int
     {
         return (int) TransactionStatus::max('sort_order') + 1;
+    }
+
+    /** @return array<string, mixed> */
+    private function snapshot(TransactionStatus $status): array
+    {
+        return $status->only(['name', 'code', 'description', 'is_active', 'is_initial', 'is_final', 'visibility_scope']);
     }
 }

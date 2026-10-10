@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\Language;
 use App\Services\TranslationCache;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +19,7 @@ class LanguageController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -33,18 +34,22 @@ class LanguageController extends Controller
             Language::query()->update(['is_default' => false]);
         }
 
-        Language::create([
+        $language = Language::create([
             ...$validated,
             'is_active' => $request->boolean('is_active', true),
             'is_default' => $request->boolean('is_default'),
         ]);
+
+        if ($actor = $request->user()) {
+            $logger->log($actor, 'language.created', $language, null, $this->snapshot($language), $request);
+        }
 
         return redirect()
             ->route('settings.languages.index')
             ->with('success', __('messages.language_added'));
     }
 
-    public function update(Request $request, Language $language): RedirectResponse
+    public function update(Request $request, Language $language, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -60,6 +65,7 @@ class LanguageController extends Controller
         }
 
         $oldCode = $language->code;
+        $before = $this->snapshot($language);
 
         $language->update([
             ...$validated,
@@ -70,12 +76,16 @@ class LanguageController extends Controller
         TranslationCache::forgetLocale($oldCode);
         TranslationCache::forgetLocale($language->code);
 
+        if ($actor = $request->user()) {
+            $logger->logModelChange($actor, 'language.updated', $language, $before, $this->snapshot($language), $request);
+        }
+
         return redirect()
             ->route('settings.languages.index')
             ->with('success', __('messages.language_updated'));
     }
 
-    public function destroy(Language $language): RedirectResponse
+    public function destroy(Request $request, Language $language, UserActivityLogger $logger): RedirectResponse
     {
         if ($language->is_default) {
             return redirect()
@@ -83,10 +93,20 @@ class LanguageController extends Controller
                 ->with('error', __('messages.cannot_delete_default_language'));
         }
 
+        if ($actor = $request->user()) {
+            $logger->log($actor, 'language.deleted', $language, $this->snapshot($language), null, $request);
+        }
+
         $language->delete();
 
         return redirect()
             ->route('settings.languages.index')
             ->with('success', __('messages.language_deleted'));
+    }
+
+    /** @return array<string, mixed> */
+    private function snapshot(Language $language): array
+    {
+        return $language->only(['name', 'code', 'native_name', 'direction', 'is_active', 'is_default']);
     }
 }

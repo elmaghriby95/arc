@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Language;
+use App\Models\User;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,11 +35,42 @@ class AuthenticatedSessionController extends Controller
         $user->forceFill([
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
-        ])->save();
+        ]);
+        $this->persistChosenLocale($request, $user);
+        $user->save();
 
         $logger->logLogin($user, $request);
 
         return redirect()->intended($user->homeUrl());
+    }
+
+    private function persistChosenLocale(Request $request, User $user): void
+    {
+        $code = $request->session()->get('locale');
+
+        if (! is_string($code) || $code === '') {
+            if ($user->language_id) {
+                $saved = Language::query()
+                    ->whereKey($user->language_id)
+                    ->where('is_active', true)
+                    ->value('code');
+
+                if (is_string($saved) && $saved !== '') {
+                    $request->session()->put('locale', $saved);
+                }
+            }
+
+            return;
+        }
+
+        $languageId = Language::query()
+            ->where('code', $code)
+            ->where('is_active', true)
+            ->value('id');
+
+        if ($languageId) {
+            $user->language_id = $languageId;
+        }
     }
 
     /**

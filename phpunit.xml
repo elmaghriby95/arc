@@ -19,6 +19,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:IG9AnWWujkaQPqk6MaRlch4/gXTx15Z/s+K0HiR452c="/>
         <env name="APP_TIMEZONE" value="Africa/Tripoli"/>
         <env name="APP_DISPLAY_TIMEZONE" value="Africa/Tripoli"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

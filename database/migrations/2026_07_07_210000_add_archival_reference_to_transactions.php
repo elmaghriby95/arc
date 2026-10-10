@@ -23,9 +23,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE transactions MODIFY archival_reference VARCHAR(191) NOT NULL');
         }
 
-        $indexes = collect(DB::select('SHOW INDEX FROM transactions'))
-            ->pluck('Key_name')
-            ->unique();
+        $indexes = collect(Schema::getIndexes('transactions'))->pluck('name');
 
         if (! $indexes->contains('transactions_archival_reference_unique')) {
             Schema::table('transactions', function (Blueprint $table) {

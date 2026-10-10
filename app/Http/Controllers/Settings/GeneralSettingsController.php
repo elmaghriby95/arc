@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Language;
 use App\Models\SystemSetting;
 use App\Services\BrandingStorage;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\File;
@@ -25,7 +26,7 @@ class GeneralSettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, UserActivityLogger $logger): RedirectResponse
     {
         $validated = $request->validate([
             'app_name' => ['nullable', 'string', 'max:191'],
@@ -51,6 +52,7 @@ class GeneralSettingsController extends Controller
         ]);
 
         $settings = SystemSetting::instance();
+        $before = $this->snapshot($settings);
 
         if ($request->boolean('remove_logo')) {
             BrandingStorage::delete($settings->logo_path);
@@ -85,6 +87,10 @@ class GeneralSettingsController extends Controller
         $settings->save();
         SystemSetting::clearCache();
 
+        if ($actor = $request->user()) {
+            $logger->logModelChange($actor, 'general_settings.updated', $settings, $before, $this->snapshot($settings), $request);
+        }
+
         return redirect()
             ->route('settings.general.index')
             ->with('success', __('messages.general.saved'));
@@ -114,5 +120,23 @@ class GeneralSettingsController extends Controller
         }
 
         return $normalized === [] ? null : $normalized;
+    }
+
+    /** @return array<string, mixed> */
+    private function snapshot(SystemSetting $settings): array
+    {
+        return [
+            'app_name' => $settings->app_name,
+            'support_email' => $settings->support_email,
+            'support_phone' => $settings->support_phone,
+            'idle_timeout_minutes' => $settings->idle_timeout_minutes,
+            'logo_navbar_height' => $settings->logo_navbar_height,
+            'logo_navbar_max_width' => $settings->logo_navbar_max_width,
+            'logo_login_height' => $settings->logo_login_height,
+            'logo_login_max_width' => $settings->logo_login_max_width,
+            'has_logo' => filled($settings->logo_path),
+            'has_favicon' => filled($settings->favicon_path),
+            'login_texts' => $settings->login_texts,
+        ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Services\UserActivityLogger;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -86,8 +87,19 @@ class DepartmentController extends Controller
 
     public function destroy(Request $request, Department $department, UserActivityLogger $logger): RedirectResponse
     {
+        try {
+            $deleted = (bool) $department->delete();
+        } catch (QueryException) {
+            $deleted = false;
+        }
+
+        if (! $deleted) {
+            return redirect()
+                ->route('departments.index')
+                ->with('error', __('messages.organization.cannot_delete_in_use'));
+        }
+
         $logger->logDepartmentDeleted($request->user(), $department, $request);
-        $department->delete();
 
         return redirect()
             ->route('departments.index')

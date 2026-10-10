@@ -29,6 +29,12 @@ class SetLocale
 
     protected function resolveLocale(Request $request): string
     {
+        $sessionLocale = $request->session()->get('locale');
+
+        if (is_string($sessionLocale) && $this->activeLocale($sessionLocale)) {
+            return $sessionLocale;
+        }
+
         if ($user = $request->user()) {
             if ($user->language_id) {
                 $code = Language::query()
@@ -36,16 +42,12 @@ class SetLocale
                     ->where('is_active', true)
                     ->value('code');
 
-                if ($code) {
+                if (is_string($code) && $code !== '') {
+                    $request->session()->put('locale', $code);
+
                     return $code;
                 }
             }
-        }
-
-        $sessionLocale = $request->session()->get('locale');
-
-        if ($sessionLocale && Language::query()->where('code', $sessionLocale)->where('is_active', true)->exists()) {
-            return $sessionLocale;
         }
 
         $default = Language::query()
@@ -54,5 +56,13 @@ class SetLocale
             ->value('code');
 
         return $default ?? config('app.fallback_locale', 'en');
+    }
+
+    protected function activeLocale(string $code): bool
+    {
+        return Language::query()
+            ->where('code', $code)
+            ->where('is_active', true)
+            ->exists();
     }
 }
