@@ -60,6 +60,30 @@ class FolderBrowseTest extends TestCase
             ->assertDontSee($child->name, false);
     }
 
+    public function test_search_filters_the_folder_list_and_the_folder_page(): void
+    {
+        $department = $this->department('FIND');
+        $user = $this->userIn($department, ['transactions.view', 'transactions.create']);
+        $root = $this->folder($department, 'المالية');
+        $child = $this->folder($department, 'الفواتير', $root);
+        $other = $this->folder($department, 'العقود');
+        $own = $this->transaction($department, $user, $root, 'معاملة الميزانية');
+        $this->transaction($department, $user, $root, 'معاملة أخرى');
+
+        $this->actingAs($user)
+            ->get(route('folders.index', ['search' => 'الفواتير']))
+            ->assertOk()
+            ->assertSee($child->name, false)
+            ->assertDontSee($other->name, false);
+
+        $this->actingAs($user)
+            ->get(route('folders.browse', ['folder' => $root, 'search' => 'الميزانية']))
+            ->assertOk()
+            ->assertSee($own->title, false)
+            ->assertDontSee('معاملة أخرى', false)
+            ->assertDontSee($child->name, false);
+    }
+
     public function test_opening_a_folder_shows_inner_folders_and_only_its_transactions(): void
     {
         $department = $this->department('ARC2');

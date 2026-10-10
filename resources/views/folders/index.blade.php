@@ -13,8 +13,13 @@
 
     <div class="card card-elevated">
         <div class="card-body">
+            @include('folders.partials.search', [
+                'action' => route('folders.index'),
+                'inputId' => 'folder-list-search',
+                'placeholder' => __('folders.search_folders'),
+            ])
             @if ($folders->isEmpty())
-                <p class="table-empty">{{ __('folders.empty') }}</p>
+                <p class="table-empty">{{ request()->filled('search') ? __('folders.no_results') : __('folders.empty') }}</p>
             @else
                 <div class="folder-browse-grid">
                     @foreach ($folders as $folder)

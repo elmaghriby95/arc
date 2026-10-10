@@ -18,6 +18,29 @@
     text-decoration: underline;
 }
 
+.folder-browse-search {
+    margin-bottom: 1rem;
+}
+
+.folder-browse-search-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #5d7690;
+}
+
+.folder-browse-search-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.folder-browse-search-row .form-control {
+    flex: 1;
+    min-width: 0;
+}
+
 .folder-browse-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));

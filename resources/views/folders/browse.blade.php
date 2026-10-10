@@ -71,6 +71,12 @@
         </div>
     </div>
 
+    @include('folders.partials.search', [
+        'action' => route('folders.browse', $folder),
+        'inputId' => 'folder-browse-search',
+        'placeholder' => __('folders.search_inside'),
+    ])
+
     @if ($children->isNotEmpty())
         <div class="card card-elevated">
             <div class="card-header">
@@ -130,7 +136,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="table-empty">{{ __('folders.empty_transactions') }}</td>
+                                <td colspan="7" class="table-empty">{{ request()->filled('search') ? __('folders.no_results') : __('folders.empty_transactions') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
