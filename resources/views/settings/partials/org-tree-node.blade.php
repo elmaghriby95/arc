@@ -119,6 +119,9 @@
                                         {{ __('common.delete') }}
                                     </button>
                                 @else
+                                    <button type="button" class="btn btn-danger" disabled title="{{ $deleteBlockedMessage }}">
+                                        {{ __('common.delete') }}
+                                    </button>
                                     <p class="form-hint">{{ $deleteBlockedMessage }}</p>
                                 @endif
                             @endpermission

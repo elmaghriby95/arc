@@ -2322,6 +2322,16 @@ textarea.form-control:focus {
     margin: 0;
 }
 
+.org-edit-form .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.org-edit-form .btn-danger:disabled:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
 .org-edit-form,
 .org-tree-add .org-inline-form {
     position: absolute;

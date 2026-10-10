@@ -146,23 +146,30 @@ class OrganizationDeletionTest extends TestCase
         $this->assertNotNull($department->fresh());
     }
 
-    public function test_tree_shows_delete_only_for_an_empty_unit_and_keeps_the_form_outside_the_edit_form(): void
+    public function test_tree_shows_delete_for_every_unit_and_explains_why_a_linked_unit_stays(): void
     {
         $admin = $this->adminUser();
         $parent = $this->department('إدارة');
         $empty = $this->department('وحدة فارغة', $parent);
+        $reason = $this->blockedMessage('children', 1);
 
         $html = $this->actingAs($admin)
             ->get(route('settings.organization.index'))
             ->assertOk()
-            ->assertSee($this->blockedMessage('children', 1), false)
+            ->assertSee($reason, false)
             ->assertSee('id="org-delete-'.$empty->id.'"', false)
             ->getContent();
 
-        $this->assertSame(1, preg_match('/<form[^>]*id="org-update-'.$empty->id.'"[^>]*>(.*?)<\/form>/s', $html, $matches));
-        $this->assertStringNotContainsString('<form', $matches[1]);
-        $this->assertStringContainsString('form="org-delete-'.$empty->id.'"', $matches[1]);
+        $this->assertSame(1, preg_match('/<form[^>]*id="org-update-'.$empty->id.'"[^>]*>(.*?)<\/form>/s', $html, $emptyForm));
+        $this->assertStringNotContainsString('<form', $emptyForm[1]);
+        $this->assertStringContainsString('form="org-delete-'.$empty->id.'"', $emptyForm[1]);
         $this->assertDoesNotMatchRegularExpression('/id="org-delete-'.$parent->id.'"/', $html);
+
+        $this->assertSame(1, preg_match('/<form[^>]*id="org-update-'.$parent->id.'"[^>]*>(.*?)<\/form>/s', $html, $parentForm));
+        $this->assertStringContainsString('disabled', $parentForm[1]);
+        $this->assertStringContainsString(e(__('common.delete')), $parentForm[1]);
+        $this->assertStringContainsString(e($reason), $parentForm[1]);
+        $this->assertStringNotContainsString('<form', $parentForm[1]);
     }
 
     private function blockedMessage(string $reason, int $count): string
